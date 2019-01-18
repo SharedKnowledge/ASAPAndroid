@@ -1,6 +1,7 @@
 package net.sharksystem.aasp.android;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
@@ -24,6 +25,12 @@ class AASPMessageHandler extends Handler {
             default:
                 super.handleMessage(msg);
         }
+
+        // simulate broadcast
+        Intent intent = new Intent();
+        intent.setAction(AASP.BROADCAST_ACTION);
+        intent.putExtra(AASP.FOLDER,"sampleFolder");
+        this.applicationContext.sendBroadcast(intent);
     }
 
 }

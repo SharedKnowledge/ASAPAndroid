@@ -3,6 +3,7 @@ package net.sharksystem.aasp.android.example;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.Message;
@@ -28,8 +29,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // create broadcast receiver
+        ExampleAASPBroadcastReceiver br = new ExampleAASPBroadcastReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AASP.BROADCAST_ACTION);
+        this.registerReceiver(br, filter);
+
         // start service - which allows service to outlive unbind
-        this.startService(new Intent(this, AASPService.class));
+        Intent aaspServiceCreationIntent = new Intent(this, AASPService.class);
+        aaspServiceCreationIntent.putExtra(AASP.USER, "alice");
+        aaspServiceCreationIntent.putExtra(AASP.FOLDER, "alice");
+
+        this.startService(aaspServiceCreationIntent);
     }
 
     @Override

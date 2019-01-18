@@ -9,10 +9,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver
-            android:name="net.sharksystem.aasp.android.wifidirect.WiFiDirectBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true"></receiver>
 
         <activity android:name="net.sharksystem.aasp.android.example.MainActivity">
             <intent-filter>
