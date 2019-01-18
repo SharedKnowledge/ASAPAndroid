@@ -27,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // start service - which allows service to outlive unbind
+        this.startService(new Intent(this, AASPService.class));
     }
 
     @Override
@@ -45,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
             unbindService(mConnection);
             mBound = false;
         }
+        // kill it
+        this.stopService(new Intent(this, AASPService.class));
     }
 
     public void onClick(View view) {

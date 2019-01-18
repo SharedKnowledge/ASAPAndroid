@@ -12,9 +12,14 @@ import android.widget.Toast;
  */
 
 public class AASPService extends Service {
-    public AASPService() {
+
+    public void onCreate() {
+        Toast.makeText(getApplicationContext(), "created", Toast.LENGTH_SHORT).show();
     }
 
+    public void onDestroy() {
+        Toast.makeText(getApplicationContext(), "destroy", Toast.LENGTH_SHORT).show();
+    }
     /**
      * Target we publish for clients to send messages to IncomingHandler.
      */
