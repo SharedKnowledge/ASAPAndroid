@@ -9,7 +9,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="net.sharksystem.aasp.MainActivity">
+        <receiver
+            android:name="net.sharksystem.aasp.android.wifidirect.WiFiDirectBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
+
+        <activity android:name="net.sharksystem.aasp.android.example.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -18,9 +23,9 @@
         </activity>
 
         <service
-            android:name="net.sharksystem.aasp.WifiAASPService"
+            android:name="net.sharksystem.aasp.android.AASPService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
     </application>
 
 </manifest>
