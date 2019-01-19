@@ -20,7 +20,7 @@ class AASPMessageHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case AASP.WRITE_MESSAGE:
+            case AASPServiceMethods.ADD_MESSAGE:
                 Bundle msgData = msg.getData();
                 if (msgData != null) {
                     String uri = msgData.getString(AASP.URI);
@@ -51,10 +51,18 @@ class AASPMessageHandler extends Handler {
                 }
                 Toast.makeText(aaspService, "finish aasp write", Toast.LENGTH_SHORT).show();
                 break;
+
+            case AASPServiceMethods.START_WIFI_DIRECT:
+                this.aaspService.startWifiDirect();
+                break;
+
+            case AASPServiceMethods.STOP_WIFI_DIRECT:
+                this.aaspService.stopWifiDirect();
+                break;
+
             default:
                 super.handleMessage(msg);
         }
-
     }
 
 }

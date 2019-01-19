@@ -4,7 +4,6 @@ package net.sharksystem.aasp.android;
  * Be sure to have the AASPEngine in one of your library directories!
  */
 public class AASP {
-    public static final int WRITE_MESSAGE = 0;
     public static final String USER = "user";
     public static final String FOLDER = "folder";
 

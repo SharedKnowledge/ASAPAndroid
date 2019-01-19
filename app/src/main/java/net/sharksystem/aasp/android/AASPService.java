@@ -118,4 +118,15 @@ public class AASPService extends Service {
         // return binder interface
         return mMessenger.getBinder();
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                   Wifi Direct                                    //
+    //////////////////////////////////////////////////////////////////////////////////////
+    public void startWifiDirect() {
+
+    }
+
+    public void stopWifiDirect() {
+
+    }
 }
