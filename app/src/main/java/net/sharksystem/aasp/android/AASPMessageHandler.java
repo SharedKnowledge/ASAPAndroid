@@ -1,36 +1,60 @@
 package net.sharksystem.aasp.android;
 
-import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
 
-class AASPMessageHandler extends Handler {
-    private Context applicationContext;
+import net.sharksystem.asp3.ASP3Engine;
 
-    AASPMessageHandler( Context context) {
-        this.applicationContext = context;
+import java.io.IOException;
+
+class AASPMessageHandler extends Handler {
+    private AASPService aaspService;
+
+    AASPMessageHandler(AASPService context) {
+        this.aaspService = context;
     }
 
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
             case AASP.WRITE_MESSAGE:
-                Toast.makeText(applicationContext, "write Message!", Toast.LENGTH_SHORT).show();
-                break;
-            case AASP.NEW_ERA:
-                Toast.makeText(applicationContext, "new era!", Toast.LENGTH_SHORT).show();
+                Bundle msgData = msg.getData();
+                if (msgData != null) {
+                    String uri = msgData.getString(AASP.URI);
+                    String content = msgData.getString(AASP.MESSAGE_CONTENT);
+
+                    String text = uri + " / " + content;
+                    Toast.makeText(aaspService, text, Toast.LENGTH_SHORT).show();
+
+                    try {
+                        ASP3Engine aaspEngine = this.aaspService.getAASPEngine();
+                        if(aaspEngine == null) {
+                            Toast.makeText(aaspService, "NO AASPEngine!!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            aaspEngine.add(uri, content);
+                            Toast.makeText(aaspService, "wrote", Toast.LENGTH_SHORT).show();
+
+                            // simulate broadcast
+                            Intent intent = new Intent();
+                            intent.setAction(AASP.BROADCAST_ACTION);
+                            intent.putExtra(AASP.FOLDER,this.aaspService.getAASPRootFolderName());
+                            intent.putExtra(AASP.URI,uri);
+                            intent.putExtra(AASP.ERA,aaspEngine.getEra());
+                            this.aaspService.sendBroadcast(intent);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Toast.makeText(aaspService, "finish aasp write", Toast.LENGTH_SHORT).show();
                 break;
             default:
                 super.handleMessage(msg);
         }
 
-        // simulate broadcast
-        Intent intent = new Intent();
-        intent.setAction(AASP.BROADCAST_ACTION);
-        intent.putExtra(AASP.FOLDER,"sampleFolder");
-        this.applicationContext.sendBroadcast(intent);
     }
 
 }

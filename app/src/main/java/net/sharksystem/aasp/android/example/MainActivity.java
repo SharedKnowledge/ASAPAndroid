@@ -1,23 +1,34 @@
 package net.sharksystem.aasp.android.example;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import net.sharksystem.aasp.android.AASP;
 import net.sharksystem.aasp.android.AASPService;
 import net.sharksystem.aaspandroid.R;
 
 public class MainActivity extends AppCompatActivity {
+    private static final CharSequence TESTURI ="bubble://testuri";
+    private static final CharSequence TESTMESSAGE = "Hi there from aasp writing activity";
+
+    private static final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 42;
+
+
     /** Messenger for communicating with the service. */
     Messenger mService = null;
 
@@ -35,12 +46,32 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AASP.BROADCAST_ACTION);
         this.registerReceiver(br, filter);
 
-        // start service - which allows service to outlive unbind
-        Intent aaspServiceCreationIntent = new Intent(this, AASPService.class);
-        aaspServiceCreationIntent.putExtra(AASP.USER, "alice");
-        aaspServiceCreationIntent.putExtra(AASP.FOLDER, "alice");
+        // check for write permissions
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
 
-        this.startService(aaspServiceCreationIntent);
+            // Permission is not granted
+            Toast.makeText(getApplicationContext(), "no write permission", Toast.LENGTH_SHORT).show();
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+
+
+            // start service - which allows service to outlive unbind
+            Intent aaspServiceCreationIntent = new Intent(this, AASPService.class);
+            aaspServiceCreationIntent.putExtra(AASP.USER, "alice");
+
+            this.startService(aaspServiceCreationIntent);
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[],
+                                           int[] grantResults) {
+        // just notified - cannot do anything without that permission
+        Toast.makeText(getApplicationContext(), "got permission response",
+                Toast.LENGTH_SHORT).show();
+
     }
 
     @Override
@@ -69,6 +100,11 @@ public class MainActivity extends AppCompatActivity {
 //        if(view == writeButton) {
             // Create and send a message to the service, using a supported 'what' value
             Message msg = Message.obtain(null, AASP.WRITE_MESSAGE, 0, 0);
+            Bundle msgData = new Bundle();
+            msgData.putCharSequence(AASP.URI, TESTURI);
+            msgData.putCharSequence(AASP.MESSAGE_CONTENT, TESTMESSAGE);
+            msg.setData(msgData);
+
             try {
                 mService.send(msg);
             } catch (RemoteException e) {

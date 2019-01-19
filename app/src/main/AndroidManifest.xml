@@ -21,7 +21,10 @@
         <service
             android:name="net.sharksystem.aasp.android.AASPService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:permission="android.permission.WRITE_EXTERNAL_STORAGE"
+            />
     </application>
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 </manifest>
