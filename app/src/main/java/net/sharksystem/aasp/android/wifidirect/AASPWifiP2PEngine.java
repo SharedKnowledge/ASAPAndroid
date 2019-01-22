@@ -10,14 +10,11 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.Parcelable;
 import android.widget.Toast;
 
 import net.sharksystem.aasp.android.AASPService;
-import net.sharksystem.aasp.android.AASPSessionListener;
+import net.sharksystem.aasp.AASPSessionListener;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
