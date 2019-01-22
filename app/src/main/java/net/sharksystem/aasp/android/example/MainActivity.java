@@ -115,8 +115,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClick(View view) {
         View writeButton = findViewById(R.id.writeButton);
+        View startButton = findViewById(R.id.start);
+        View stopButton = findViewById(R.id.stop);
 
-//        if(view == writeButton) {
+        if(view == writeButton) {
             // Create and send a message to the service, using a supported 'what' value
             Message msg = Message.obtain(null, AASPServiceMethods.ADD_MESSAGE, 0, 0);
             Bundle msgData = new Bundle();
@@ -129,7 +131,24 @@ public class MainActivity extends AppCompatActivity {
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-//        }
+        }
+        else if(view == startButton) {
+            Message msg = Message.obtain(null, AASPServiceMethods.START_WIFI_DIRECT, 0, 0);
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+        }
+        else if(view == stopButton) {
+            Message msg = Message.obtain(null, AASPServiceMethods.STOP_WIFI_DIRECT, 0, 0);
+            try {
+                mService.send(msg);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**

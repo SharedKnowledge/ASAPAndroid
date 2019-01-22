@@ -4,14 +4,13 @@ import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.Messenger;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import net.sharksystem.aasp.android.wifidirect.AASPWifiP2PEngine;
 import net.sharksystem.asp3.ASP3Engine;
 import net.sharksystem.asp3.ASP3EngineFS;
 import net.sharksystem.asp3.ASP3Exception;
@@ -74,6 +73,10 @@ public class AASPService extends Service {
         return this.aaspEngine;
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                 live cycle methods                               //
+    //////////////////////////////////////////////////////////////////////////////////////
+
     // comes first
     public void onCreate() {
         Toast.makeText(getApplicationContext(), "creating", Toast.LENGTH_SHORT).show();
@@ -122,11 +125,15 @@ public class AASPService extends Service {
     //////////////////////////////////////////////////////////////////////////////////////
     //                                   Wifi Direct                                    //
     //////////////////////////////////////////////////////////////////////////////////////
-    public void startWifiDirect() {
 
+    void startWifiDirect() {
+        AASPWifiP2PEngine.getAASPWifiP2PEngine(this, this).start();
     }
 
-    public void stopWifiDirect() {
-
+    void stopWifiDirect() {
+        AASPWifiP2PEngine aaspWifiP2PEngine = AASPWifiP2PEngine.getAASPWifiP2PEngine();
+        if(aaspWifiP2PEngine != null) {
+            aaspWifiP2PEngine.stop();
+        }
     }
 }
