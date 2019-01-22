@@ -4,14 +4,20 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.Parcelable;
 import android.widget.Toast;
 
 import net.sharksystem.aasp.android.AASPService;
+import net.sharksystem.aasp.android.AASPSessionListener;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,7 +26,11 @@ import java.util.Map;
 
 import static android.os.Looper.getMainLooper;
 
-public class AASPWifiP2PEngine implements WifiP2pManager.PeerListListener {
+public class AASPWifiP2PEngine implements
+        WifiP2pManager.PeerListListener,
+        WifiP2pManager.ConnectionInfoListener,
+        AASPSessionListener {
+
     private static AASPWifiP2PEngine wifiP2PEngine = null;
 
     // https://developer.android.com/guide/topics/connectivity/wifip2p#java
@@ -67,7 +77,7 @@ public class AASPWifiP2PEngine implements WifiP2pManager.PeerListListener {
 
         // create broadcast listener to get publications regarding wifi (p2p)
         this.mReceiver = new AASPWiFiDirectBroadcastReceiver(mManager,
-                mChannel, this.context, this);
+                mChannel, this.context, this, this);
 
         // define what broadcasts we are interested in
         IntentFilter mIntentFilter = new IntentFilter();
@@ -199,6 +209,45 @@ public class AASPWifiP2PEngine implements WifiP2pManager.PeerListListener {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
+    //                  ConnectionInfoListener interface support                        //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * result of a requestConnectionInfo on wifip2pmanager after receiving a p2p connection
+     * changed event via broadcast listener
+     *
+     * @param info
+     */
+    @Override
+    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+        Toast.makeText(this.context, "connection information available", Toast.LENGTH_SHORT).show();
+
+        if(info.isGroupOwner) {
+            Toast.makeText(this.context, "group owner - should create server", Toast.LENGTH_SHORT).show();
+        } else {
+
+            String hostAddress = info.groupOwnerAddress.getHostAddress();
+            String hostName = info.groupOwnerAddress.getHostName();
+
+            String text = "no group owner: should establish client connection to "
+                    + hostAddress + " / "
+                    + hostName;
+
+            Toast.makeText(this.context, text, Toast.LENGTH_SHORT).show();
+        }
+
+        // TODO create an AASPSession after creating TCP connection
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                        AASPSessionListener interface support                     //
+    //////////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public void aaspSessionEnded() {
+
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
     //                        Broadcast receiver for wifi support                       //
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -209,17 +258,21 @@ public class AASPWifiP2PEngine implements WifiP2pManager.PeerListListener {
         private final WifiP2pManager.Channel mChannel;
         private final Context context;
         private final WifiP2pManager.PeerListListener peerListListener;
+        private final WifiP2pManager.ConnectionInfoListener connectionInfoListener;
 
-        public AASPWiFiDirectBroadcastReceiver(WifiP2pManager manager,
-                                               WifiP2pManager.Channel channel,
-                                               Context context,
-                                               WifiP2pManager.PeerListListener peerListListener
-                                                ) {
+        public AASPWiFiDirectBroadcastReceiver(
+                WifiP2pManager manager,
+                WifiP2pManager.Channel channel,
+                Context context,
+                WifiP2pManager.PeerListListener peerListListener,
+                WifiP2pManager.ConnectionInfoListener connectionInfoListener
+            ) {
             super();
             this.mManager = manager;
             this.mChannel = channel;
             this.context = context;
             this.peerListListener = peerListListener;
+            this.connectionInfoListener = connectionInfoListener;
         }
 
         @Override
@@ -253,8 +306,27 @@ public class AASPWifiP2PEngine implements WifiP2pManager.PeerListListener {
 
             } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
                 // Respond to new connection or disconnections
+                if (mManager == null) {
+                    return;
+                }
+
+                NetworkInfo networkInfo = (NetworkInfo) intent
+                        .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+
+
+                // are we connected
+                if(networkInfo.isConnected()) {
+                    // yes - ask for connection information
+                    this.mManager.requestConnectionInfo(this.mChannel, this.connectionInfoListener);
+                }
+
             } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
                 // Respond to this device's wifi state changing
+
+                WifiP2pDevice device = (WifiP2pDevice)
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
+
+                // TODO do something useful with that information
             }
         }
     }
