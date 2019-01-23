@@ -78,6 +78,13 @@ public class TCPChannelMaker extends Thread {
     }
 
     /**
+     * connection maker thread already started?
+     */
+    public boolean running() {
+        return this.threadRunning;
+    }
+
+    /**
      * Called when calling @see createSocket. Do not call this method directly.
      */
     @Override

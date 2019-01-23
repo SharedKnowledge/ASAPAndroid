@@ -88,12 +88,16 @@ public class AASPWifiP2PEngine implements
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+        Toast.makeText(this.aaspService, "start / register WifiBR", Toast.LENGTH_LONG).show();
+
         // register (subscribe) to broadcasts
         this.context.registerReceiver(this.mReceiver, mIntentFilter);
     }
 
     public void stop() {
         // stop / remove channel in some way: TODO
+
+        Toast.makeText(this.aaspService, "stop / unregister WifiBR", Toast.LENGTH_LONG).show();
 
         // remove broadcast listener
         this.context.unregisterReceiver(this.mReceiver);
@@ -299,6 +303,9 @@ public class AASPWifiP2PEngine implements
                 if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                     // Wifi P2P is enabled
                     Toast.makeText(this.context, "wifi p2p enabled", Toast.LENGTH_SHORT).show();
+
+                    // discover peers
+                    discover();
                 } else {
                     // Wi-Fi P2P is not enabled
                     Toast.makeText(this.context, "wifi p2p not enabled", Toast.LENGTH_SHORT).show();
@@ -316,6 +323,8 @@ public class AASPWifiP2PEngine implements
                 }
             } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
                 // Respond to new connection or disconnections
+                Toast.makeText(this.context, "p2p peers connection changed", Toast.LENGTH_SHORT).show();
+
                 if (mManager == null) {
                     return;
                 }
