@@ -12,4 +12,5 @@ public class AASP {
     public static final String URI = "AASP_MESSAGE_URI";
     public static final String MESSAGE_CONTENT = "AASP_MESSAGE_CONTENT";
     public static final String ERA = "ERA";
+    public static final int PORT_NUMBER = 7777;
 }

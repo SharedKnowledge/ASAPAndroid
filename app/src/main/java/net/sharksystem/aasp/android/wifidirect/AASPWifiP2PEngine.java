@@ -12,8 +12,11 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.widget.Toast;
 
+import net.sharksystem.aasp.AASPSession;
+import net.sharksystem.aasp.android.AASP;
 import net.sharksystem.aasp.android.AASPService;
 import net.sharksystem.aasp.AASPSessionListener;
+import net.sharksystem.aasp.net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -219,8 +222,13 @@ public class AASPWifiP2PEngine implements
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         Toast.makeText(this.context, "connection information available", Toast.LENGTH_SHORT).show();
 
+        TCPChannelMaker channelCreator = null;
         if(info.isGroupOwner) {
             Toast.makeText(this.context, "group owner - should create server", Toast.LENGTH_SHORT).show();
+
+            // create tcp server as group owner
+            channelCreator = TCPChannelMaker.getTCPServerCreator(AASP.PORT_NUMBER);
+
         } else {
 
             String hostAddress = info.groupOwnerAddress.getHostAddress();
@@ -231,9 +239,16 @@ public class AASPWifiP2PEngine implements
                     + hostName;
 
             Toast.makeText(this.context, text, Toast.LENGTH_SHORT).show();
+
+            // create client connection to group owner
+            channelCreator = TCPChannelMaker.getTCPClientCreator(hostName, AASP.PORT_NUMBER);
         }
 
-        // TODO create an AASPSession after creating TCP connection
+        // create an AASPSession with connection parameters
+        AASPSession aaspSession = new AASPSession(channelCreator, this.aaspService.getAASPEngine(),
+                this, this.aaspService);
+
+        aaspSession.start();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -299,8 +314,6 @@ public class AASPWifiP2PEngine implements
                 if (mManager != null) {
                     mManager.requestPeers(mChannel, this.peerListListener);
                 }
-
-
             } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
                 // Respond to new connection or disconnections
                 if (mManager == null) {

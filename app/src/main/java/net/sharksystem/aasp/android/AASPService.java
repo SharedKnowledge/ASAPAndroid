@@ -14,6 +14,7 @@ import net.sharksystem.aasp.android.wifidirect.AASPWifiP2PEngine;
 import net.sharksystem.asp3.ASP3Engine;
 import net.sharksystem.asp3.ASP3EngineFS;
 import net.sharksystem.asp3.ASP3Exception;
+import net.sharksystem.asp3.ASP3ReceivedChunkListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.io.IOException;
  * to run an AASP session.
  */
 
-public class AASPService extends Service {
+public class AASPService extends Service implements ASP3ReceivedChunkListener {
     private String aaspEngineRootFolderName;
 
     private ASP3Engine aaspEngine = null;
@@ -33,7 +34,7 @@ public class AASPService extends Service {
         return this.aaspEngineRootFolderName;
     }
 
-    ASP3Engine getAASPEngine() {
+    public ASP3Engine getAASPEngine() {
         if(this.aaspEngine == null) {
             Toast.makeText(getApplicationContext(), "try to get AASPEngine", Toast.LENGTH_LONG).show();
 
@@ -135,5 +136,20 @@ public class AASPService extends Service {
         if(aaspWifiP2PEngine != null) {
             aaspWifiP2PEngine.stop();
         }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                          chunk receiving management                              //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void chunkReceived(String sender, String uri, int era) {
+        // simulate broadcast
+        Intent intent = new Intent();
+        intent.setAction(AASP.BROADCAST_ACTION);
+        intent.putExtra(AASP.FOLDER,this.getAASPRootFolderName());
+        intent.putExtra(AASP.URI,uri);
+        intent.putExtra(AASP.ERA,aaspEngine.getEra());
+        this.sendBroadcast(intent);
     }
 }
