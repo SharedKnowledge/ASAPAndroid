@@ -1,4 +1,4 @@
-package net.sharksystem.aasp;
+package net.sharksystem.util;
 
 public interface AASPSessionListener {
     public void aaspSessionEnded();

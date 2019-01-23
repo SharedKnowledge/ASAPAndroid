@@ -1,6 +1,6 @@
-package net.sharksystem.aasp;
+package net.sharksystem.util;
 
-import net.sharksystem.aasp.net.sharksystem.util.tcp.TCPChannelMaker;
+import net.sharksystem.util.tcp.TCPChannelMaker;
 import net.sharksystem.asp3.ASP3Engine;
 import net.sharksystem.asp3.ASP3ReceivedChunkListener;
 

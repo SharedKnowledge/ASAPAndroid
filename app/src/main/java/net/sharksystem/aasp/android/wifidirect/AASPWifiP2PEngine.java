@@ -12,11 +12,11 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.widget.Toast;
 
-import net.sharksystem.aasp.AASPSession;
+import net.sharksystem.util.AASPSession;
 import net.sharksystem.aasp.android.AASP;
 import net.sharksystem.aasp.android.AASPService;
-import net.sharksystem.aasp.AASPSessionListener;
-import net.sharksystem.aasp.net.sharksystem.util.tcp.TCPChannelMaker;
+import net.sharksystem.util.AASPSessionListener;
+import net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.util.ArrayList;
 import java.util.Date;

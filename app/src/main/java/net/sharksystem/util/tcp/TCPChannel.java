@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.net.sharksystem.util.tcp;
+package net.sharksystem.util.tcp;
 
 import java.io.IOException;
 import java.io.InputStream;
