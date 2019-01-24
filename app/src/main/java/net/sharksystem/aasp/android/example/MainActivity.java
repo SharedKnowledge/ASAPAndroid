@@ -67,6 +67,14 @@ public class MainActivity extends AppCompatActivity {
         this.startService(aaspServiceCreationIntent);
     }
 
+    protected void onDestroy() {
+        this.sendMessage2Service(AASPServiceMethods.STOP_WIFI_DIRECT);
+        // and kill it
+        this.stopService(new Intent(this, AASPService.class));
+
+        super.onDestroy();
+    }
+
     private void askForPermissions(String[] permissions) {
         if(permissions == null || permissions.length < 1) return;
 
@@ -97,8 +105,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // Bind to the service
-        bindService(new Intent(this, AASPService.class), mConnection,
-                Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, AASPService.class), mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -109,8 +116,16 @@ public class MainActivity extends AppCompatActivity {
             unbindService(mConnection);
             mBound = false;
         }
-        // kill it
-        this.stopService(new Intent(this, AASPService.class));
+        this.sendMessage2Service(AASPServiceMethods.STOP_WIFI_DIRECT);
+    }
+
+    private void sendMessage2Service(int messageNumber) {
+        Message msg = Message.obtain(null, messageNumber, 0, 0);
+        try {
+            mService.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void onClick(View view) {
@@ -133,21 +148,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         else if(view == startButton) {
-            Message msg = Message.obtain(null, AASPServiceMethods.START_WIFI_DIRECT, 0, 0);
-            try {
-                mService.send(msg);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-
+            this.sendMessage2Service(AASPServiceMethods.START_WIFI_DIRECT);
         }
+
         else if(view == stopButton) {
-            Message msg = Message.obtain(null, AASPServiceMethods.STOP_WIFI_DIRECT, 0, 0);
-            try {
-                mService.send(msg);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+            this.sendMessage2Service(AASPServiceMethods.STOP_WIFI_DIRECT);
         }
     }
 

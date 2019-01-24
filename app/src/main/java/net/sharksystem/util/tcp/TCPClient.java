@@ -14,15 +14,19 @@ class TCPClient extends TCPChannel {
     }
 
     void createSocket() throws IOException {
-        for(;;) {
+        int i = TCPChannelMaker.max_connection_loops;
+
+        for(;i > 0; i--) {
             try {
                 //<<<<<<<<<<<<<<<<<<debug
                 StringBuilder b = new StringBuilder();
-                b.append("TCClient:");
+                b.append("TCPClient:");
                 b.append("try to connect to ");
                 b.append(this.hostname);
                 b.append(" port: ");
                 b.append(port);
+                b.append(" remaing tries: ");
+                b.append(i);
                 System.out.println(b.toString());
                 //>>>>>>>>>>>>>>>>>>>debug
 
@@ -34,7 +38,7 @@ class TCPClient extends TCPChannel {
             catch(IOException ioe) {
                 //<<<<<<<<<<<<<<<<<<debug
                 StringBuilder b = new StringBuilder();
-                b.append("TCClient:");
+                b.append("TCPClient:");
                 b.append("failed / wait and re-try");
                 b.append(port);
                 System.out.println(b.toString());
@@ -45,5 +49,8 @@ class TCPClient extends TCPChannel {
                 }
             }
         }
+
+        System.out.println("TCPClient:. give up");
+
     }
 }

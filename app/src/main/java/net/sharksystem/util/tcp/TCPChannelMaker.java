@@ -35,8 +35,18 @@ public class TCPChannelMaker extends Thread {
     private boolean fatalError = false;
     private boolean threadRunning = false;
 
-    public final int WAIT_LOOP_IN_MILLIS = 1000;
+    public static int wait_for_next_connection_try;
+    public static final int WAIT_FOR_NEXT_CONNECTION_TRY_DEFAULT = 10000; // any 10 sec
+
+    public static int max_connection_loops;
+    public static final int MAX_CONNECTION_LOOPS_DEFAULT = 100; // hundred times
+
     private TCPChannel channel;
+
+    static {
+        wait_for_next_connection_try = WAIT_FOR_NEXT_CONNECTION_TRY_DEFAULT;
+        max_connection_loops = MAX_CONNECTION_LOOPS_DEFAULT;
+    }
 
     /**
      * Create a tcp channel as client
@@ -129,7 +139,7 @@ public class TCPChannelMaker extends Thread {
             */
 
             try {
-                Thread.sleep(WAIT_LOOP_IN_MILLIS);
+                Thread.sleep(wait_for_next_connection_try);
             } catch (InterruptedException ex) {
                 // ignore
             }
@@ -142,7 +152,7 @@ public class TCPChannelMaker extends Thread {
 
         while(!this.fatalError && !this.isConnected()) {
             try {
-                Thread.sleep(WAIT_LOOP_IN_MILLIS);
+                Thread.sleep(wait_for_next_connection_try);
             } catch (InterruptedException ex) {
                 // ignore
             }
