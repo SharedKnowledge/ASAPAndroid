@@ -1,5 +1,7 @@
 package net.sharksystem.util.tcp;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,21 +34,26 @@ class TCPServer extends TCPChannel {
      * @throws IOException
      */
     void createSocket() throws IOException {
+        Log.d("TCPServer:", "createSocket called");
+
         // called first time
         if(this.acceptThread == null) {
+            Log.d("TCPServer:", "accept thread null - going to accept");
             // wait for connection attempt
             Socket newSocket = srvSocket.accept();
 
             // got a socket
-
             if(multiple) {
+                Log.d("TCPServer:", "out of accept - multiple set");
                 // create a new thread to collect other sockets
                 this.acceptThread = new Thread() {
                     public void run() {
                         try {
+                            Log.d("TCPServer/AcceptThread:", "started");
                             while(multiple) {
                                 // loop will be broken when close called which closes srvSocket
                                 socketList.add(srvSocket.accept());
+                                Log.d("AcceptThread:", "new socket");
                             }
                         } catch (IOException e) {
                             // leave loop
@@ -59,21 +66,26 @@ class TCPServer extends TCPChannel {
                             }
                             srvSocket = null; // remember invalid server socket
                         }
+                        Log.d("TCPServer/AcceptThread:", "ended");
                     }
                 };
+                Log.d("TCPServer:", "start accept thread");
                 this.acceptThread.start();
             }
 
             // set first found socket on top of the queue
+            Log.d("TCPServer:", "new socket found");
             this.setSocket(newSocket);
 
         } else {
+            Log.d("TCPServer:", "accept thread running");
             // an accept thread was already called
 
             // was is successful?
             boolean found = false;
             do {
                 if (!this.socketList.isEmpty()) {
+                    Log.d("TCPServer:", "socket list not empty");
                     // make first socket on waiting list to current socket
                     this.setSocket(this.socketList.remove(0));
                     found = true;
@@ -81,6 +93,7 @@ class TCPServer extends TCPChannel {
                     // wait
                     try {
                         // TODO: that's polling! replace with thread synchronization
+                        Log.d("TCPServer:", "socket list empty, wait/retry");
                         Thread.sleep(WAIT_LOOP_IN_MILLIS);
                     } catch (InterruptedException e) {
                         // ignore
@@ -108,11 +121,17 @@ class TCPServer extends TCPChannel {
      */
 
     void nextConnection() throws IOException {
-        if(!this.multiple)
-            throw new IOException("multiple flag not set - no further connections");
+        Log.d("TCPServer:", "nextConnection called");
+        if(!this.multiple) {
+            String message = "multiple flag not set - no further connections";
+            Log.d("TCPServer:", message);
+            throw new IOException(message);
+        }
 
         if(this.srvSocket == null) {
-            throw new IOException("no open server socket, cannot create another connection");
+            String message = "no open server socket, cannot create another connection";
+            Log.d("TCPServer:", message);
+            throw new IOException(message);
         }
 
         // try to get next socket

@@ -1,15 +1,13 @@
 package net.sharksystem.aasp.android.wifidirect;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.util.AASPSession;
@@ -182,13 +180,13 @@ public class AASPWifiP2PEngine implements
                 @Override
                 public void onSuccess() {
                     // TODO remove that after debugging
-                    Toast.makeText(context, "discoverPeers: peer discovery start", Toast.LENGTH_SHORT).show();
+                    Log.d("AASPWifiEngine:", "discoverPeers: peer discovery started");
                 }
 
                 @Override
                 public void onFailure(int reasonCode) {
                     // TODO remove that after debugging
-                    Toast.makeText(context, "discoverPeers: peer discovery failed", Toast.LENGTH_SHORT).show();
+                    Log.d("AASPWifiEngine:", "discoverPeers: peer discovery failed");
                 }
             });
     }
@@ -203,33 +201,26 @@ public class AASPWifiP2PEngine implements
     /** last encounter with new peers - last time pnPeersAvaiable called */
     private Date lastEncounter = new Date();
 
-    /** keeps info abbout device recently met (mac address, last encounter*/
-    private Map<String, Date> knownDevices = new HashMap<>();
+    /** keeps info about device we have tried (!!) recently to connect
+     * <MAC address, connection time>
+     */
+    private Map<String, Date> connectDevices = new HashMap<>();
 
     /** list of devices which should be connected to */
     private List<WifiP2pDevice> devices2Connect = null;
 
+    /**
+     * called as result of a previous requestPeers call in wifip2pmanager
+     * after receiving a ON_PEERS_CHANGED_ACTION. Note: There was a sheer
+     * flood on those messages
+     *
+     * @param peers
+     */
     @Override
     public void onPeersAvailable(WifiP2pDeviceList peers) {
         // got a list of peers  - check it out
-        System.out.println("onPeersAvailable: peers available");
+        Log.d("AASPWifiEngine", "onPeersAvailable: peers available");
 
-        // debugging: put first device in list an try connection
-        this.devices2Connect = new ArrayList<>();
-
-        if(peers != null && peers.getDeviceList() != null) {
-            this.devices2Connect.add(peers.getDeviceList().iterator().next());
-            this.connectDevices();
-        } else {
-            System.out.println("onPeersAvailable: empty device list");
-        }
-
-        Toast.makeText(context, "WEITERMACHEN: AASPEngine.onPeersAvailable ", Toast.LENGTH_SHORT).show();
-
-
-        return;
-
-/*
         // get current time, in its incarnation as date
         long nowInMillis = System.currentTimeMillis();
         long reconnectedBeforeInMillis = nowInMillis - this.waitBeforeReconnect;
@@ -237,12 +228,16 @@ public class AASPWifiP2PEngine implements
         Date now = new Date(nowInMillis);
         Date reconnectBefore = new Date(reconnectedBeforeInMillis);
 
-        // if we last encountered other peers *before* the reconnect
-        // waiting periode remove whole knownDevices list - any peer should be
-        // tried to reconnected.
+        Log.d("AASPWifiEngine","now: " + now.toString());
+        Log.d("AASPWifiEngine","connectBefore: " + reconnectBefore.toString());
+
+        // if our last general encounter was before our waiting period
+        // we can drop the whole waiting list - any peer will be considered as
+        // new - remove waiting queue
 
         if(this.lastEncounter.before(reconnectBefore)) {
-            this.knownDevices = new HashMap<>();
+            Log.d("AASPWifiEngine", "drop connectDevices list");
+            this.connectDevices = new HashMap<>();
         }
 
         if(this.devices2Connect == null) {
@@ -252,17 +247,24 @@ public class AASPWifiP2PEngine implements
         // walk trough list of available peers
         for(WifiP2pDevice device : peers.getDeviceList()) {
             boolean connect = false;
+            Log.d("AASPWifiEngine", "iterate new peer: " + device.deviceAddress);
 
             // device in known device list?
-            Date lastEncounter = this.knownDevices.get(device.deviceAddress);
+            Date lastEncounter = this.connectDevices.get(device.deviceAddress);
 
             if(lastEncounter != null) {
+                Log.d("AASPWifiEngine", "device in connectDevices list");
                 // it was in the list
                 if(lastEncounter.before(reconnectBefore)) {
+                    Log.d("AASPWifiEngine", "add to devices2connect");
                     // that encounter longer ago than waiting periode - remember that peer
                     devices2Connect.add(device);
+                } else {
+                    Log.d("AASPWifiEngine", "still in waiting period - ignore");
                 }
             } else {
+                Log.d("AASPWifiEngine", "device not in connectDevices list");
+                Log.d("AASPWifiEngine", "add to devices2connect");
                 // no entry at all - remember that device
                 devices2Connect.add(device);
             }
@@ -275,50 +277,46 @@ public class AASPWifiP2PEngine implements
         if(!devices2Connect.isEmpty()) {
             this.connectDevices();
         }
-        */
     }
 
     private void connectDevices() {
         if(this.devices2Connect == null || this.devices2Connect.isEmpty()) return;
+
+        Log.d("AASPWifiEngine", "connectDevices entered with non-empty list");
 
         // not null, not empty, go ahead
         for(WifiP2pDevice device : this.devices2Connect) {
             WifiP2pConfig config = new WifiP2pConfig();
             config.deviceAddress = device.deviceAddress;
 
-            System.out.println("connectDevices: try address: " + device.deviceAddress);
-            Toast.makeText(context, "connectDevices: try address: " + device.deviceAddress,
-                    Toast.LENGTH_SHORT).show();
-
+            Log.d("AASPWifiEngine", "connectDevices: try address: " + device.deviceAddress);
+            this.connectDevices.put(device.deviceAddress, new Date());
+            Log.d("AASPWifiEngine", "added to connectDevices list");
             this.mManager.connect(this.mChannel, config,
                     new WifiP2pManager.ActionListener() {
                         @Override
                         public void onSuccess() {
-                            //success logic TODO: maybe remove that stuff
-                            System.out.println("connectDevices: connect called successfully");
-                            Toast.makeText(context, "connectDevices: connect called successfully",
-                                    Toast.LENGTH_SHORT).show();
-
+                            Log.d("AASPWifiEngine","connectDevices: connect called successfully");
                         }
 
                         @Override
                         public void onFailure(int reason) {
                             //failure logic
-                            System.out.println("connectDevices: connect called not successfully");
-                            Toast.makeText(context, "connectDevices: connect called unsuccessfully",
-                                    Toast.LENGTH_SHORT).show();
+                            Log.d("AASPWifiEngine","connectDevices: connect called not successfully");
                         }
                     }
             ); // end connect
-
-            // TODO: debugging - take only first one
-            break;
         }
+
+        // done: remove list
+        this.devices2Connect = null;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
     //                  ConnectionInfoListener interface support                        //
     //////////////////////////////////////////////////////////////////////////////////////
+
+    TCPChannelMaker serverChannelCreator = null;
 
     /**
      * result of a requestConnectionInfo on wifip2pmanager after receiving a p2p connection
@@ -328,29 +326,30 @@ public class AASPWifiP2PEngine implements
      */
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        Toast.makeText(this.context, "onConnectionInfoAvailable", Toast.LENGTH_SHORT).show();
+        Log.d("AASPWifiEngine:", "onConnectionInfoAvailable");
 
         TCPChannelMaker.max_connection_loops = 10;
 
         TCPChannelMaker channelCreator = null;
         if(info.isGroupOwner) {
-            System.out.println("onConnectionInfoAvailable: group owner - should create server");
-            Toast.makeText(this.context, "onConnectionInfoAvailable: group owner - should create server", Toast.LENGTH_SHORT).show();
+            Log.d("AASPWifiEngine:", "group owner - should create server");
 
             // create tcp server as group owner
-            System.out.println("start tcp server channel creator");
-            channelCreator = TCPChannelMaker.getTCPServerCreator(AASP.PORT_NUMBER);
+            if(this.serverChannelCreator == null) {
+                Log.d("AASPWifiEngine:", "start server channel maker");
+                this.serverChannelCreator =
+                        TCPChannelMaker.getTCPServerCreator(AASP.PORT_NUMBER, true);
+            } else {
+                Log.d("AASPWifiEngine:", "server channel maker already exists");
+            }
+
+            channelCreator = this.serverChannelCreator;
 
         } else {
 
             String hostAddress = info.groupOwnerAddress.getHostAddress();
 
-            String text = "onConnectionInfoAvailable: no group owner: should establish client connection to "
-                    + hostAddress;
-
-            Toast.makeText(this.context, text, Toast.LENGTH_SHORT).show();
-
-            System.out.println(text);
+            Log.d("AASPWifiEngine:", " start server channel maker: " + hostAddress);
             // create client connection to group owner
             channelCreator = TCPChannelMaker.getTCPClientCreator(hostAddress, AASP.PORT_NUMBER);
         }

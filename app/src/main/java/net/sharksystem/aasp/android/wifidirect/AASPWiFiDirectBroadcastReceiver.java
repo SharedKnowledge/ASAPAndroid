@@ -7,6 +7,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import static android.net.wifi.p2p.WifiP2pManager.EXTRA_P2P_DEVICE_LIST;
@@ -49,21 +50,20 @@ class AASPWiFiDirectBroadcastReceiver extends BroadcastReceiver {
             int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
             if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                 // Wifi P2P is enabled
-                Toast.makeText(this.context, "BL: wifi p2p enabled", Toast.LENGTH_SHORT).show();
+                Log.d("AASP_BR", "BL: wifi p2p enabled");
 
                 // discoverPeers peers
                 this.aaspWifiP2PEngine.discoverPeers();
             } else {
                 // Wi-Fi P2P is not enabled
-                Toast.makeText(this.context, "BL: wifi p2p not enabled", Toast.LENGTH_SHORT).show();
+                Log.d("AASP_BR","BL: wifi p2p not enabled");
             }
 
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // Call WifiP2pManager.requestPeers() to get a list of current peers
             // that event is a result of a previous discoverPeers peers
 
-            Toast.makeText(this.context, "BL: p2p peers changed", Toast.LENGTH_SHORT).show();
-
+            Log.d("AASP_BR", "p2p peers changed");
             // call for a list of peers
             if (mManager != null) {
                 mManager.requestPeers(mChannel, this.peerListListener);
@@ -83,10 +83,10 @@ class AASPWiFiDirectBroadcastReceiver extends BroadcastReceiver {
             // are we connected
             if(networkInfo.isConnected()) {
                 // yes - ask for connection information
-                Toast.makeText(this.context, "BL: p2p peers connection changed: connected", Toast.LENGTH_SHORT).show();
+                Log.d("AASP_BR", "BL: p2p peers connection changed: connected");
                 this.mManager.requestConnectionInfo(this.mChannel, this.connectionInfoListener);
             } else {
-                Toast.makeText(this.context, "BL: p2p peers connection changed: not connected", Toast.LENGTH_SHORT).show();
+                Log.d("AASP_BR", "BL: p2p peers connection changed: not connected");
             }
 
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
