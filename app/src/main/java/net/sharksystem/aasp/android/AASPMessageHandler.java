@@ -6,7 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
 
-import net.sharksystem.asp3.ASP3Engine;
+import net.sharksystem.aasp.AASPEngine;
 
 import java.io.IOException;
 
@@ -30,7 +30,7 @@ class AASPMessageHandler extends Handler {
                     Toast.makeText(aaspService, text, Toast.LENGTH_SHORT).show();
 
                     try {
-                        ASP3Engine aaspEngine = this.aaspService.getAASPEngine();
+                        AASPEngine aaspEngine = this.aaspService.getAASPEngine();
                         if(aaspEngine == null) {
                             Toast.makeText(aaspService, "NO AASPEngine!!", Toast.LENGTH_SHORT).show();
                         } else {

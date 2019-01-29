@@ -10,11 +10,11 @@ import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import net.sharksystem.aasp.AASPEngine;
+import net.sharksystem.aasp.AASPEngineFS;
+import net.sharksystem.aasp.AASPException;
+import net.sharksystem.aasp.AASPReceivedChunkListener;
 import net.sharksystem.aasp.android.wifidirect.AASPWifiP2PEngine;
-import net.sharksystem.asp3.ASP3Engine;
-import net.sharksystem.asp3.ASP3EngineFS;
-import net.sharksystem.asp3.ASP3Exception;
-import net.sharksystem.asp3.ASP3ReceivedChunkListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,17 +24,17 @@ import java.io.IOException;
  * to run an AASP session.
  */
 
-public class AASPService extends Service implements ASP3ReceivedChunkListener {
+public class AASPService extends Service implements AASPReceivedChunkListener {
     private String aaspEngineRootFolderName;
 
-    private ASP3Engine aaspEngine = null;
+    private AASPEngine aaspEngine = null;
     public static final String ROOT_FOLDER_NAME = "SHARKSYSTEM_AASP";
 
     String getAASPRootFolderName() {
         return this.aaspEngineRootFolderName;
     }
 
-    public ASP3Engine getAASPEngine() {
+    public AASPEngine getAASPEngine() {
         if(this.aaspEngine == null) {
             Toast.makeText(getApplicationContext(), "try to get AASPEngine", Toast.LENGTH_LONG).show();
 
@@ -58,13 +58,13 @@ public class AASPService extends Service implements ASP3ReceivedChunkListener {
                     rootFolder.mkdirs();
                     Toast.makeText(getApplicationContext(), "createdFolder", Toast.LENGTH_SHORT).show();
                 }
-                this.aaspEngine = ASP3EngineFS.getASP3Engine(this.aaspEngineRootFolderName);
+                this.aaspEngine = AASPEngineFS.getAASPEngine(this.aaspEngineRootFolderName);
                 Toast.makeText(getApplicationContext(), "engine created", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 Toast.makeText(getApplicationContext(), "IOException", Toast.LENGTH_SHORT).show();
                 Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
-            } catch (ASP3Exception e) {
+            } catch (AASPException e) {
                 Toast.makeText(getApplicationContext(), "ASP3Exception", Toast.LENGTH_SHORT).show();
                 Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                 e.printStackTrace();

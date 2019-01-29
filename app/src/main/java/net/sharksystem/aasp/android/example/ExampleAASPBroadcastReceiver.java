@@ -5,10 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+import net.sharksystem.aasp.AASPChunkStorage;
+import net.sharksystem.aasp.AASPEngineFS;
+import net.sharksystem.aasp.AASPException;
+import net.sharksystem.aasp.AASPStorage;
 import net.sharksystem.aasp.android.AASP;
-import net.sharksystem.asp3.ASP3ChunkStorage;
-import net.sharksystem.asp3.ASP3EngineFS;
-import net.sharksystem.asp3.ASP3Exception;
 
 import java.io.IOException;
 
@@ -28,11 +29,11 @@ public class ExampleAASPBroadcastReceiver extends BroadcastReceiver {
 
         // create access to that chunk storage
         try {
-            ASP3ChunkStorage chunkStorage = ASP3EngineFS.getASP3ChunkStorage(folder);
+            AASPStorage chunkStorage = AASPEngineFS.getAASPChunkStorage(folder);
             Toast.makeText(context, "got storage on client side", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ASP3Exception e) {
+        } catch (AASPException e) {
             e.printStackTrace();
         }
     }

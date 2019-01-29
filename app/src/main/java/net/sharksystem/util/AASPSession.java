@@ -2,9 +2,9 @@ package net.sharksystem.util;
 
 import android.util.Log;
 
+import net.sharksystem.aasp.AASPEngine;
+import net.sharksystem.aasp.AASPReceivedChunkListener;
 import net.sharksystem.util.tcp.TCPChannelMaker;
-import net.sharksystem.asp3.ASP3Engine;
-import net.sharksystem.asp3.ASP3ReceivedChunkListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,13 +12,13 @@ import java.io.OutputStream;
 
 public class AASPSession extends Thread {
     private final TCPChannelMaker channelMaker;
-    private final ASP3Engine aaspEngine;
+    private final AASPEngine aaspEngine;
     private final AASPSessionListener aaspSessionListener;
-    private final ASP3ReceivedChunkListener chunkReceivedListener;
+    private final AASPReceivedChunkListener chunkReceivedListener;
 
-    public AASPSession(TCPChannelMaker channelMaker, ASP3Engine aaspEngine,
+    public AASPSession(TCPChannelMaker channelMaker, AASPEngine aaspEngine,
                        AASPSessionListener aaspSessionListener,
-                       ASP3ReceivedChunkListener chunkReceivedListener) {
+                       AASPReceivedChunkListener chunkReceivedListener) {
         this.channelMaker = channelMaker;
         this.aaspEngine = aaspEngine;
         this.aaspSessionListener = aaspSessionListener;
