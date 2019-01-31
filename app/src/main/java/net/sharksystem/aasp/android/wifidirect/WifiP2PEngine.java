@@ -8,8 +8,8 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
-import android.widget.Toast;
 
+import net.sharksystem.aasp.android.MacLayerEngine;
 import net.sharksystem.util.AASPSession;
 import net.sharksystem.aasp.android.AASP;
 import net.sharksystem.aasp.android.AASPService;
@@ -24,43 +24,38 @@ import java.util.Map;
 
 import static android.os.Looper.getMainLooper;
 
-public class AASPWifiP2PEngine implements
+public class WifiP2PEngine extends MacLayerEngine implements
         WifiP2pManager.PeerListListener,
         WifiP2pManager.ConnectionInfoListener,
         AASPSessionListener,
         WifiP2pManager.ChannelListener {
 
-    private static AASPWifiP2PEngine wifiP2PEngine = null;
+    private static WifiP2PEngine wifiP2PEngine = null;
 
     // https://developer.android.com/guide/topics/connectivity/wifip2p#java
 
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private AASPWiFiDirectBroadcastReceiver mReceiver;
+    private WifiDirectBroadcastReceiver mReceiver;
 
-    private final AASPService aaspService;
-    private final Context context;
-
-
-    AASPWifiP2PEngine(AASPService aaspService, Context context) {
-        this.aaspService = aaspService;
-        this.context = context;
+    WifiP2PEngine(AASPService aaspService, Context context) {
+        super(aaspService, context);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
     //                                 factory / singleton                              //
     //////////////////////////////////////////////////////////////////////////////////////
 
-    public static AASPWifiP2PEngine getAASPWifiP2PEngine(AASPService aaspService, Context context) {
-        if(AASPWifiP2PEngine.wifiP2PEngine == null) {
-            AASPWifiP2PEngine.wifiP2PEngine = new AASPWifiP2PEngine(aaspService, context);
+    public static WifiP2PEngine getAASPWifiP2PEngine(AASPService aaspService, Context context) {
+        if(WifiP2PEngine.wifiP2PEngine == null) {
+            WifiP2PEngine.wifiP2PEngine = new WifiP2PEngine(aaspService, context);
         }
 
-        return AASPWifiP2PEngine.wifiP2PEngine;
+        return WifiP2PEngine.wifiP2PEngine;
     }
 
-    public static AASPWifiP2PEngine getAASPWifiP2PEngine() {
-        return AASPWifiP2PEngine.wifiP2PEngine;
+    public static WifiP2PEngine getAASPWifiP2PEngine() {
+        return WifiP2PEngine.wifiP2PEngine;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -69,21 +64,15 @@ public class AASPWifiP2PEngine implements
 
     /////////////// WifiP2pManager.ChannelListener - see mManager.initialize
     public void onChannelDisconnected() {
-        Toast.makeText(this.aaspService, "channel disconnected / restart wifip2p",
-                Toast.LENGTH_SHORT).show();
+        Log.d("AASPWifiEngine","channel disconnected / restart wifip2p");
         // TODO: that's ok?
-        this.restartWifiP2P();
+        this.restart();
     }
 
-    private void restartWifiP2P() {
-        this.shutDownWifiP2P();
-        this.setupWifiP2P();
-    }
-
-    private void shutDownWifiP2P() {
+    private void shutdown() {
         if(this.mReceiver != null) {
             try {
-                this.context.unregisterReceiver(this.mReceiver);
+                this.getContext().unregisterReceiver(this.mReceiver);
             }
             catch(RuntimeException e) {
                 // ignore that one - happens when not registered
@@ -121,17 +110,17 @@ public class AASPWifiP2PEngine implements
 //        }
     }
 
-    private void setupWifiP2P() {
+    private void setup() {
         if(this.mManager == null) {
             // get P2P service on this device
-            this.mManager = (WifiP2pManager) this.context.getSystemService(Context.WIFI_P2P_SERVICE);
+            this.mManager = (WifiP2pManager) this.getContext().getSystemService(Context.WIFI_P2P_SERVICE);
 
             // get access to p2p framework: TODO shouldn't we have our own looper here?
-            this.mChannel = mManager.initialize(this.context, getMainLooper(), this);
+            this.mChannel = mManager.initialize(this.getContext(), getMainLooper(), this);
 
             // create broadcast listener to get publications regarding wifi (p2p)
-            this.mReceiver = new AASPWiFiDirectBroadcastReceiver(this,
-                    mManager, mChannel, this.context,
+            this.mReceiver = new WifiDirectBroadcastReceiver(this,
+                    mManager, mChannel, this.getContext(),
                     this, this);
 
             // define what broadcasts we are interested in
@@ -145,13 +134,13 @@ public class AASPWifiP2PEngine implements
 
             // register (subscribe) to broadcasts
             try {
-                this.context.registerReceiver(this.mReceiver, mIntentFilter);
+                this.getContext().registerReceiver(this.mReceiver, mIntentFilter);
             }
             catch(RuntimeException e) {
                 // can happen when already registered - to be sure..
                 try {
-                    this.context.unregisterReceiver(this.mReceiver);
-                    this.context.registerReceiver(this.mReceiver, mIntentFilter);
+                    this.getContext().unregisterReceiver(this.mReceiver);
+                    this.getContext().registerReceiver(this.mReceiver, mIntentFilter);
                 }
                 catch(RuntimeException e2) {
                     // for gods sake - ignore that - have no idea whats going on here.
@@ -161,14 +150,13 @@ public class AASPWifiP2PEngine implements
     }
 
     public void start() {
-        Toast.makeText(this.aaspService, "start / start setup wifip2p",
-                Toast.LENGTH_SHORT).show();
-        this.setupWifiP2P();
+        Log.d("AASPWifiP2PEngine", "start / start setup wifip2p");
+        this.setup();
     }
 
     public void stop() {
-        Toast.makeText(this.aaspService, "stop / shutdown wifip2p", Toast.LENGTH_SHORT).show();
-        this.shutDownWifiP2P();
+        Log.d("AASPWifiP2PEngine", "stop / shutdown wifip2p");
+        this.shutdown();
     }
 
     /**
@@ -355,8 +343,10 @@ public class AASPWifiP2PEngine implements
         }
 
         // create an AASPSession with connection parameters
-        AASPSession aaspSession = new AASPSession(channelCreator, this.aaspService.getAASPEngine(),
-                this, this.aaspService);
+        AASPSession aaspSession = new AASPSession(channelCreator,
+                this.getAASPService().getAASPEngine(),
+                this,
+                this.getAASPService());
 
         aaspSession.start();
     }

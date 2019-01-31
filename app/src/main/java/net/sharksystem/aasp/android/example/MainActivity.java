@@ -54,7 +54,10 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.CHANGE_WIFI_STATE,
                 Manifest.permission.CHANGE_NETWORK_STATE,
                 Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_NETWORK_STATE
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_COARSE_LOCATION
         };
 
         // check for write permissions

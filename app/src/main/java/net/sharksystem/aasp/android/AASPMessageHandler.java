@@ -60,6 +60,14 @@ class AASPMessageHandler extends Handler {
                 this.aaspService.stopWifiDirect();
                 break;
 
+            case AASPServiceMethods.START_BLUETOOTH:
+                this.aaspService.startBluetooth();
+                break;
+
+            case AASPServiceMethods.STOP_BLUETOOTH:
+                this.aaspService.stopBluetooth();
+                break;
+
             default:
                 super.handleMessage(msg);
         }
