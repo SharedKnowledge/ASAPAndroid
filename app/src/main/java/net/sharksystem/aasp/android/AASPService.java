@@ -8,13 +8,14 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.aasp.AASPEngine;
 import net.sharksystem.aasp.AASPEngineFS;
 import net.sharksystem.aasp.AASPException;
 import net.sharksystem.aasp.AASPReceivedChunkListener;
-import net.sharksystem.aasp.android.wifidirect.AASPWifiP2PEngine;
+import net.sharksystem.aasp.android.wifidirect.WifiP2PEngine;
 
 import java.io.File;
 import java.io.IOException;
@@ -128,14 +129,32 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
     //////////////////////////////////////////////////////////////////////////////////////
 
     void startWifiDirect() {
-        AASPWifiP2PEngine.getAASPWifiP2PEngine(this, this).start();
+        Log.d("AASPService", "start wifi p2p");
+        WifiP2PEngine.getAASPWifiP2PEngine(this, this).start();
     }
 
     void stopWifiDirect() {
-        AASPWifiP2PEngine aaspWifiP2PEngine = AASPWifiP2PEngine.getAASPWifiP2PEngine();
+        Log.d("AASPService", "stop wifi p2p");
+        WifiP2PEngine aaspWifiP2PEngine = WifiP2PEngine.getAASPWifiP2PEngine();
         if(aaspWifiP2PEngine != null) {
             aaspWifiP2PEngine.stop();
         }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                   Bluetooth                                      //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    void startBluetooth() {
+        Log.d("AASPService", "start bluetooth");
+
+
+        Log.d("AASPService", "start bluetooth - not yet fully implemented");
+    }
+
+    void stopBluetooth() {
+        Log.d("AASPService", "stop bluetooth");
+        Log.d("AASPService", "stop bluetooth - not yet implemented");
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
