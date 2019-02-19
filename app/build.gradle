@@ -1,9 +1,15 @@
-apply plugin: 'com.android.application'
+/*
+https://developer.android.com/studio/projects/android-library
+ */
+
+// we produce a library by commenting out that line:
+//apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "net.sharksystem.aaspandroid"
+        //applicationId "net.sharksystem.aaspandroid"
         minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
