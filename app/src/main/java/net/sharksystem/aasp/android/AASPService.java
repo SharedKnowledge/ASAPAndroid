@@ -163,12 +163,16 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
 
     @Override
     public void chunkReceived(String sender, String uri, int era) {
-        // simulate broadcast
-        Intent intent = new Intent();
-        intent.setAction(AASP.BROADCAST_ACTION);
-        intent.putExtra(AASP.FOLDER,this.getAASPRootFolderName());
-        intent.putExtra(AASP.URI,uri);
-        intent.putExtra(AASP.ERA,aaspEngine.getEra());
+        // issue broadcast
+        Intent intent = null;
+        try {
+            intent = new AASPBroadcastIntent(
+                    sender, this.getAASPRootFolderName(), uri, aaspEngine.getEra());
+        } catch (AASPException e) {
+            e.printStackTrace();
+            return;
+        }
+
         this.sendBroadcast(intent);
     }
 }

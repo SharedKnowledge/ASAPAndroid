@@ -10,26 +10,29 @@ import net.sharksystem.aasp.AASPEngineFS;
 import net.sharksystem.aasp.AASPException;
 import net.sharksystem.aasp.AASPStorage;
 import net.sharksystem.aasp.android.AASP;
+import net.sharksystem.aasp.android.AASPBroadcastIntent;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 public class ExampleAASPBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        String folder = intent.getStringExtra(AASP.FOLDER);
-        String uri = intent.getStringExtra(AASP.URI);
-        int era = intent.getIntExtra(AASP.ERA, 0);
+        try {
+            AASPBroadcastIntent aaspIntent = new AASPBroadcastIntent(intent);
 
-        String text = "AASPService notified: "
-                + folder + " / "
-                + uri + " / "
-                + era;
+            String text = "AASPService notified: "
+                    + aaspIntent.getUser() + " / "
+                    + aaspIntent.getFoldername() + " / "
+                    + aaspIntent.getUri() + " / "
+                    + aaspIntent.getEra();
 
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 
         // create access to that chunk storage
-        try {
-            AASPStorage chunkStorage = AASPEngineFS.getAASPChunkStorage(folder);
+            AASPStorage chunkStorage = AASPEngineFS.getAASPChunkStorage(
+                    aaspIntent.getFoldername().toString());
+
             Toast.makeText(context, "got storage on client side", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
