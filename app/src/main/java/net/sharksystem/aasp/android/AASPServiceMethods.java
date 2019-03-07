@@ -6,4 +6,6 @@ public class AASPServiceMethods {
     public static final int STOP_WIFI_DIRECT = 2;
     public static final int START_BLUETOOTH = 3;
     public static final int STOP_BLUETOOTH = 4;
+    public static final int START_BROADCASTS = 5;
+    public static final int STOP_BROADCASTS = 6;
 }

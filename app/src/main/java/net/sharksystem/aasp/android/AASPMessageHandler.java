@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import net.sharksystem.aasp.AASPEngine;
 import net.sharksystem.aasp.AASPException;
@@ -31,7 +30,7 @@ class AASPMessageHandler extends Handler {
                         String content = msgData.getString(AASP.MESSAGE_CONTENT);
 
                         String text = uri + " / " + content;
-                        Toast.makeText(aaspService, text, Toast.LENGTH_SHORT).show();
+                        Log.d(LOGSTART, text);
 
                         try {
                             AASPEngine aaspEngine = this.aaspService.getAASPEngine();
@@ -71,6 +70,14 @@ class AASPMessageHandler extends Handler {
 
                 case AASPServiceMethods.STOP_BLUETOOTH:
                     this.aaspService.stopBluetooth();
+                    break;
+
+                case AASPServiceMethods.START_BROADCASTS:
+                    this.aaspService.resumeBroadcasts();
+                    break;
+
+                case AASPServiceMethods.STOP_BROADCASTS:
+                    this.aaspService.pauseBroadcasts();
                     break;
 
                 default:

@@ -9,7 +9,6 @@ import android.os.IBinder;
 import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import net.sharksystem.aasp.AASPEngine;
 import net.sharksystem.aasp.AASPEngineFS;
@@ -19,6 +18,9 @@ import net.sharksystem.aasp.android.wifidirect.WifiP2PEngine;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Service that searches and creates wifi p2p connections
@@ -26,6 +28,7 @@ import java.io.IOException;
  */
 
 public class AASPService extends Service implements AASPReceivedChunkListener {
+    private static final String LOGSTART = "AASPService";
     private String aaspEngineRootFolderName;
 
     private AASPEngine aaspEngine = null;
@@ -37,7 +40,7 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
 
     public AASPEngine getAASPEngine() {
         if(this.aaspEngine == null) {
-            Toast.makeText(getApplicationContext(), "try to get AASPEngine", Toast.LENGTH_LONG).show();
+            Log.d(LOGSTART, "try to get AASPEngine");
 
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
@@ -45,7 +48,7 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
                     != PackageManager.PERMISSION_GRANTED) {
 
                 // Permission is not granted
-                Toast.makeText(getApplicationContext(), "no write permission!!", Toast.LENGTH_SHORT).show();
+                Log.d(LOGSTART,"no write permission!!");
                 return null;
             }
 
@@ -55,19 +58,19 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
             File rootFolder = new File(this.aaspEngineRootFolderName);
             try {
                 if (!rootFolder.exists()) {
-                    Toast.makeText(getApplicationContext(), "createFolder", Toast.LENGTH_SHORT).show();
+                    Log.d(LOGSTART,"createFolder");
                     rootFolder.mkdirs();
-                    Toast.makeText(getApplicationContext(), "createdFolder", Toast.LENGTH_SHORT).show();
+                    Log.d(LOGSTART,"createdFolder");
                 }
                 this.aaspEngine = AASPEngineFS.getAASPEngine(this.aaspEngineRootFolderName);
-                Toast.makeText(getApplicationContext(), "engine created", Toast.LENGTH_SHORT).show();
+                Log.d(LOGSTART,"engine created");
             } catch (IOException e) {
-                Toast.makeText(getApplicationContext(), "IOException", Toast.LENGTH_SHORT).show();
-                Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                Log.d(LOGSTART,"IOException");
+                Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
             } catch (AASPException e) {
-                Toast.makeText(getApplicationContext(), "ASP3Exception", Toast.LENGTH_SHORT).show();
-                Toast.makeText(getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                Log.d(LOGSTART,"AASPException");
+                Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
             }
         }
@@ -81,33 +84,33 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
 
     // comes first
     public void onCreate() {
-        Toast.makeText(getApplicationContext(), "creating", Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART,"creating");
 
         String text = "started: ";
 
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART,text);
 
         // get root directory
         File aaspRoot = null;
         aaspRoot = Environment.getExternalStoragePublicDirectory(ROOT_FOLDER_NAME);
 
         this.aaspEngineRootFolderName = aaspRoot.getAbsolutePath();
-        Toast.makeText(getApplicationContext(), "work with folder: "
-                + this.aaspEngineRootFolderName, Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART,"work with folder: "
+                + this.aaspEngineRootFolderName);
 
-        Toast.makeText(getApplicationContext(), "created", Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART, "created");
     }
 
     // comes second - could remove that overwriting method
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(getApplicationContext(), "start", Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART, "start");
         return super.onStartCommand(intent, flags, startId);
     }
 
     public void onDestroy() {
         super.onDestroy();
-        Toast.makeText(getApplicationContext(), "destroy", Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART,"destroy");
     }
     /**
      * Target we publish for clients to send messages to IncomingHandler.
@@ -115,7 +118,7 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
     private Messenger mMessenger;
 
     public IBinder onBind(Intent intent) {
-        Toast.makeText(getApplicationContext(), "binding", Toast.LENGTH_SHORT).show();
+        Log.d(LOGSTART,"binding");
 
         // create handler
         this.mMessenger = new Messenger(new AASPMessageHandler(this));
@@ -161,10 +164,13 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
     //                          chunk receiving management                              //
     //////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean broadcastOn = false;
+    private List<AASPBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
+
     @Override
     public void chunkReceived(String sender, String uri, int era) {
         // issue broadcast
-        Intent intent = null;
+        AASPBroadcastIntent intent = null;
         try {
             intent = new AASPBroadcastIntent(
                     sender, this.getAASPRootFolderName(), uri, aaspEngine.getEra());
@@ -173,6 +179,29 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
             return;
         }
 
-        this.sendBroadcast(intent);
+        if(this.broadcastOn) {
+            this.sendBroadcast(intent);
+        } else {
+            // store it
+            Log.d(LOGSTART, "store broadcast in list");
+            this.chunkReceivedBroadcasts.add(intent);
+        }
+    }
+
+    public void resumeBroadcasts() {
+        Log.d(LOGSTART, "resumeBroadcasts");
+        this.broadcastOn = true;
+
+        int index = 0;
+        // flag can change while in that methode due to calls from other threads
+        while(this.broadcastOn &&  this.chunkReceivedBroadcasts.size() > 0) {
+            Log.d(LOGSTART, "send stored broadcast");
+            this.sendBroadcast(chunkReceivedBroadcasts.remove(0));
+        }
+    }
+
+    public void pauseBroadcasts() {
+        Log.d(LOGSTART, "pauseBroadcasts");
+        this.broadcastOn = false;
     }
 }
