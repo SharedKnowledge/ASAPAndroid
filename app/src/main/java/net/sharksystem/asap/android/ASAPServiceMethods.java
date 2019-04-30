@@ -1,6 +1,6 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
-public class AASPServiceMethods {
+public class ASAPServiceMethods {
     public static final int ADD_MESSAGE = 0;
     public static final int START_WIFI_DIRECT = 1;
     public static final int STOP_WIFI_DIRECT = 2;

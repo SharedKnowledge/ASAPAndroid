@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android.wifidirect;
+package net.sharksystem.asap.android.wifidirect;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

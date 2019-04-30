@@ -1,6 +1,5 @@
-package net.sharksystem.aasp.android.bluetooth;
+package net.sharksystem.asap.android.bluetooth;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;

@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
 import android.Manifest;
 import android.app.Service;
@@ -10,16 +10,15 @@ import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import net.sharksystem.aasp.AASPEngine;
-import net.sharksystem.aasp.AASPEngineFS;
-import net.sharksystem.aasp.AASPException;
-import net.sharksystem.aasp.AASPReceivedChunkListener;
-import net.sharksystem.aasp.android.wifidirect.WifiP2PEngine;
+import net.sharksystem.asap.ASAPEngine;
+import net.sharksystem.asap.ASAPEngineFS;
+import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPReceivedChunkListener;
+import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -27,18 +26,18 @@ import java.util.List;
  * to run an AASP session.
  */
 
-public class AASPService extends Service implements AASPReceivedChunkListener {
+public class ASAPService extends Service implements ASAPReceivedChunkListener {
     private static final String LOGSTART = "AASPService";
     private String aaspEngineRootFolderName;
 
-    private AASPEngine aaspEngine = null;
+    private ASAPEngine aaspEngine = null;
     public static final String ROOT_FOLDER_NAME = "SHARKSYSTEM_AASP";
 
     String getAASPRootFolderName() {
         return this.aaspEngineRootFolderName;
     }
 
-    public AASPEngine getAASPEngine() {
+    public ASAPEngine getAASPEngine() {
         if(this.aaspEngine == null) {
             Log.d(LOGSTART, "try to get AASPEngine");
 
@@ -62,13 +61,13 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
                     rootFolder.mkdirs();
                     Log.d(LOGSTART,"createdFolder");
                 }
-                this.aaspEngine = AASPEngineFS.getAASPEngine(this.aaspEngineRootFolderName);
+                this.aaspEngine = ASAPEngineFS.getASAPEngine(this.aaspEngineRootFolderName);
                 Log.d(LOGSTART,"engine created");
             } catch (IOException e) {
                 Log.d(LOGSTART,"IOException");
                 Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
-            } catch (AASPException e) {
+            } catch (ASAPException e) {
                 Log.d(LOGSTART,"AASPException");
                 Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
@@ -121,7 +120,7 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
         Log.d(LOGSTART,"binding");
 
         // create handler
-        this.mMessenger = new Messenger(new AASPMessageHandler(this));
+        this.mMessenger = new Messenger(new ASAPMessageHandler(this));
 
         // return binder interface
         return mMessenger.getBinder();
@@ -165,16 +164,16 @@ public class AASPService extends Service implements AASPReceivedChunkListener {
     //////////////////////////////////////////////////////////////////////////////////////
 
     private boolean broadcastOn = false;
-    private List<AASPBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
+    private List<ASAPBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
 
     @Override
     public void chunkReceived(String sender, String uri, int era) {
         // issue broadcast
-        AASPBroadcastIntent intent = null;
+        ASAPBroadcastIntent intent = null;
         try {
-            intent = new AASPBroadcastIntent(
+            intent = new ASAPBroadcastIntent(
                     sender, this.getAASPRootFolderName(), uri, aaspEngine.getEra());
-        } catch (AASPException e) {
+        } catch (ASAPException e) {
             e.printStackTrace();
             return;
         }

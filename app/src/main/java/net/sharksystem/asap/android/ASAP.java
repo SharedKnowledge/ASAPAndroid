@@ -1,9 +1,9 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
 /**
  * Be sure to have the AASPEngine in one of your library directories!
  */
-public class AASP {
+public class ASAP {
     public static final String UNKNOWN_USER = "anon";
 
     public static final String USER = "user";

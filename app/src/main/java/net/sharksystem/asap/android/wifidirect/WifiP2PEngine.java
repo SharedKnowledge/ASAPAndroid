@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android.wifidirect;
+package net.sharksystem.asap.android.wifidirect;
 
 import android.content.Context;
 import android.content.IntentFilter;
@@ -9,11 +9,11 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
-import net.sharksystem.aasp.android.MacLayerEngine;
-import net.sharksystem.util.AASPSession;
-import net.sharksystem.aasp.android.AASP;
-import net.sharksystem.aasp.android.AASPService;
-import net.sharksystem.util.AASPSessionListener;
+import net.sharksystem.asap.android.MacLayerEngine;
+import net.sharksystem.util.ASAPSession;
+import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPService;
+import net.sharksystem.util.ASAPSessionListener;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import static android.os.Looper.getMainLooper;
 public class WifiP2PEngine extends MacLayerEngine implements
         WifiP2pManager.PeerListListener,
         WifiP2pManager.ConnectionInfoListener,
-        AASPSessionListener,
+        ASAPSessionListener,
         WifiP2pManager.ChannelListener {
 
     private static WifiP2PEngine wifiP2PEngine = null;
@@ -38,17 +38,17 @@ public class WifiP2PEngine extends MacLayerEngine implements
     private WifiP2pManager.Channel mChannel;
     private WifiDirectBroadcastReceiver mReceiver;
 
-    WifiP2PEngine(AASPService aaspService, Context context) {
-        super(aaspService, context);
+    WifiP2PEngine(ASAPService ASAPService, Context context) {
+        super(ASAPService, context);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
     //                                 factory / singleton                              //
     //////////////////////////////////////////////////////////////////////////////////////
 
-    public static WifiP2PEngine getAASPWifiP2PEngine(AASPService aaspService, Context context) {
+    public static WifiP2PEngine getAASPWifiP2PEngine(ASAPService ASAPService, Context context) {
         if(WifiP2PEngine.wifiP2PEngine == null) {
-            WifiP2PEngine.wifiP2PEngine = new WifiP2PEngine(aaspService, context);
+            WifiP2PEngine.wifiP2PEngine = new WifiP2PEngine(ASAPService, context);
         }
 
         return WifiP2PEngine.wifiP2PEngine;
@@ -326,7 +326,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
             if(this.serverChannelCreator == null) {
                 Log.d("AASPWifiEngine:", "start server channel maker");
                 this.serverChannelCreator =
-                        TCPChannelMaker.getTCPServerCreator(AASP.PORT_NUMBER, true);
+                        TCPChannelMaker.getTCPServerCreator(ASAP.PORT_NUMBER, true);
             } else {
                 Log.d("AASPWifiEngine:", "server channel maker already exists");
             }
@@ -339,16 +339,16 @@ public class WifiP2PEngine extends MacLayerEngine implements
 
             Log.d("AASPWifiEngine:", " start server channel maker: " + hostAddress);
             // create client connection to group owner
-            channelCreator = TCPChannelMaker.getTCPClientCreator(hostAddress, AASP.PORT_NUMBER);
+            channelCreator = TCPChannelMaker.getTCPClientCreator(hostAddress, ASAP.PORT_NUMBER);
         }
 
         // create an AASPSession with connection parameters
-        AASPSession aaspSession = new AASPSession(channelCreator,
+        ASAPSession ASAPSession = new ASAPSession(channelCreator,
                 this.getAASPService().getAASPEngine(),
                 this,
                 this.getAASPService());
 
-        aaspSession.start();
+        ASAPSession.start();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////

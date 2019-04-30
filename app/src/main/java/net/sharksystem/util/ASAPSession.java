@@ -2,26 +2,24 @@ package net.sharksystem.util;
 
 import android.util.Log;
 
-import net.sharksystem.aasp.AASPEngine;
-import net.sharksystem.aasp.AASPReceivedChunkListener;
+import net.sharksystem.asap.ASAPEngine;
+import net.sharksystem.asap.ASAPReceivedChunkListener;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-public class AASPSession extends Thread {
+public class ASAPSession extends Thread {
     private final TCPChannelMaker channelMaker;
-    private final AASPEngine aaspEngine;
-    private final AASPSessionListener aaspSessionListener;
-    private final AASPReceivedChunkListener chunkReceivedListener;
+    private final ASAPEngine aaspEngine;
+    private final ASAPSessionListener ASAPSessionListener;
+    private final ASAPReceivedChunkListener chunkReceivedListener;
 
-    public AASPSession(TCPChannelMaker channelMaker, AASPEngine aaspEngine,
-                       AASPSessionListener aaspSessionListener,
-                       AASPReceivedChunkListener chunkReceivedListener) {
+    public ASAPSession(TCPChannelMaker channelMaker, ASAPEngine aaspEngine,
+                       ASAPSessionListener ASAPSessionListener,
+                       ASAPReceivedChunkListener chunkReceivedListener) {
         this.channelMaker = channelMaker;
         this.aaspEngine = aaspEngine;
-        this.aaspSessionListener = aaspSessionListener;
+        this.ASAPSessionListener = ASAPSessionListener;
         this.chunkReceivedListener = chunkReceivedListener;
     }
 
@@ -46,7 +44,7 @@ public class AASPSession extends Thread {
                     this.channelMaker.getOutputStream(),
                     this.chunkReceivedListener);
 
-            this.aaspSessionListener.aaspSessionEnded();
+            this.ASAPSessionListener.aaspSessionEnded();
         } catch (IOException e) {
             e.printStackTrace();
         }

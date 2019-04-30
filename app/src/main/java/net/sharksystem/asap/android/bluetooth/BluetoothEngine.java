@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android.bluetooth;
+package net.sharksystem.asap.android.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
-import net.sharksystem.aasp.android.MacLayerEngine;
-import net.sharksystem.aasp.android.AASPService;
+import net.sharksystem.asap.android.MacLayerEngine;
+import net.sharksystem.asap.android.ASAPService;
 
 import static android.bluetooth.BluetoothAdapter.ACTION_SCAN_MODE_CHANGED;
 
@@ -21,10 +21,10 @@ public class BluetoothEngine extends MacLayerEngine {
     public static int visibilityTimeInSeconds = DEFAULT_VISIBILITY_TIME;
     private ScanModeChangedBroadcastReceiver scanModeChangedBR = null;
 
-    public static BluetoothEngine getAASPBluetoothEngine(AASPService aaspService,
+    public static BluetoothEngine getAASPBluetoothEngine(ASAPService ASAPService,
                                                          Context context) {
         if(BluetoothEngine.engine == null) {
-            BluetoothEngine.engine = new BluetoothEngine(aaspService, context);
+            BluetoothEngine.engine = new BluetoothEngine(ASAPService, context);
         }
 
         return BluetoothEngine.engine;
@@ -34,8 +34,8 @@ public class BluetoothEngine extends MacLayerEngine {
         return BluetoothEngine.engine;
     }
 
-    private BluetoothEngine(AASPService aaspService, Context context) {
-        super(aaspService, context);
+    private BluetoothEngine(ASAPService ASAPService, Context context) {
+        super(ASAPService, context);
     }
 
     public void start() {

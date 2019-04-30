@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,34 +6,34 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import net.sharksystem.aasp.AASPEngine;
-import net.sharksystem.aasp.AASPException;
+import net.sharksystem.asap.ASAPEngine;
+import net.sharksystem.asap.ASAPException;
 
 import java.io.IOException;
 
-class AASPMessageHandler extends Handler {
+class ASAPMessageHandler extends Handler {
     private static final String LOGSTART = "AASPMessageHandler";
-    private AASPService aaspService;
+    private ASAPService ASAPService;
 
-    AASPMessageHandler(AASPService context) {
-        this.aaspService = context;
+    ASAPMessageHandler(ASAPService context) {
+        this.ASAPService = context;
     }
 
     @Override
     public void handleMessage(Message msg) {
         try {
             switch (msg.what) {
-                case AASPServiceMethods.ADD_MESSAGE:
+                case ASAPServiceMethods.ADD_MESSAGE:
                     Bundle msgData = msg.getData();
                     if (msgData != null) {
-                        String uri = msgData.getString(AASP.URI);
-                        String content = msgData.getString(AASP.MESSAGE_CONTENT);
+                        String uri = msgData.getString(ASAP.URI);
+                        String content = msgData.getString(ASAP.MESSAGE_CONTENT);
 
                         String text = uri + " / " + content;
                         Log.d(LOGSTART, text);
 
                         try {
-                            AASPEngine aaspEngine = this.aaspService.getAASPEngine();
+                            ASAPEngine aaspEngine = this.ASAPService.getAASPEngine();
                             if (aaspEngine == null) {
                                 Log.d(LOGSTART, "NO AASPEngine!!");
                             } else {
@@ -41,13 +41,13 @@ class AASPMessageHandler extends Handler {
                                 Log.d(LOGSTART, "wrote");
 
                                 // simulate broadcast
-                                Intent intent = new AASPBroadcastIntent(
-                                        AASP.UNKNOWN_USER,
-                                        this.aaspService.getAASPRootFolderName(),
+                                Intent intent = new ASAPBroadcastIntent(
+                                        ASAP.UNKNOWN_USER,
+                                        this.ASAPService.getAASPRootFolderName(),
                                         uri,
                                         aaspEngine.getEra());
 
-                                this.aaspService.sendBroadcast(intent);
+                                this.ASAPService.sendBroadcast(intent);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -56,35 +56,35 @@ class AASPMessageHandler extends Handler {
                     Log.d(LOGSTART, "finish aasp write");
                     break;
 
-                case AASPServiceMethods.START_WIFI_DIRECT:
-                    this.aaspService.startWifiDirect();
+                case ASAPServiceMethods.START_WIFI_DIRECT:
+                    this.ASAPService.startWifiDirect();
                     break;
 
-                case AASPServiceMethods.STOP_WIFI_DIRECT:
-                    this.aaspService.stopWifiDirect();
+                case ASAPServiceMethods.STOP_WIFI_DIRECT:
+                    this.ASAPService.stopWifiDirect();
                     break;
 
-                case AASPServiceMethods.START_BLUETOOTH:
-                    this.aaspService.startBluetooth();
+                case ASAPServiceMethods.START_BLUETOOTH:
+                    this.ASAPService.startBluetooth();
                     break;
 
-                case AASPServiceMethods.STOP_BLUETOOTH:
-                    this.aaspService.stopBluetooth();
+                case ASAPServiceMethods.STOP_BLUETOOTH:
+                    this.ASAPService.stopBluetooth();
                     break;
 
-                case AASPServiceMethods.START_BROADCASTS:
-                    this.aaspService.resumeBroadcasts();
+                case ASAPServiceMethods.START_BROADCASTS:
+                    this.ASAPService.resumeBroadcasts();
                     break;
 
-                case AASPServiceMethods.STOP_BROADCASTS:
-                    this.aaspService.pauseBroadcasts();
+                case ASAPServiceMethods.STOP_BROADCASTS:
+                    this.ASAPService.pauseBroadcasts();
                     break;
 
                 default:
                     super.handleMessage(msg);
             }
         }
-        catch(AASPException e) {
+        catch(ASAPException e) {
             Log.d(LOGSTART, e.getLocalizedMessage());
         }
     }

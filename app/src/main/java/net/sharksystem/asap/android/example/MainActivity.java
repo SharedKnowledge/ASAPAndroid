@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android.example;
+package net.sharksystem.asap.android.example;
 
 import android.Manifest;
 import android.content.ComponentName;
@@ -18,9 +18,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import net.sharksystem.aasp.android.AASP;
-import net.sharksystem.aasp.android.AASPService;
-import net.sharksystem.aasp.android.AASPServiceMethods;
+import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPService;
+import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.aaspandroid.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // create broadcast receiver
-        ExampleAASPBroadcastReceiver br = new ExampleAASPBroadcastReceiver();
+        ExampleASAPBroadcastReceiver br = new ExampleASAPBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AASP.BROADCAST_ACTION);
+        filter.addAction(ASAP.BROADCAST_ACTION);
         this.registerReceiver(br, filter);
 
         // required permissions
@@ -64,16 +64,16 @@ public class MainActivity extends AppCompatActivity {
         this.askForPermissions(permissions);
 
         // start service - which allows service to outlive unbind
-        Intent aaspServiceCreationIntent = new Intent(this, AASPService.class);
-        aaspServiceCreationIntent.putExtra(AASP.USER, "alice");
+        Intent aaspServiceCreationIntent = new Intent(this, ASAPService.class);
+        aaspServiceCreationIntent.putExtra(ASAP.USER, "alice");
 
         this.startService(aaspServiceCreationIntent);
     }
 
     protected void onDestroy() {
-        this.sendMessage2Service(AASPServiceMethods.STOP_WIFI_DIRECT);
+        this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
         // and kill it
-        this.stopService(new Intent(this, AASPService.class));
+        this.stopService(new Intent(this, ASAPService.class));
 
         super.onDestroy();
     }
@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // Bind to the service
-        bindService(new Intent(this, AASPService.class), mConnection, Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this, ASAPService.class), mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
             unbindService(mConnection);
             mBound = false;
         }
-        this.sendMessage2Service(AASPServiceMethods.STOP_WIFI_DIRECT);
+        this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
     }
 
     private void sendMessage2Service(int messageNumber) {
@@ -138,10 +138,10 @@ public class MainActivity extends AppCompatActivity {
 
         if(view == writeButton) {
             // Create and send a message to the service, using a supported 'what' value
-            Message msg = Message.obtain(null, AASPServiceMethods.ADD_MESSAGE, 0, 0);
+            Message msg = Message.obtain(null, ASAPServiceMethods.ADD_MESSAGE, 0, 0);
             Bundle msgData = new Bundle();
-            msgData.putCharSequence(AASP.URI, TESTURI);
-            msgData.putCharSequence(AASP.MESSAGE_CONTENT, TESTMESSAGE);
+            msgData.putCharSequence(ASAP.URI, TESTURI);
+            msgData.putCharSequence(ASAP.MESSAGE_CONTENT, TESTMESSAGE);
             msg.setData(msgData);
 
             try {
@@ -151,11 +151,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         else if(view == startButton) {
-            this.sendMessage2Service(AASPServiceMethods.START_WIFI_DIRECT);
+            this.sendMessage2Service(ASAPServiceMethods.START_WIFI_DIRECT);
         }
 
         else if(view == stopButton) {
-            this.sendMessage2Service(AASPServiceMethods.STOP_WIFI_DIRECT);
+            this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
         }
     }
 

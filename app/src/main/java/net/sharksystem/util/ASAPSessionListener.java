@@ -1,5 +1,5 @@
 package net.sharksystem.util;
 
-public interface AASPSessionListener {
+public interface ASAPSessionListener {
     public void aaspSessionEnded();
 }

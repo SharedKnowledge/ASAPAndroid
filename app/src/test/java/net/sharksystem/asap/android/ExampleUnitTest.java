@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
 import org.junit.Test;
 

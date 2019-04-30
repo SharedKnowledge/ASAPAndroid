@@ -1,27 +1,24 @@
-package net.sharksystem.aasp.android.example;
+package net.sharksystem.asap.android.example;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
-import net.sharksystem.aasp.AASPChunkStorage;
-import net.sharksystem.aasp.AASPEngineFS;
-import net.sharksystem.aasp.AASPException;
-import net.sharksystem.aasp.AASPStorage;
-import net.sharksystem.aasp.android.AASP;
-import net.sharksystem.aasp.android.AASPBroadcastIntent;
+import net.sharksystem.asap.ASAPEngineFS;
+import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPStorage;
+import net.sharksystem.asap.android.ASAPBroadcastIntent;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
-public class ExampleAASPBroadcastReceiver extends BroadcastReceiver {
+public class ExampleASAPBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         try {
-            AASPBroadcastIntent aaspIntent = new AASPBroadcastIntent(intent);
+            ASAPBroadcastIntent aaspIntent = new ASAPBroadcastIntent(intent);
 
-            String text = "AASPService notified: "
+            String text = "ASAPService notified: "
                     + aaspIntent.getUser() + " / "
                     + aaspIntent.getFoldername() + " / "
                     + aaspIntent.getUri() + " / "
@@ -30,13 +27,13 @@ public class ExampleAASPBroadcastReceiver extends BroadcastReceiver {
             Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 
         // create access to that chunk storage
-            AASPStorage chunkStorage = AASPEngineFS.getAASPChunkStorage(
+            ASAPStorage chunkStorage = ASAPEngineFS.getASAPStorage(
                     aaspIntent.getFoldername().toString());
 
             Toast.makeText(context, "got storage on client side", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (AASPException e) {
+        } catch (ASAPException e) {
             e.printStackTrace();
         }
     }

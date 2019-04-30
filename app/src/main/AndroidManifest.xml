@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="net.sharksystem.aasp.android.example.MainActivity">
+        <activity android:name="net.sharksystem.asap.android.example.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -19,7 +19,7 @@
         </activity>
 
         <service
-            android:name="net.sharksystem.aasp.android.AASPService"
+            android:name="net.sharksystem.asap.android.ASAPService"
             android:enabled="true"
             android:exported="true"
         />

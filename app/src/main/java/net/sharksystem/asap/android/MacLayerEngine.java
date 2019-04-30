@@ -1,13 +1,13 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
 import android.content.Context;
 
 public abstract class MacLayerEngine {
-    private final AASPService aaspService;
+    private final ASAPService ASAPService;
     private final Context context;
 
-    public MacLayerEngine(AASPService aaspService, Context context) {
-        this.aaspService = aaspService;
+    public MacLayerEngine(ASAPService ASAPService, Context context) {
+        this.ASAPService = ASAPService;
         this.context = context;
     }
 
@@ -15,8 +15,8 @@ public abstract class MacLayerEngine {
         return this.context;
     }
 
-    protected AASPService getAASPService() {
-        return this.aaspService;
+    protected ASAPService getAASPService() {
+        return this.ASAPService;
     }
 
     public abstract void start();

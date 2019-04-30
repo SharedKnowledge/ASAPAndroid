@@ -1,4 +1,4 @@
-package net.sharksystem.aasp.android;
+package net.sharksystem.asap.android;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
