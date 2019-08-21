@@ -26,8 +26,8 @@ public class ExampleASAPBroadcastReceiver extends BroadcastReceiver {
 
             Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 
-        // create access to that chunk storage
-            ASAPStorage chunkStorage = ASAPEngineFS.getASAPStorage(
+            // create access to that chunk storage
+            ASAPStorage chunkStorage = ASAPEngineFS.getExistingASAPEngineFS(
                     aaspIntent.getFoldername().toString());
 
             Toast.makeText(context, "got storage on client side", Toast.LENGTH_SHORT).show();

@@ -15,7 +15,7 @@ public abstract class MacLayerEngine {
         return this.context;
     }
 
-    protected ASAPService getAASPService() {
+    protected ASAPService getASAPService() {
         return this.ASAPService;
     }
 

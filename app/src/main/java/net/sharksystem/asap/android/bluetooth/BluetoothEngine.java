@@ -21,7 +21,7 @@ public class BluetoothEngine extends MacLayerEngine {
     public static int visibilityTimeInSeconds = DEFAULT_VISIBILITY_TIME;
     private ScanModeChangedBroadcastReceiver scanModeChangedBR = null;
 
-    public static BluetoothEngine getAASPBluetoothEngine(ASAPService ASAPService,
+    public static BluetoothEngine getASAPBluetoothEngine(ASAPService ASAPService,
                                                          Context context) {
         if(BluetoothEngine.engine == null) {
             BluetoothEngine.engine = new BluetoothEngine(ASAPService, context);
@@ -30,7 +30,7 @@ public class BluetoothEngine extends MacLayerEngine {
         return BluetoothEngine.engine;
     }
 
-    public static BluetoothEngine getAASPBluetoothEngine() {
+    public static BluetoothEngine getASAPBluetoothEngine() {
         return BluetoothEngine.engine;
     }
 
@@ -38,13 +38,17 @@ public class BluetoothEngine extends MacLayerEngine {
         super(ASAPService, context);
     }
 
+    private String getLogStart() {
+        return this.getClass().getSimpleName();
+    }
+
     public void start() {
-        Log.d("AASPBluetoothEngine", "start bluetooth");
+        Log.d(this.getLogStart(), "start bluetooth");
         this.setup();
     }
 
     public void stop() {
-        Log.d("AASPBluetoothEngine", "stop bluetooth");
+        Log.d(this.getLogStart(), "stop bluetooth");
         this.shutdown();
     }
 
@@ -63,11 +67,11 @@ public class BluetoothEngine extends MacLayerEngine {
         this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             // Device doesn't support Bluetooth
-            Log.i("AASPBluetoothEngine", "device does not support bluetooth");
+            Log.i(this.getLogStart(), "device does not support bluetooth");
         }
 
         // those things are to be done in calling activity
-        Log.d("AASPBluetoothEngine", "asking for BT enabling works?");
+        Log.d(this.getLogStart(), "asking for BT enabling works?");
         /*
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -146,7 +150,7 @@ public class BluetoothEngine extends MacLayerEngine {
     }
 
     void deviceFound(String name, String hardwareAddress) {
-        Log.d("AASPBluetoothEngine", "deviceFound called");
+        Log.d(this.getLogStart(), "deviceFound called");
         this.mBluetoothAdapter.getRemoteDevice(hardwareAddress);
     }
 }

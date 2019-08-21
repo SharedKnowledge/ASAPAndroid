@@ -10,12 +10,11 @@ import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import net.sharksystem.asap.ASAPEngine;
-import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPReceivedChunkListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
+import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 
 import java.io.File;
@@ -65,7 +64,7 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
                     rootFolder.mkdirs();
                     Log.d(LOGSTART,"createdFolder");
                 }
-                this.ASAPEngine = MultiASAPEngineFS_Impl.getEngine(
+                this.ASAPEngine = MultiASAPEngineFS_Impl.createMultiEngine(
                         this.asapEngineRootFolderName, this);
                 Log.d(LOGSTART,"engine created");
             } catch (IOException e) {
@@ -137,12 +136,12 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
     void startWifiDirect() {
         Log.d("ASAPService", "start wifi p2p");
-        WifiP2PEngine.getAASPWifiP2PEngine(this, this).start();
+        WifiP2PEngine.getASAPWifiP2PEngine(this, this).start();
     }
 
     void stopWifiDirect() {
         Log.d("ASAPService", "stop wifi p2p");
-        WifiP2PEngine ASAPWifiP2PEngine = WifiP2PEngine.getAASPWifiP2PEngine();
+        WifiP2PEngine ASAPWifiP2PEngine = WifiP2PEngine.getASAPWifiP2PEngine();
         if(ASAPWifiP2PEngine != null) {
             ASAPWifiP2PEngine.stop();
         }
@@ -155,13 +154,20 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
     void startBluetooth() {
         Log.d("ASAPService", "start bluetooth");
 
+        BluetoothEngine.getASAPBluetoothEngine(this, this).start();
 
-        Log.d("ASAPService", "start bluetooth - not yet fully implemented");
+        Log.d("ASAPService", "start bluetooth");
     }
 
     void stopBluetooth() {
         Log.d("ASAPService", "stop bluetooth");
-        Log.d("ASAPService", "stop bluetooth - not yet implemented");
+
+        BluetoothEngine asapBluetoothEngine = BluetoothEngine.getASAPBluetoothEngine();
+        if(asapBluetoothEngine != null) {
+            asapBluetoothEngine.stop();
+        }
+
+        Log.d("ASAPService", "stop bluetooth");
     }
 
     //////////////////////////////////////////////////////////////////////////////////////

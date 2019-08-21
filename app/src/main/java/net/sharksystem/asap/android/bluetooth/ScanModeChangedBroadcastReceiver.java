@@ -21,11 +21,15 @@ class ScanModeChangedBroadcastReceiver extends BroadcastReceiver {
             // scan mode changed
 
             int mode = intent.getIntExtra(EXTRA_SCAN_MODE, -1);
-            Log.d("ScanMode_BR", "new bt scan mode: " + this.getModeDescription(mode));
+            Log.d(this.getLogStart(), "new bt scan mode: " + this.getModeDescription(mode));
 
             mode = intent.getIntExtra(EXTRA_PREVIOUS_SCAN_MODE, -1);
-            Log.d("ScanMode_BR", "previous scan mode: " + this.getModeDescription(mode));
+            Log.d(this.getLogStart(), "previous scan mode: " + this.getModeDescription(mode));
         }
+    }
+
+    private String getLogStart() {
+        return "ScanMode_BR";
     }
 
     private String getModeDescription(int mode) {

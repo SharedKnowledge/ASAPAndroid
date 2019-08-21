@@ -21,7 +21,7 @@ import android.widget.Toast;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPService;
 import net.sharksystem.asap.android.ASAPServiceMethods;
-import net.sharksystem.aaspandroid.R;
+import net.sharksystem.asap.android.R;
 
 public class MainActivity extends AppCompatActivity {
     private static final CharSequence TESTURI ="bubble://testuri";

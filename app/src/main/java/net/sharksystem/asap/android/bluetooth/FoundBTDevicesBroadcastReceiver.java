@@ -14,6 +14,10 @@ class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
         this.bluetoothEngine = bluetoothEngine;
     }
 
+    private String getLogStart() {
+        return this.getClass().getSimpleName();
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -25,7 +29,7 @@ class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
             String deviceName = device.getName();
             String deviceHardwareAddress = device.getAddress(); // MAC address
 
-            Log.d("FoundBTDev_BR", deviceName + "/" + deviceHardwareAddress);
+            Log.d(this.getLogStart(), deviceName + "/" + deviceHardwareAddress);
 
             this.bluetoothEngine.deviceFound(deviceName, deviceHardwareAddress);
         }

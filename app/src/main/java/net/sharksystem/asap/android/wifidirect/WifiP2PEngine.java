@@ -46,7 +46,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
     //                                 factory / singleton                              //
     //////////////////////////////////////////////////////////////////////////////////////
 
-    public static WifiP2PEngine getAASPWifiP2PEngine(ASAPService ASAPService, Context context) {
+    public static WifiP2PEngine getASAPWifiP2PEngine(ASAPService ASAPService, Context context) {
         if(WifiP2PEngine.wifiP2PEngine == null) {
             WifiP2PEngine.wifiP2PEngine = new WifiP2PEngine(ASAPService, context);
         }
@@ -54,7 +54,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
         return WifiP2PEngine.wifiP2PEngine;
     }
 
-    public static WifiP2PEngine getAASPWifiP2PEngine() {
+    public static WifiP2PEngine getASAPWifiP2PEngine() {
         return WifiP2PEngine.wifiP2PEngine;
     }
 
@@ -344,9 +344,9 @@ public class WifiP2PEngine extends MacLayerEngine implements
 
         // create an AASPSession with connection parameters
         ASAPSession ASAPSession = new ASAPSession(channelCreator,
-                this.getAASPService().getAASPEngine(),
+                this.getASAPService().getASAPEngine(),
                 this,
-                this.getAASPService());
+                this.getASAPService());
 
         ASAPSession.start();
     }
