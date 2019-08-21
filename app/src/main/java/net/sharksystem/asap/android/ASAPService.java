@@ -14,6 +14,8 @@ import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPReceivedChunkListener;
+import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 
 import java.io.File;
@@ -23,23 +25,25 @@ import java.util.List;
 
 /**
  * Service that searches and creates wifi p2p connections
- * to run an AASP session.
+ * to run an ASAP session.
  */
 
 public class ASAPService extends Service implements ASAPReceivedChunkListener {
-    private static final String LOGSTART = "AASPService";
-    private String aaspEngineRootFolderName;
+    private static final String LOGSTART = "ASAPService";
+    private String asapEngineRootFolderName;
 
-    private ASAPEngine aaspEngine = null;
-    public static final String ROOT_FOLDER_NAME = "SHARKSYSTEM_AASP";
+    //private ASAPEngine ASAPEngine = null;
+    private MultiASAPEngineFS ASAPEngine;
 
-    String getAASPRootFolderName() {
-        return this.aaspEngineRootFolderName;
+    public static final String ROOT_FOLDER_NAME = "SHARKSYSTEM_ASAP";
+
+    String getASAPRootFolderName() {
+        return this.asapEngineRootFolderName;
     }
 
-    public ASAPEngine getAASPEngine() {
-        if(this.aaspEngine == null) {
-            Log.d(LOGSTART, "try to get AASPEngine");
+    public MultiASAPEngineFS getASAPEngine() {
+        if(this.ASAPEngine == null) {
+            Log.d(LOGSTART, "try to get ASAPEngine");
 
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
@@ -53,28 +57,29 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
             // we have write permissions
 
-            // set up AASPEngine
-            File rootFolder = new File(this.aaspEngineRootFolderName);
+            // set up ASAPEngine
+            File rootFolder = new File(this.asapEngineRootFolderName);
             try {
                 if (!rootFolder.exists()) {
                     Log.d(LOGSTART,"createFolder");
                     rootFolder.mkdirs();
                     Log.d(LOGSTART,"createdFolder");
                 }
-                this.aaspEngine = ASAPEngineFS.getASAPEngine(this.aaspEngineRootFolderName);
+                this.ASAPEngine = MultiASAPEngineFS_Impl.getEngine(
+                        this.asapEngineRootFolderName, this);
                 Log.d(LOGSTART,"engine created");
             } catch (IOException e) {
                 Log.d(LOGSTART,"IOException");
                 Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
             } catch (ASAPException e) {
-                Log.d(LOGSTART,"AASPException");
+                Log.d(LOGSTART,"ASAPException");
                 Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
             }
         }
 
-        return this.aaspEngine;
+        return this.ASAPEngine;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -90,12 +95,12 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
         Log.d(LOGSTART,text);
 
         // get root directory
-        File aaspRoot = null;
-        aaspRoot = Environment.getExternalStoragePublicDirectory(ROOT_FOLDER_NAME);
+        File ASAPRoot = null;
+        ASAPRoot = Environment.getExternalStoragePublicDirectory(ROOT_FOLDER_NAME);
 
-        this.aaspEngineRootFolderName = aaspRoot.getAbsolutePath();
+        this.asapEngineRootFolderName = ASAPRoot.getAbsolutePath();
         Log.d(LOGSTART,"work with folder: "
-                + this.aaspEngineRootFolderName);
+                + this.asapEngineRootFolderName);
 
         Log.d(LOGSTART, "created");
     }
@@ -131,15 +136,15 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
     //////////////////////////////////////////////////////////////////////////////////////
 
     void startWifiDirect() {
-        Log.d("AASPService", "start wifi p2p");
+        Log.d("ASAPService", "start wifi p2p");
         WifiP2PEngine.getAASPWifiP2PEngine(this, this).start();
     }
 
     void stopWifiDirect() {
-        Log.d("AASPService", "stop wifi p2p");
-        WifiP2PEngine aaspWifiP2PEngine = WifiP2PEngine.getAASPWifiP2PEngine();
-        if(aaspWifiP2PEngine != null) {
-            aaspWifiP2PEngine.stop();
+        Log.d("ASAPService", "stop wifi p2p");
+        WifiP2PEngine ASAPWifiP2PEngine = WifiP2PEngine.getAASPWifiP2PEngine();
+        if(ASAPWifiP2PEngine != null) {
+            ASAPWifiP2PEngine.stop();
         }
     }
 
@@ -148,15 +153,15 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
     //////////////////////////////////////////////////////////////////////////////////////
 
     void startBluetooth() {
-        Log.d("AASPService", "start bluetooth");
+        Log.d("ASAPService", "start bluetooth");
 
 
-        Log.d("AASPService", "start bluetooth - not yet fully implemented");
+        Log.d("ASAPService", "start bluetooth - not yet fully implemented");
     }
 
     void stopBluetooth() {
-        Log.d("AASPService", "stop bluetooth");
-        Log.d("AASPService", "stop bluetooth - not yet implemented");
+        Log.d("ASAPService", "stop bluetooth");
+        Log.d("ASAPService", "stop bluetooth - not yet implemented");
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -172,7 +177,7 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
         ASAPBroadcastIntent intent = null;
         try {
             intent = new ASAPBroadcastIntent(
-                    sender, this.getAASPRootFolderName(), uri, aaspEngine.getEra());
+                    sender, this.getASAPRootFolderName(), uri, era);
         } catch (ASAPException e) {
             e.printStackTrace();
             return;

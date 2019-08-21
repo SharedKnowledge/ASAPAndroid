@@ -8,6 +8,7 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.MultiASAPEngineFS;
 
 import java.io.IOException;
 
@@ -28,24 +29,42 @@ class ASAPMessageHandler extends Handler {
                     if (msgData != null) {
                         String uri = msgData.getString(ASAP.URI);
                         String content = msgData.getString(ASAP.MESSAGE_CONTENT);
+                        String format = msgData.getString(ASAP.FORMAT);
+
+                        if(uri == null) {
+                            Log.e(LOGSTART, "uri must not be empty");
+                            return;
+                        }
+
+                        if(content == null) {
+                            Log.e(LOGSTART, "format content must not be empty");
+                            return;
+                        }
+
+                        if(format == null) {
+                            Log.e(LOGSTART, "format must not be empty");
+                            return;
+                        }
 
                         String text = uri + " / " + content;
                         Log.d(LOGSTART, text);
 
                         try {
-                            ASAPEngine aaspEngine = this.ASAPService.getAASPEngine();
-                            if (aaspEngine == null) {
+                            MultiASAPEngineFS asapMulti = this.ASAPService.getASAPEngine();
+                            ASAPEngine asapEngine = asapMulti.getEngineByFormat(format);
+
+                            if (asapEngine == null) {
                                 Log.d(LOGSTART, "NO AASPEngine!!");
                             } else {
-                                aaspEngine.add(uri, content);
+                                asapEngine.add(uri, content);
                                 Log.d(LOGSTART, "wrote");
 
                                 // simulate broadcast
                                 Intent intent = new ASAPBroadcastIntent(
                                         ASAP.UNKNOWN_USER,
-                                        this.ASAPService.getAASPRootFolderName(),
+                                        this.ASAPService.getASAPRootFolderName(),
                                         uri,
-                                        aaspEngine.getEra());
+                                        asapEngine.getEra());
 
                                 this.ASAPService.sendBroadcast(intent);
                             }
