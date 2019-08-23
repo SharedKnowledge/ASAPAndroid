@@ -28,17 +28,17 @@
     <!-- permission on application level also applies to service as long as permission tag
     is not defined in service description -->
 
-    <!-- AASPEngine needs to write in files -->
+    <!-- ASAPEngine needs to write in files -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <!-- AASPService needs to work with Wifi -->
+    <!-- ASAPService needs to work with Wifi -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- AASPService needs to work with Bluetooth -->
+    <!-- ASAPService needs to work with Bluetooth -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

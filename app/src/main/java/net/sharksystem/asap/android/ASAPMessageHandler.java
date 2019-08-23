@@ -91,6 +91,14 @@ class ASAPMessageHandler extends Handler {
                     this.ASAPService.stopBluetooth();
                     break;
 
+                case ASAPServiceMethods.START_BLUETOOTH_DISCOVERABLE:
+                    this.ASAPService.startBluetoothDiscoverable();
+                    break;
+
+                case ASAPServiceMethods.START_BLUETOOTH_DISCOVERY:
+                    this.ASAPService.startBluetoothDiscovery();
+                    break;
+
                 case ASAPServiceMethods.START_BROADCASTS:
                     this.ASAPService.resumeBroadcasts();
                     break;

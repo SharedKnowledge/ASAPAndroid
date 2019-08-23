@@ -156,7 +156,7 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
         BluetoothEngine.getASAPBluetoothEngine(this, this).start();
 
-        Log.d("ASAPService", "start bluetooth");
+        Log.d("ASAPService", "started bluetooth");
     }
 
     void stopBluetooth() {
@@ -167,8 +167,28 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
             asapBluetoothEngine.stop();
         }
 
-        Log.d("ASAPService", "stop bluetooth");
+        Log.d("ASAPService", "stopped bluetooth");
     }
+
+    void startBluetoothDiscoverable() {
+        Log.d("ASAPService", "start bluetooth discoverable");
+
+        BluetoothEngine asapBluetoothEngine = BluetoothEngine.getASAPBluetoothEngine();
+        asapBluetoothEngine.startDiscoverable();
+
+        Log.d("ASAPService", "started bluetooth discoverable");
+    }
+
+
+    public void startBluetoothDiscovery() {
+        Log.d("ASAPService", "start bluetooth discovery");
+
+        BluetoothEngine asapBluetoothEngine = BluetoothEngine.getASAPBluetoothEngine();
+        asapBluetoothEngine.startDiscovery();
+
+        Log.d("ASAPService", "started bluetooth discovery");
+    }
+
 
     //////////////////////////////////////////////////////////////////////////////////////
     //                          chunk receiving management                              //

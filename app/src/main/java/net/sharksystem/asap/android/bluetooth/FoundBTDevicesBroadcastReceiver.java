@@ -1,5 +1,6 @@
 package net.sharksystem.asap.android.bluetooth;
 
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,15 +24,18 @@ class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
 
         String action = intent.getAction();
         if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            Log.d(this.getLogStart(), "got ACTION_FOUND intent");
             // Discovery has found a device. Get the BluetoothDevice
             // object and its info from the Intent.
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             String deviceName = device.getName();
             String deviceHardwareAddress = device.getAddress(); // MAC address
-
             Log.d(this.getLogStart(), deviceName + "/" + deviceHardwareAddress);
 
-            this.bluetoothEngine.deviceFound(deviceName, deviceHardwareAddress);
+            BluetoothClass btClass = intent.getParcelableExtra(BluetoothDevice.EXTRA_CLASS);
+            Log.d(this.getLogStart(), "found BT class: " + btClass.toString());
+
+            this.bluetoothEngine.deviceFound(deviceName, deviceHardwareAddress, btClass);
         }
     }
 }

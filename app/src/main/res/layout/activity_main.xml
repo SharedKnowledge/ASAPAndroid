@@ -10,31 +10,71 @@
         android:id="@+id/writeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="127dp"
+        android:layout_marginEnd="212dp"
+        android:layout_marginBottom="556dp"
         android:onClick="onClick"
         android:text="callWrite"
-        tools:layout_editor_absoluteX="100dp"
-        tools:layout_editor_absoluteY="127dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/start"
+        android:id="@+id/startWifiDirect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
         android:layout_marginTop="41dp"
         android:onClick="onClick"
-        android:text="start"
+        android:text="startWifi"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/writeButton" />
 
     <Button
-        android:id="@+id/stop"
+        android:id="@+id/stopWifiDirect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="44dp"
+        android:layout_marginStart="240dp"
         android:layout_marginTop="215dp"
+        android:layout_marginEnd="83dp"
+        android:layout_marginBottom="468dp"
         android:onClick="onClick"
-        android:text="stop"
-        app:layout_constraintStart_toEndOf="@+id/start"
+        android:text="stopWifi"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/startBT"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="312dp"
+        android:layout_marginEnd="223dp"
+        android:layout_marginBottom="371dp"
+        android:onClick="onClick"
+        android:text="startBT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/stopBT"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="230dp"
+        android:layout_marginTop="314dp"
+        android:layout_marginEnd="93dp"
+        android:layout_marginBottom="369dp"
+        android:onClick="onClick"
+        android:text="stopBT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

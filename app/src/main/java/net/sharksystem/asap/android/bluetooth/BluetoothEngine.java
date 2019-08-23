@@ -1,7 +1,7 @@
 package net.sharksystem.asap.android.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -9,17 +9,23 @@ import android.util.Log;
 
 import net.sharksystem.asap.android.MacLayerEngine;
 import net.sharksystem.asap.android.ASAPService;
+import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyIntent;
 
+import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED;
+import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED;
 import static android.bluetooth.BluetoothAdapter.ACTION_SCAN_MODE_CHANGED;
+import static android.bluetooth.BluetoothDevice.ACTION_FOUND;
 
 public class BluetoothEngine extends MacLayerEngine {
     private static BluetoothEngine engine = null;
     private BluetoothAdapter mBluetoothAdapter;
-    private FoundBTDevicesBroadcastReceiver foundBTDeviceBR;
+    private FoundBTDevicesBroadcastReceiver foundBTDeviceBC;
 
-    private static final int DEFAULT_VISIBILITY_TIME = 120;
+    public static final int DEFAULT_VISIBILITY_TIME = 120;
     public static int visibilityTimeInSeconds = DEFAULT_VISIBILITY_TIME;
-    private ScanModeChangedBroadcastReceiver scanModeChangedBR = null;
+    private ScanModeChangedBroadcastReceiver scanModeChangedBC = null;
+    private DiscoveryBroadcastReceiver discoveryChangesBC;
+    private boolean btEnvironmentOn = false;
 
     public static BluetoothEngine getASAPBluetoothEngine(ASAPService ASAPService,
                                                          Context context) {
@@ -63,93 +69,132 @@ public class BluetoothEngine extends MacLayerEngine {
      */
     private void setup() {
 
-        // get default bt adapter - there could be proprietary adapters
+        ///////////////////////////////////////////////////////////////////////////////////////
+        //                                 setup bt environment                              //
+        ///////////////////////////////////////////////////////////////////////////////////////
+
+        // get default bt adapter
         this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             // Device doesn't support Bluetooth
-            Log.i(this.getLogStart(), "device does not support bluetooth");
+            Log.i(this.getLogStart(), "device does not support bluetooth - give up");
+            return;
         }
 
-        // those things are to be done in calling activity
+        // adapter enabled? if not - ask activity to ask user to enable
         Log.d(this.getLogStart(), "asking for BT enabling works?");
-        /*
         if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            this.getContext().startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            Log.i(this.getLogStart(),
+                    "Bluetooth disabled - ask application for help - stop setting up bt");
+
+            Intent requestIntent = new ASAPServiceRequestNotifyIntent(
+                    ASAPServiceRequestNotifyIntent.ASAP_RQ_ASK_USER_TO_ENABLE_BLUETOOTH);
+
+            this.getContext().sendBroadcast(requestIntent);
+
+            return;
         }
-        */
 
-        // a list of already paired devices can be retrieved - don't that help but
-        // could require some further investigations
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // setup discoverable: init broadcast receiver and start first discoverable session  //
+        ///////////////////////////////////////////////////////////////////////////////////////
 
-        // create and register broadcast receiver
-        this.foundBTDeviceBR = new FoundBTDevicesBroadcastReceiver(this);
+        // setup broadcast receiver: get informed about changes of visibility
+        if(this.scanModeChangedBC == null) {
+            this.scanModeChangedBC = new ScanModeChangedBroadcastReceiver(this.getContext());
 
-        // Register for broadcasts when a device is discovered.
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        this.getContext().registerReceiver(this.foundBTDeviceBR, filter);
+            IntentFilter filter = new IntentFilter(ACTION_SCAN_MODE_CHANGED);
+            this.getContext().registerReceiver(this.scanModeChangedBC, filter);
+        }
 
-        // make this device visible
-        // TODO
+        // make this device visible - for some time
+        this.startDiscoverable();
 
+        ///////////////////////////////////////////////////////////////////////////////////////
+        //    setup discovery: init broadcast receiver and start first discovery session     //
+        ///////////////////////////////////////////////////////////////////////////////////////
 
-        // start device discovery
+        // create and register broadcast receiver that is informed about discovery changes
+        if(this.discoveryChangesBC == null) {
+            this.discoveryChangesBC = new DiscoveryBroadcastReceiver(this);
+
+            // TODO: check if all actions added.
+            IntentFilter filter = new IntentFilter(ACTION_DISCOVERY_STARTED);
+            filter.addAction(ACTION_DISCOVERY_FINISHED);
+            this.getContext().registerReceiver(this.discoveryChangesBC, filter);
+        }
+
+        // create and register broadcast receiver which is called whenever a device is found
+        if(this.foundBTDeviceBC == null) {
+            this.foundBTDeviceBC = new FoundBTDevicesBroadcastReceiver(this);
+
+            IntentFilter filter = new IntentFilter(ACTION_FOUND);
+            this.getContext().registerReceiver(this.foundBTDeviceBC, filter);
+        }
+
+        // start device discovery - for some time
+        this.startDiscovery();
+
+        this.btEnvironmentOn = true;
+
+        /* Note
+        discovery and discoverable are switched off after seconds (and user defined - discoverable)
+        must be re-started
+         */
     }
 
-    /**
-     * Start a BT scanning sweep of the area. According to android manual, each
-     * sweep takes 12 seconds - thus that method could be called frequently.
-     */
-    private void startDiscovery() {
-
+    public void startDiscoverable() {
+        this.startDiscoverable(BluetoothEngine.DEFAULT_VISIBILITY_TIME);
     }
 
     /**
      * Make devices visible. Visibility time is a parameter. Android default is
      * 120 seconds.
      */
-    private void startDiscoverable() {
-        int effectiveVisibilityTime =
-                BluetoothEngine.visibilityTimeInSeconds > 0 ?
-                        BluetoothEngine.visibilityTimeInSeconds :
-                        BluetoothEngine.DEFAULT_VISIBILITY_TIME;
+    public void startDiscoverable(int time) {
+        // note: a value of 0 would mean: for ever - we don't allow that
+        int effectiveVisibilityTime = time > 0 ? time : BluetoothEngine.DEFAULT_VISIBILITY_TIME;
 
-        Intent discoverableIntent =
-                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
-                BluetoothEngine.visibilityTimeInSeconds);
-
-        Log.d("AASPBluetoothEngine", "make device bt visibile for seconds: "
+        Log.d(this.getLogStart(), "ask activity to make device bt visibile for seconds: "
                 + BluetoothEngine.visibilityTimeInSeconds);
 
-        // get informed about changes of visibility
+        this.getContext().sendBroadcast(
+                new ASAPServiceRequestNotifyIntent(
+                    ASAPServiceRequestNotifyIntent.ASAP_RQ_ASK_USER_TO_START_BT_DISCOVERABLE,
+                    effectiveVisibilityTime)
+        );
+    }
 
-        if(this.scanModeChangedBR == null) {
-            this.scanModeChangedBR = new ScanModeChangedBroadcastReceiver();
-            IntentFilter filter = new IntentFilter(ACTION_SCAN_MODE_CHANGED);
-            this.getContext().registerReceiver(this.foundBTDeviceBR, filter);
+    /**
+     * Start a BT scanning sweep of the area. According to android manual, each
+     * sweep takes 12 seconds - thus that method could be called frequently.
+     */
+    public void startDiscovery() {
+        if(this.mBluetoothAdapter.startDiscovery()) {
+            Log.d(this.getLogStart(), "successfully started Bluetooth discovery");
+        } else {
+            Log.d(this.getLogStart(), "could not start Bluetooth discovery");
         }
-
-
-        this.getContext().startActivity(discoverableIntent);
-
     }
 
     private void shutdown() {
-
-        // stop bt adapter TODO
-
         // unregister broadcast receiver
-        if(this.foundBTDeviceBR != null) {
-            this.getContext().unregisterReceiver(this.foundBTDeviceBR);
+        if(this.foundBTDeviceBC != null) {
+            this.getContext().unregisterReceiver(this.foundBTDeviceBC);
         }
 
-        if(this.scanModeChangedBR != null) {
-            this.getContext().unregisterReceiver(this.scanModeChangedBR);
+        if(this.scanModeChangedBC != null) {
+            this.getContext().unregisterReceiver(this.scanModeChangedBC);
         }
+
+        // stop BT adapter
+        this.mBluetoothAdapter.cancelDiscovery();
+        this.mBluetoothAdapter.disable();
+
+        this.btEnvironmentOn = false;
     }
 
-    void deviceFound(String name, String hardwareAddress) {
+    void deviceFound(String name, String hardwareAddress, BluetoothClass btClass) {
         Log.d(this.getLogStart(), "deviceFound called");
         this.mBluetoothAdapter.getRemoteDevice(hardwareAddress);
     }
