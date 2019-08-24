@@ -144,6 +144,7 @@ public class BluetoothEngine extends MacLayerEngine {
 
         try {
             this.btServerSocketThread = new BluetoothServerSocketThread(this);
+            this.btServerSocketThread.start();
         } catch (IOException | ASAPException e) {
             Log.e(this.getLogStart(), "could not set up BT server socket - quite fatal");
         }
@@ -235,6 +236,7 @@ public class BluetoothEngine extends MacLayerEngine {
         //this.mBluetoothAdapter.cancelDiscovery();
 
         if(this.shouldConnectToMACPeer(macAddress)) {
+            Log.d(this.getLogStart(), "create and BT client socket thread");
             new BluetoothClientSocketThread(this, btDevice).start();
         }
     }

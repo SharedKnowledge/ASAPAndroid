@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.MacLayerEngine;
 
 import java.io.IOException;
 
@@ -27,13 +27,20 @@ class BluetoothClientSocketThread extends Thread {
 
     public void run() {
         try {
-            this.btSocket = btDevice.createRfcommSocketToServiceRecord(ASAP.ASAP_UUID);
+            Log.d(this.getLogStart(), "going to call createRFCOMMSocket");
+            this.btSocket = btDevice.createRfcommSocketToServiceRecord(MacLayerEngine.ASAP_UUID);
             // btEngine.getBTAdapter().cancelDiscovery(); // was strongly suggested in documentation
+            Log.d(this.getLogStart(), "going to call connect");
             btSocket.connect();
 
+            Log.d(this.getLogStart(), "connected - going to call handleBTSocket");
             this.btEngine.handleBTSocket(this.btSocket);
         } catch (IOException e) {
-            Log.e("BTClientSocket", "could not connect: " + e.getLocalizedMessage());
+            Log.e(this.getLogStart(), "could not connect: " + e.getLocalizedMessage());
         }
+    }
+
+    private String getLogStart() {
+        return "BTClientSocketThread";
     }
 }

@@ -6,8 +6,13 @@ import android.util.Log;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public abstract class MacLayerEngine implements ASAPSessionListener {
+    // TODO - create a real UUID.
+    public static final UUID ASAP_UUID = UUID.fromString("42ba5e3b-d4f0-4578-91dc-8dab6c2067ae");
+    public static final String ASAP_SERVICE_NAME = "ASAP";
+
     private final ASAPService ASAPService;
     private final Context context;
 
@@ -59,6 +64,7 @@ public abstract class MacLayerEngine implements ASAPSessionListener {
 
         if(lastEncounter == null) {
             // never met this peer - keep it and say yes
+            Log.d(this.getLogStart(), "device not in encounteredDevices - should connect");
             this.encounteredDevices.put(macAddress, now);
             return true;
         }

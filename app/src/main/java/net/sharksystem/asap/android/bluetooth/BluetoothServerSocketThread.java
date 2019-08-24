@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.MacLayerEngine;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ class BluetoothServerSocketThread extends Thread {
     public BluetoothServerSocketThread(BluetoothEngine btEngine) throws IOException, ASAPException {
         this.btEngine = btEngine;
         this. mmServerSocket = this.btEngine.getBTAdapter().listenUsingRfcommWithServiceRecord(
-                    ASAP.ASAP_SERVICE_NAME, ASAP.ASAP_UUID);
+                    MacLayerEngine.ASAP_SERVICE_NAME, MacLayerEngine.ASAP_UUID);
     }
 
     private String getLogStart() {
@@ -36,12 +36,15 @@ class BluetoothServerSocketThread extends Thread {
     public void run() {
         BluetoothSocket socket = null;
         this.acceptThread = Thread.currentThread();
+        Log.d(this.getLogStart(), "entered thread");
 
         // Keep listening until exception occurs or a socket is returned.
         while (!this.stopped) {
+            Log.d(this.getLogStart(), "entered wait loop - going to block in accept()");
             try {
                 socket = mmServerSocket.accept();
-                Log.d(this.getLogStart(), "no BT connection established");
+                Log.d(this.getLogStart(), "new BT connection established to "
+                        + socket.getRemoteDevice().getAddress());
 
                 // this must be handled here - see comments in BluetoothEngine
                 if(this.btEngine.shouldConnectToMACPeer(socket.getRemoteDevice().getAddress())) {
@@ -61,6 +64,7 @@ class BluetoothServerSocketThread extends Thread {
                 break;
             }
         }
+        Log.d(this.getLogStart(), "left accept loop");
     }
 
     // Closes the connect socket and causes the thread to finish.
