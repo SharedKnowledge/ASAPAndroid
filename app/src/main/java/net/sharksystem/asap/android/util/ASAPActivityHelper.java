@@ -152,14 +152,12 @@ public class ASAPActivityHelper
 
         // those things are to be done in calling activity
         if (!defaultAdapter.isEnabled()) {
-            Log.d(this.getLogStart(), "BT disabled - ask to enable");
+            Log.d(this.getLogStart(), "BT disabled - ask user to enable");
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             this.activity.startActivityForResult(enableBtIntent, MY_REQUEST_2ENABLE_BT);
             // issued - wait for reply
             return;
         }
-
-
     }
 
     private int visibilityTime = 1;
@@ -185,7 +183,7 @@ public class ASAPActivityHelper
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(this.getLogStart(),
                 "requestCode == " + requestCode +
-                        "resultCode == " + resultCode);
+                        " / resultCode == " + resultCode);
 
         if(requestCode == MY_REQUEST_2ENABLE_BT && resultCode == RESULT_OK) {
             Log.d(this.getLogStart(), "Bluetooth now enabled - ask service to start BT");
@@ -236,8 +234,12 @@ public class ASAPActivityHelper
     }
 
     public void onDestroy() {
+        // stop
         this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
-        // and kill it
+        this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
+        this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+
+        // and kill service itself
         this.activity.stopService(new Intent(this.activity, ASAPService.class));
     }
 

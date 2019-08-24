@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * TCP creates a virtual channel between to communication partners. Ony during binding,
- * there are two roles: server and client. Server opens a port to which clients can connect.
+ * TCP creates a virtual channel between to communication partners. Only during binding procedure,
+ * there are two roles: server and client. Server opens a port to which clients can connect to.
  *
  * After connection, there are an open socket. That class implements that view.
  * Objects of that class can be retrieved by some static factory methods. Again:

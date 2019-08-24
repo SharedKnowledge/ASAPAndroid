@@ -1,5 +1,7 @@
 package net.sharksystem.asap.android;
 
+import java.util.UUID;
+
 /**
  * Be sure to have the AASPEngine in one of your library directories!
  */
@@ -17,4 +19,8 @@ public class ASAP {
 
     public static final String ERA = "ASAP_ERA";
     public static final int PORT_NUMBER = 7777;
+
+    public static final UUID ASAP_UUID = UUID.fromString("net.sharksystem.asap");
+    public static final String ASAP_SERVICE_NAME = "ASAP";
+
 }

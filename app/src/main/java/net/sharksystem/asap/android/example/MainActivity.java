@@ -95,6 +95,14 @@ public class MainActivity extends AppCompatActivity implements ASAPServiceNotifi
             Log.d(this.getLogStart(), "stop bt button pressed - send message");
             this.asapActivityHelper.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
         }
+        else if(view == findViewById(R.id.startDiscoverable)) {
+            Log.d(this.getLogStart(), "start discoverable button pressed - send message");
+            this.asapActivityHelper.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERABLE);
+        }
+        else if(view == findViewById(R.id.startDiscovery)) {
+            Log.d(this.getLogStart(), "start discover button pressed - send message");
+            this.asapActivityHelper.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERY);
+        }
     }
 
     private String getLogStart() {
@@ -103,21 +111,25 @@ public class MainActivity extends AppCompatActivity implements ASAPServiceNotifi
 
     @Override
     public void asapNotifyBTDiscoverableStopped() {
+        Log.d(this.getLogStart(), "got notified: discoverable stopped");
         Toast.makeText(this, "discoverable stopped", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void aspNotifyBTDiscoveryStopped() {
-        Toast.makeText(this, "discoverable stopped", Toast.LENGTH_SHORT).show();
+        Log.d(this.getLogStart(), "got notified: discovery stopped");
+        Toast.makeText(this, "discovery stopped", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void aspNotifyBTDiscoveryStarted() {
+        Log.d(this.getLogStart(), "got notified: discovery started");
         Toast.makeText(this, "discovery started", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void aspNotifyBTDiscoverableStarted() {
+        Log.d(this.getLogStart(), "got notified: discoverable started");
         Toast.makeText(this, "discoverable started", Toast.LENGTH_SHORT).show();
     }
 }

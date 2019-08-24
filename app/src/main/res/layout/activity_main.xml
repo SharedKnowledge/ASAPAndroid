@@ -10,14 +10,11 @@
         android:id="@+id/writeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="127dp"
-        android:layout_marginEnd="212dp"
-        android:layout_marginBottom="556dp"
+        android:layout_marginTop="40dp"
         android:onClick="onClick"
         android:text="callWrite"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.32"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -25,8 +22,8 @@
         android:id="@+id/startWifiDirect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="41dp"
+        android:layout_marginStart="96dp"
+        android:layout_marginTop="40dp"
         android:onClick="onClick"
         android:text="startWifi"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,45 +33,51 @@
         android:id="@+id/stopWifiDirect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="240dp"
-        android:layout_marginTop="215dp"
-        android:layout_marginEnd="83dp"
-        android:layout_marginBottom="468dp"
+        android:layout_marginStart="48dp"
         android:onClick="onClick"
         android:text="stopWifi"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/startWifiDirect"
+        app:layout_constraintTop_toTopOf="@+id/startWifiDirect" />
 
     <Button
         android:id="@+id/startBT"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="312dp"
-        android:layout_marginEnd="223dp"
-        android:layout_marginBottom="371dp"
+        android:layout_marginTop="76dp"
         android:onClick="onClick"
         android:text="startBT"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="@+id/startWifiDirect"
+        app:layout_constraintTop_toBottomOf="@+id/startWifiDirect" />
 
     <Button
         android:id="@+id/stopBT"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="230dp"
-        android:layout_marginTop="314dp"
-        android:layout_marginEnd="93dp"
-        android:layout_marginBottom="369dp"
+        android:layout_marginStart="52dp"
+        android:layout_marginTop="76dp"
         android:onClick="onClick"
         android:text="stopBT"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/startBT"
+        app:layout_constraintTop_toBottomOf="@+id/stopWifiDirect" />
+
+    <Button
+        android:id="@+id/startDiscoverable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:onClick="onClick"
+        android:text="startDiscoverable"
+        app:layout_constraintStart_toStartOf="@+id/startBT"
+        app:layout_constraintTop_toBottomOf="@+id/startBT" />
+
+    <Button
+        android:id="@+id/startDiscovery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:onClick="onClick"
+        android:text="startDiscovery"
+        app:layout_constraintStart_toStartOf="@+id/startDiscoverable"
+        app:layout_constraintTop_toBottomOf="@+id/startDiscoverable" />
 
 </android.support.constraint.ConstraintLayout>

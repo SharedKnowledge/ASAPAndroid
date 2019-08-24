@@ -35,7 +35,7 @@ class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
             BluetoothClass btClass = intent.getParcelableExtra(BluetoothDevice.EXTRA_CLASS);
             Log.d(this.getLogStart(), "found BT class: " + btClass.toString());
 
-            this.bluetoothEngine.deviceFound(deviceName, deviceHardwareAddress, btClass);
+            this.bluetoothEngine.deviceFound(device, btClass);
         }
     }
 }

@@ -2,14 +2,21 @@ package net.sharksystem.asap.android.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.android.ASAPSession;
 import net.sharksystem.asap.android.MacLayerEngine;
 import net.sharksystem.asap.android.ASAPService;
 import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.android.util.Util;
+
+import java.io.IOException;
 
 import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED;
 import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED;
@@ -26,6 +33,7 @@ public class BluetoothEngine extends MacLayerEngine {
     private ScanModeChangedBroadcastReceiver scanModeChangedBC = null;
     private DiscoveryBroadcastReceiver discoveryChangesBC;
     private boolean btEnvironmentOn = false;
+    private BluetoothServerSocketThread btServerSocketThread;
 
     public static BluetoothEngine getASAPBluetoothEngine(ASAPService ASAPService,
                                                          Context context) {
@@ -65,10 +73,10 @@ public class BluetoothEngine extends MacLayerEngine {
     //https://developer.android.com/guide/topics/connectivity/bluetooth#java
 
     /**
-     * Setup Bluetooth environment
+     * Setup Bluetooth environment. Note: Only the environment is created.
+     * Discovery and discoverability is not initiated.
      */
     private void setup() {
-
         ///////////////////////////////////////////////////////////////////////////////////////
         //                                 setup bt environment                              //
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +90,7 @@ public class BluetoothEngine extends MacLayerEngine {
         }
 
         // adapter enabled? if not - ask activity to ask user to enable
-        Log.d(this.getLogStart(), "asking for BT enabling works?");
+        Log.d(this.getLogStart(), "check if BT is enabled");
         if (!mBluetoothAdapter.isEnabled()) {
             Log.i(this.getLogStart(),
                     "Bluetooth disabled - ask application for help - stop setting up bt");
@@ -93,13 +101,16 @@ public class BluetoothEngine extends MacLayerEngine {
             this.getContext().sendBroadcast(requestIntent);
 
             return;
+        } else {
+            Log.d(this.getLogStart(), "BT is enabled - BT up and running - now setup BC Receiver");
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////
-        // setup discoverable: init broadcast receiver and start first discoverable session  //
+        //                              setup broadcast receiver                             //
         ///////////////////////////////////////////////////////////////////////////////////////
 
         // setup broadcast receiver: get informed about changes of visibility
+        Log.d(this.getLogStart(), "set up ACTION_SCAN_MODE_CHANGED BC Receiver");
         if(this.scanModeChangedBC == null) {
             this.scanModeChangedBC = new ScanModeChangedBroadcastReceiver(this.getContext());
 
@@ -107,14 +118,8 @@ public class BluetoothEngine extends MacLayerEngine {
             this.getContext().registerReceiver(this.scanModeChangedBC, filter);
         }
 
-        // make this device visible - for some time
-        this.startDiscoverable();
-
-        ///////////////////////////////////////////////////////////////////////////////////////
-        //    setup discovery: init broadcast receiver and start first discovery session     //
-        ///////////////////////////////////////////////////////////////////////////////////////
-
         // create and register broadcast receiver that is informed about discovery changes
+        Log.d(this.getLogStart(), "set up Discovery changes BC Receiver");
         if(this.discoveryChangesBC == null) {
             this.discoveryChangesBC = new DiscoveryBroadcastReceiver(this);
 
@@ -125,6 +130,7 @@ public class BluetoothEngine extends MacLayerEngine {
         }
 
         // create and register broadcast receiver which is called whenever a device is found
+        Log.d(this.getLogStart(), "set up found BT devices BC Receiver");
         if(this.foundBTDeviceBC == null) {
             this.foundBTDeviceBC = new FoundBTDevicesBroadcastReceiver(this);
 
@@ -132,15 +138,17 @@ public class BluetoothEngine extends MacLayerEngine {
             this.getContext().registerReceiver(this.foundBTDeviceBC, filter);
         }
 
-        // start device discovery - for some time
-        this.startDiscovery();
+        ///////////////////////////////////////////////////////////////////////////////////////
+        //                                start BT server socket                             //
+        ///////////////////////////////////////////////////////////////////////////////////////
+
+        try {
+            this.btServerSocketThread = new BluetoothServerSocketThread(this);
+        } catch (IOException | ASAPException e) {
+            Log.e(this.getLogStart(), "could not set up BT server socket - quite fatal");
+        }
 
         this.btEnvironmentOn = true;
-
-        /* Note
-        discovery and discoverable are switched off after seconds (and user defined - discoverable)
-        must be re-started
-         */
     }
 
     public void startDiscoverable() {
@@ -173,18 +181,31 @@ public class BluetoothEngine extends MacLayerEngine {
         if(this.mBluetoothAdapter.startDiscovery()) {
             Log.d(this.getLogStart(), "successfully started Bluetooth discovery");
         } else {
-            Log.d(this.getLogStart(), "could not start Bluetooth discovery");
+            Log.e(this.getLogStart(), "could not start Bluetooth discovery");
         }
     }
 
     private void shutdown() {
         // unregister broadcast receiver
-        if(this.foundBTDeviceBC != null) {
-            this.getContext().unregisterReceiver(this.foundBTDeviceBC);
+        if (this.foundBTDeviceBC != null) {
+            Util.unregisterBCR(this.getLogStart(), this.getContext(), this.foundBTDeviceBC);
+            this.foundBTDeviceBC = null;
         }
 
         if(this.scanModeChangedBC != null) {
-            this.getContext().unregisterReceiver(this.scanModeChangedBC);
+            Util.unregisterBCR(this.getLogStart(), this.getContext(), this.scanModeChangedBC);
+            this.scanModeChangedBC = null;
+        }
+
+        if(this.discoveryChangesBC != null) {
+            Util.unregisterBCR(this.getLogStart(), this.getContext(), this.discoveryChangesBC);
+            this.discoveryChangesBC = null;
+        }
+
+        // stop server socket
+        if(this.btServerSocketThread != null) {
+            this.btServerSocketThread.stopAccept();
+            this.btServerSocketThread = null;
         }
 
         // stop BT adapter
@@ -194,8 +215,53 @@ public class BluetoothEngine extends MacLayerEngine {
         this.btEnvironmentOn = false;
     }
 
-    void deviceFound(String name, String hardwareAddress, BluetoothClass btClass) {
+    BluetoothAdapter getBTAdapter() throws ASAPException {
+        if(this.mBluetoothAdapter == null)
+            throw new ASAPException("bluetooth not yet initialized");
+
+        return this.mBluetoothAdapter;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //                       handle connections and connection attempts                    //
+    /////////////////////////////////////////////////////////////////////////////////////////
+
+    void deviceFound(BluetoothDevice btDevice, BluetoothClass btClass) {
         Log.d(this.getLogStart(), "deviceFound called");
-        this.mBluetoothAdapter.getRemoteDevice(hardwareAddress);
+        String macAddress = btDevice.getAddress();// MAC address
+        btDevice.getName(); // name
+
+        // strongly recommended to stop discovery
+        //this.mBluetoothAdapter.cancelDiscovery();
+
+        if(this.shouldConnectToMACPeer(macAddress)) {
+            new BluetoothClientSocketThread(this, btDevice).start();
+        }
+    }
+
+    /**
+     * Both client and server sockets
+     * @param socket
+     * @throws IOException
+     */
+    void handleBTSocket(BluetoothSocket socket) throws IOException {
+        Log.d(this.getLogStart(), "new BT connection established");
+        /* don't check here with shouldConnectToMACPeer if to talk
+         with remote peer.
+
+         It must be checked before establishing a connection as client!
+         Checked again here would fail - due to missing waiting period.
+
+         Thus, this must be check in server socket as well. See comments there.
+
+         more:
+         There is also a race condition between both peers - who will create connection
+         earlier - that mechanism drops the later connection attempt.
+         */
+
+        // set up new ASAP Session and we are done here.
+
+        new ASAPSession(socket.getInputStream(), socket.getOutputStream(),
+                this.getASAPService().getASAPEngine(), this).start();
     }
 }

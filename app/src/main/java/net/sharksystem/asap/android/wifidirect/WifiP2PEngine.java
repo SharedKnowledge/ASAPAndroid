@@ -10,24 +10,20 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
 import net.sharksystem.asap.android.MacLayerEngine;
-import net.sharksystem.util.ASAPSession;
+import net.sharksystem.asap.android.ASAPSession;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPService;
-import net.sharksystem.util.ASAPSessionListener;
+import net.sharksystem.asap.android.ASAPSessionListener;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static android.os.Looper.getMainLooper;
 
 public class WifiP2PEngine extends MacLayerEngine implements
         WifiP2pManager.PeerListListener,
         WifiP2pManager.ConnectionInfoListener,
-        ASAPSessionListener,
         WifiP2pManager.ChannelListener {
 
     private static WifiP2PEngine wifiP2PEngine = null;
@@ -59,12 +55,12 @@ public class WifiP2PEngine extends MacLayerEngine implements
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
-    //                                 live cycle methods                               //
+    //                                 life cycle methods                               //
     //////////////////////////////////////////////////////////////////////////////////////
 
     /////////////// WifiP2pManager.ChannelListener - see mManager.initialize
     public void onChannelDisconnected() {
-        Log.d("AASPWifiEngine","channel disconnected / restart wifip2p");
+        Log.d(this.getLogStart(),"channel disconnected / restart wifip2p");
         // TODO: that's ok?
         this.restart();
     }
@@ -168,13 +164,13 @@ public class WifiP2PEngine extends MacLayerEngine implements
                 @Override
                 public void onSuccess() {
                     // TODO remove that after debugging
-                    Log.d("AASPWifiEngine:", "discoverPeers: peer discovery started");
+                    Log.d(getLogStart(), "discoverPeers: peer discovery started");
                 }
 
                 @Override
                 public void onFailure(int reasonCode) {
                     // TODO remove that after debugging
-                    Log.d("AASPWifiEngine:", "discoverPeers: peer discovery failed");
+                    Log.d(getLogStart(), "discoverPeers: peer discovery failed");
                 }
             });
     }
@@ -182,17 +178,6 @@ public class WifiP2PEngine extends MacLayerEngine implements
     //////////////////////////////////////////////////////////////////////////////////////
     //                WifiP2pManager.PeerListListener interface support                 //
     //////////////////////////////////////////////////////////////////////////////////////
-
-    public static final long DEFAULT_WAIT_BEFORE_RECONNECT_TIME = 1000*60; // a minute
-    private long waitBeforeReconnect = DEFAULT_WAIT_BEFORE_RECONNECT_TIME;
-
-    /** last encounter with new peers - last time pnPeersAvaiable called */
-    private Date lastEncounter = new Date();
-
-    /** keeps info about device we have tried (!!) recently to connect
-     * <MAC address, connection time>
-     */
-    private Map<String, Date> connectDevices = new HashMap<>();
 
     /** list of devices which should be connected to */
     private List<WifiP2pDevice> devices2Connect = null;
@@ -207,26 +192,11 @@ public class WifiP2PEngine extends MacLayerEngine implements
     @Override
     public void onPeersAvailable(WifiP2pDeviceList peers) {
         // got a list of peers  - check it out
-        Log.d("AASPWifiEngine", "onPeersAvailable: peers available");
-
-        // get current time, in its incarnation as date
-        long nowInMillis = System.currentTimeMillis();
-        long reconnectedBeforeInMillis = nowInMillis - this.waitBeforeReconnect;
-
-        Date now = new Date(nowInMillis);
-        Date reconnectBefore = new Date(reconnectedBeforeInMillis);
-
-        Log.d("AASPWifiEngine","now: " + now.toString());
-        Log.d("AASPWifiEngine","connectBefore: " + reconnectBefore.toString());
+        Log.d(this.getLogStart(), "onPeersAvailable: peers available");
 
         // if our last general encounter was before our waiting period
         // we can drop the whole waiting list - any peer will be considered as
         // new - remove waiting queue
-
-        if(this.lastEncounter.before(reconnectBefore)) {
-            Log.d("AASPWifiEngine", "drop connectDevices list");
-            this.connectDevices = new HashMap<>();
-        }
 
         if(this.devices2Connect == null) {
             this.devices2Connect = new ArrayList<>();
@@ -235,31 +205,16 @@ public class WifiP2PEngine extends MacLayerEngine implements
         // walk trough list of available peers
         for(WifiP2pDevice device : peers.getDeviceList()) {
             boolean connect = false;
-            Log.d("AASPWifiEngine", "iterate new peer: " + device.deviceAddress);
+            Log.d(this.getLogStart(), "iterate new peer: " + device.deviceAddress);
 
-            // device in known device list?
-            Date lastEncounter = this.connectDevices.get(device.deviceAddress);
-
-            if(lastEncounter != null) {
-                Log.d("AASPWifiEngine", "device in connectDevices list");
-                // it was in the list
-                if(lastEncounter.before(reconnectBefore)) {
-                    Log.d("AASPWifiEngine", "add to devices2connect");
-                    // that encounter longer ago than waiting periode - remember that peer
-                    devices2Connect.add(device);
-                } else {
-                    Log.d("AASPWifiEngine", "still in waiting period - ignore");
-                }
+            // should contact that device?
+            if(this.shouldConnectToMACPeer(device.deviceAddress)) {
+                Log.d(this.getLogStart(), "add device to devices2contact list");
+                this.devices2Connect.add(device);
             } else {
-                Log.d("AASPWifiEngine", "device not in connectDevices list");
-                Log.d("AASPWifiEngine", "add to devices2connect");
-                // no entry at all - remember that device
-                devices2Connect.add(device);
+                Log.d(this.getLogStart(), "do not contact device");
             }
         }
-
-        // remember that encounter
-        this.lastEncounter = now;
 
         // are there devices to connect to?
         if(!devices2Connect.isEmpty()) {
@@ -270,34 +225,36 @@ public class WifiP2PEngine extends MacLayerEngine implements
     private void connectDevices() {
         if(this.devices2Connect == null || this.devices2Connect.isEmpty()) return;
 
-        Log.d("AASPWifiEngine", "connectDevices entered with non-empty list");
+        Log.d(this.getLogStart(), "encounteredDevices entered with non-empty list");
 
         // not null, not empty, go ahead
         for(WifiP2pDevice device : this.devices2Connect) {
             WifiP2pConfig config = new WifiP2pConfig();
             config.deviceAddress = device.deviceAddress;
 
-            Log.d("AASPWifiEngine", "connectDevices: try address: " + device.deviceAddress);
-            this.connectDevices.put(device.deviceAddress, new Date());
-            Log.d("AASPWifiEngine", "added to connectDevices list");
+            Log.d(this.getLogStart(), "encounteredDevices: try address: " + device.deviceAddress);
             this.mManager.connect(this.mChannel, config,
-                    new WifiP2pManager.ActionListener() {
-                        @Override
-                        public void onSuccess() {
-                            Log.d("AASPWifiEngine","connectDevices: connect called successfully");
-                        }
-
-                        @Override
-                        public void onFailure(int reason) {
-                            //failure logic
-                            Log.d("AASPWifiEngine","connectDevices: connect called not successfully");
-                        }
+                new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(getLogStart(),"encounteredDevices: connect called successfully");
                     }
+
+                    @Override
+                    public void onFailure(int reason) {
+                        //failure logic
+                        Log.d(getLogStart(),"encounteredDevices: connect called not successfully");
+                    }
+                }
             ); // end connect
         }
 
         // done: remove list
         this.devices2Connect = null;
+    }
+    
+    private String getLogStart() {
+        return "ASAPWifiP2PEngine";
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -314,21 +271,21 @@ public class WifiP2PEngine extends MacLayerEngine implements
      */
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        Log.d("AASPWifiEngine:", "onConnectionInfoAvailable");
+        Log.d(getLogStart(), "onConnectionInfoAvailable");
 
         TCPChannelMaker.max_connection_loops = 10;
 
         TCPChannelMaker channelCreator = null;
         if(info.isGroupOwner) {
-            Log.d("AASPWifiEngine:", "group owner - should create server");
+            Log.d(getLogStart(), "group owner - should create server");
 
             // create tcp server as group owner
             if(this.serverChannelCreator == null) {
-                Log.d("AASPWifiEngine:", "start server channel maker");
+                Log.d(getLogStart(), "start server channel maker");
                 this.serverChannelCreator =
                         TCPChannelMaker.getTCPServerCreator(ASAP.PORT_NUMBER, true);
             } else {
-                Log.d("AASPWifiEngine:", "server channel maker already exists");
+                Log.d(getLogStart(), "server channel maker already exists");
             }
 
             channelCreator = this.serverChannelCreator;
@@ -337,7 +294,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
 
             String hostAddress = info.groupOwnerAddress.getHostAddress();
 
-            Log.d("AASPWifiEngine:", " start server channel maker: " + hostAddress);
+            Log.d(getLogStart(), " start server channel maker: " + hostAddress);
             // create client connection to group owner
             channelCreator = TCPChannelMaker.getTCPClientCreator(hostAddress, ASAP.PORT_NUMBER);
         }
@@ -345,17 +302,8 @@ public class WifiP2PEngine extends MacLayerEngine implements
         // create an AASPSession with connection parameters
         ASAPSession ASAPSession = new ASAPSession(channelCreator,
                 this.getASAPService().getASAPEngine(),
-                this,
-                this.getASAPService());
+                this);
 
         ASAPSession.start();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    //                        AASPSessionListener interface support                     //
-    //////////////////////////////////////////////////////////////////////////////////////
-    @Override
-    public void aaspSessionEnded() {
-
     }
 }

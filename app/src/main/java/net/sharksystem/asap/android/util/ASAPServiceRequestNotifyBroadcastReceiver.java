@@ -30,16 +30,18 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
             //////////////////////////////////////////////////////////////////////////
 
             case ASAPServiceRequestNotifyIntent.ASAP_RQ_ASK_USER_TO_ENABLE_BLUETOOTH:
-                Log.d(this.getLogStart(), "asked to enable bluetooth");
+                Log.d(this.getLogStart(), "was asked to enable bluetooth");
                 this.requestListener.asapSrcRq_enableBluetooth();
+                break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_RQ_ASK_USER_TO_START_BT_DISCOVERABLE:
-                Log.d(this.getLogStart(), "asked to start bluetooth discoverable");
+                Log.d(this.getLogStart(), "was asked to start bluetooth discoverable");
 
                 int time = intent.getIntExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1,
                         BluetoothEngine.DEFAULT_VISIBILITY_TIME);
 
                 this.requestListener.asapSrcRq_startBTDiscoverable(time);
+                break;
 
                 //////////////////////////////////////////////////////////////////////////
                 //                               notifications                          //
@@ -56,12 +58,12 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
                 break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERY_STARTED:
-                Log.d(this.getLogStart(), "notified bluetooth discovery stopped");
+                Log.d(this.getLogStart(), "notified bluetooth discovery started");
                 this.notificationListener.aspNotifyBTDiscoveryStarted();
                 break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERABLE_STARTED:
-                Log.d(this.getLogStart(), "notified bluetooth discovery stopped");
+                Log.d(this.getLogStart(), "notified bluetooth discoverable started");
                 this.notificationListener.aspNotifyBTDiscoverableStarted();
                 break;
 
@@ -72,6 +74,6 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
     }
 
     private String getLogStart() {
-        return "ASAPServiceRequestBCReceiver";
+        return "ASAPServiceRequestNotifyBCReceiver";
     }
 }
