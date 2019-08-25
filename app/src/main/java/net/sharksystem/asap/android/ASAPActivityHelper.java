@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.util;
+package net.sharksystem.asap.android;
 
 import android.Manifest;
 import android.app.Activity;
@@ -21,6 +21,10 @@ import android.widget.Toast;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPService;
 import net.sharksystem.asap.android.ASAPServiceMethods;
+import net.sharksystem.asap.android.util.ASAPServiceNotificationListener;
+import net.sharksystem.asap.android.util.ASAPServiceRequestListener;
+import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyBroadcastReceiver;
+import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyIntent;
 
 import java.util.ArrayList;
 import java.util.List;

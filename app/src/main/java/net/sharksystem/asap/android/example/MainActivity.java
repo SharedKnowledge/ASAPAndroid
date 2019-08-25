@@ -13,7 +13,7 @@ import android.widget.Toast;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.R;
-import net.sharksystem.asap.android.util.ASAPActivityHelper;
+import net.sharksystem.asap.android.ASAPActivityHelper;
 import net.sharksystem.asap.android.util.ASAPServiceNotificationListener;
 
 public class MainActivity extends AppCompatActivity implements ASAPServiceNotificationListener {
