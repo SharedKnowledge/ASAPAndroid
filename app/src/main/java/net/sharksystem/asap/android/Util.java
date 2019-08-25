@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.util;
+package net.sharksystem.asap.android;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.util;
+package net.sharksystem.asap.android.service2AppMessaging;
 
 public interface ASAPServiceRequestListener {
 

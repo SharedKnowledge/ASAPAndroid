@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.util;
+package net.sharksystem.asap.android.service2AppMessaging;
 
 import android.content.Intent;
 
@@ -13,6 +13,8 @@ public class ASAPServiceRequestNotifyIntent extends Intent {
     public static final int ASAP_NOTIFY_BT_DISCOVERABLE_STOPPED = 101;
     public static final int ASAP_NOTIFY_BT_DISCOVERY_STARTED = 102;
     public static final int ASAP_NOTIFY_BT_DISCOVERABLE_STARTED = 103;
+    public static final int ASAP_NOTIFY_BT_ENVIRONMENT_STARTED = 104;
+    public static final int ASAP_NOTIFY_BT_ENVIRONMENT_STOPPED = 105;
 
     public static final String ASAP_PARAMETER_1 = "ASAP_PARAMETER_1";
 

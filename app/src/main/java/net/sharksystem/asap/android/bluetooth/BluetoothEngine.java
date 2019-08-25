@@ -13,8 +13,8 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.ASAPSession;
 import net.sharksystem.asap.android.MacLayerEngine;
 import net.sharksystem.asap.android.ASAPService;
-import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyIntent;
-import net.sharksystem.asap.android.util.Util;
+import net.sharksystem.asap.android.Util;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.io.IOException;
 
@@ -150,6 +150,11 @@ public class BluetoothEngine extends MacLayerEngine {
         }
 
         this.btEnvironmentOn = true;
+
+        // broadcast the news
+        this.getContext().sendBroadcast(
+                new ASAPServiceRequestNotifyIntent(
+                        ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STARTED));
     }
 
     public void startDiscoverable() {
@@ -214,6 +219,11 @@ public class BluetoothEngine extends MacLayerEngine {
         this.mBluetoothAdapter.disable();
 
         this.btEnvironmentOn = false;
+
+        // broadcast the news
+        this.getContext().sendBroadcast(
+            new ASAPServiceRequestNotifyIntent(
+                ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STOPPED));
     }
 
     BluetoothAdapter getBTAdapter() throws ASAPException {

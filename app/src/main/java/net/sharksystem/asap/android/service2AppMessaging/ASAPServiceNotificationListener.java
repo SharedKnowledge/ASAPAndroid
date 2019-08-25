@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.util;
+package net.sharksystem.asap.android.service2AppMessaging;
 
 public interface ASAPServiceNotificationListener {
     void asapNotifyBTDiscoverableStopped();
@@ -8,4 +8,8 @@ public interface ASAPServiceNotificationListener {
     void aspNotifyBTDiscoveryStarted();
 
     void aspNotifyBTDiscoverableStarted();
+
+    void aspNotifyBTEnvironmentStarted();
+
+    void aspNotifyBTEnvironmentStopped();
 }

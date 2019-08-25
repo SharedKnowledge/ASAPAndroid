@@ -18,13 +18,10 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPService;
-import net.sharksystem.asap.android.ASAPServiceMethods;
-import net.sharksystem.asap.android.util.ASAPServiceNotificationListener;
-import net.sharksystem.asap.android.util.ASAPServiceRequestListener;
-import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyBroadcastReceiver;
-import net.sharksystem.asap.android.util.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +30,17 @@ import static android.app.Activity.RESULT_OK;
 import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
 
-public class ASAPActivityHelper
+public class ASAPApplicationHelper
         implements ASAPServiceRequestListener, ASAPServiceNotificationListener {
+
+    protected boolean btDisoverableOn = false;
+    protected boolean btDisoveryOn = false;
+    protected boolean btEnvironmentOn = false;
 
     private static final int MY_REQUEST_2ENABLE_BT = 1;
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
 
-    private final Activity activity;
+    private Activity activity;
     private final CharSequence asapOwner;
     private final ASAPServiceNotificationListener notificationListener;
     private Messenger mService;
@@ -49,8 +50,13 @@ public class ASAPActivityHelper
     private List<String> grantedPermissions = new ArrayList<>();
     private List<String> deniedPermissions = new ArrayList<>();
 
-    public ASAPActivityHelper(Activity activity,
-            ASAPServiceNotificationListener notificationListener, CharSequence asapOwner) {
+    public ASAPApplicationHelper(Activity activity, CharSequence asapOwner) {
+        this(activity, null, asapOwner);
+    }
+
+    public ASAPApplicationHelper(Activity activity,
+                                 ASAPServiceNotificationListener notificationListener,
+                                 CharSequence asapOwner) {
 
         this.activity = activity;
         this.notificationListener = notificationListener;
@@ -81,6 +87,14 @@ public class ASAPActivityHelper
         IntentFilter filter = new IntentFilter();
         filter.addAction(ASAPServiceRequestNotifyIntent.ASAP_SERVICE_REQUEST_ACTION);
         activity.registerReceiver(srbc, filter);
+    }
+
+    protected Activity getActivity() {
+        return this.activity;
+    }
+
+    protected void setActivity(Activity activity) {
+        this.activity = activity;
     }
 
     private void askForPermissions() {
@@ -200,7 +214,7 @@ public class ASAPActivityHelper
         }
     }
 
-    public void sendMessage2Service(int messageNumber) {
+    protected void sendMessage2Service(int messageNumber) {
         if(this.mService == null) {
             Log.d(this.getLogStart(), "service not yet available - cannot send message");
             return;
@@ -219,22 +233,70 @@ public class ASAPActivityHelper
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
+    //                                 mac protocol stuff                              //
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    public void startBluetooth() {
+        Log.d(this.getLogStart(), "send message to service: start BT");
+        this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH);
+    }
+
+    public void stopBluetooth() {
+        Log.d(this.getLogStart(), "send message to service: stop BT");
+        this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
+    }
+
+    public void startWifiP2P() {
+        Log.d(this.getLogStart(), "send message to service: start Wifi P2P");
+        this.sendMessage2Service(ASAPServiceMethods.START_WIFI_DIRECT);
+    }
+
+    public void stopWifiP2P() {
+        Log.d(this.getLogStart(), "send message to service: stop Wifi P2P");
+        this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
+    }
+
+    public void startBluetoothDiscoverable() {
+        Log.d(this.getLogStart(), "send message to service: start BT Discoverable");
+        this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERABLE);
+    }
+
+    public void startBluetoothDiscovery() {
+        Log.d(this.getLogStart(), "send message to service: start BT Discovery");
+        this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERY);
+    }
+
+    public void startASAPEngineBroadcasts() {
+        Log.d(this.getLogStart(), "send message to service: start ASAP Engine Broadcasts");
+        this.sendMessage2Service(ASAPServiceMethods.START_BROADCASTS);
+    }
+
+    public void stopASAPEngineBroadcasts() {
+        Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
+        this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
     //                                       life cycle                                //
     /////////////////////////////////////////////////////////////////////////////////////
 
     public void onStart() {
         // Bind to the service
-        this.activity.bindService(new Intent(this.activity, ASAPService.class),
-                mConnection, Context.BIND_AUTO_CREATE);
+        this.bindServices();
+    }
+
+    void onResume() {
+        this.bindServices();
+    }
+
+    public void onPause() {
+        this.unbindServices();
     }
 
     public void onStop() {
         // Unbind from the service
-        if (mBound) {
-            this.activity.unbindService(mConnection);
-            mBound = false;
-        }
-        this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
+        this.unbindServices();
+        // TODO: stop protocols?
     }
 
     public void onDestroy() {
@@ -245,6 +307,17 @@ public class ASAPActivityHelper
 
         // and kill service itself
         this.activity.stopService(new Intent(this.activity, ASAPService.class));
+    }
+
+    private void bindServices() {
+        this.activity.bindService(new Intent(this.activity, ASAPService.class),
+                mConnection, Context.BIND_AUTO_CREATE);
+    }
+        private void unbindServices() {
+        if (mBound) {
+            this.activity.unbindService(mConnection);
+            mBound = false;
+        }
     }
 
     /**
@@ -270,22 +343,55 @@ public class ASAPActivityHelper
     };
 
     @Override
-    public void asapNotifyBTDiscoverableStopped() {
-        this.notificationListener.asapNotifyBTDiscoverableStopped();
+    public void aspNotifyBTDiscoverableStarted() {
+        this.btDisoverableOn = true;
+        if(this.notificationListener != null)
+            this.notificationListener.aspNotifyBTDiscoverableStarted();
     }
 
     @Override
-    public void aspNotifyBTDiscoveryStopped() {
-        this.notificationListener.aspNotifyBTDiscoveryStopped();
+    public void aspNotifyBTEnvironmentStarted() {
+        this.btEnvironmentOn = true;
+    }
+
+    @Override
+    public void aspNotifyBTEnvironmentStopped() {
+        this.btEnvironmentOn = false;
+    }
+
+    @Override
+    public void asapNotifyBTDiscoverableStopped() {
+        if(this.notificationListener != null)
+            this.notificationListener.asapNotifyBTDiscoverableStopped();
     }
 
     @Override
     public void aspNotifyBTDiscoveryStarted() {
-        this.notificationListener.aspNotifyBTDiscoveryStarted();
+        this.btDisoveryOn = true;
+        if(this.notificationListener != null)
+            this.notificationListener.aspNotifyBTDiscoveryStarted();
     }
 
     @Override
-    public void aspNotifyBTDiscoverableStarted() {
-        this.notificationListener.aspNotifyBTDiscoverableStarted();
+    public void aspNotifyBTDiscoveryStopped() {
+        this.btDisoveryOn = false;
+        if(this.notificationListener != null)
+            this.notificationListener.aspNotifyBTDiscoveryStopped();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //                                status methods                              //
+    ////////////////////////////////////////////////////////////////////////////////
+
+    public boolean isBluetoothEnvironmentOn() {
+        return this.btEnvironmentOn;
+    }
+
+    public boolean isBluetoothDiscoverable() {
+        return this.btDisoverableOn;
+    }
+
+    public boolean isBluetoothDiscovery() {
+        return this.btDisoveryOn;
     }
 }

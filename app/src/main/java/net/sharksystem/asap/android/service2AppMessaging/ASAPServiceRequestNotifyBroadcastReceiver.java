@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.util;
+package net.sharksystem.asap.android.service2AppMessaging;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -65,6 +65,16 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERABLE_STARTED:
                 Log.d(this.getLogStart(), "notified bluetooth discoverable started");
                 this.notificationListener.aspNotifyBTDiscoverableStarted();
+                break;
+
+            case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STARTED:
+                Log.d(this.getLogStart(), "notified bluetooth environment started");
+                this.notificationListener.aspNotifyBTEnvironmentStarted();
+                break;
+
+            case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STOPPED:
+                Log.d(this.getLogStart(), "notified bluetooth environment stopped");
+                this.notificationListener.aspNotifyBTEnvironmentStopped();
                 break;
 
             default:
