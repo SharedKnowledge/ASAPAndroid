@@ -282,25 +282,44 @@ public class ASAPApplicationHelper
 
     public void onStart() {
         // Bind to the service
+        Log.d(this.getLogStart(), "onStart: going to bind service(s)");
         this.bindServices();
     }
 
-    void onResume() {
+    public void onResume() {
+        Log.d(this.getLogStart(), "onResume: going to bind service(s)");
         this.bindServices();
     }
 
     public void onPause() {
+        Log.d(this.getLogStart(), "onPause: going to unbind service(s)");
         this.unbindServices();
     }
 
     public void onStop() {
         // Unbind from the service
+        Log.d(this.getLogStart(), "onStop: going to unbind service(s)");
         this.unbindServices();
         // TODO: stop protocols?
     }
 
     public void onDestroy() {
+        // its called even when changing activities - cannot should down protocols.
         // stop
+        Log.d(this.getLogStart(), "onDestroy: going to unbind service(s)");
+        /*
+        this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
+        this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
+        this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+
+        // and kill service itself
+        this.activity.stopService(new Intent(this.activity, ASAPService.class));
+
+         */
+        this.unbindServices();
+    }
+
+    public void stopAll() {
         this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
         this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
         this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
