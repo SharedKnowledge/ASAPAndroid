@@ -10,6 +10,7 @@ import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPReceivedChunkListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
@@ -33,8 +34,6 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
     //private ASAPEngine ASAPEngine = null;
     private MultiASAPEngineFS ASAPEngine;
-
-    public static final String ROOT_FOLDER_NAME = "SHARKSYSTEM_ASAP";
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -94,10 +93,11 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
         Log.d(LOGSTART,text);
 
         // get root directory
-        File ASAPRoot = null;
-        ASAPRoot = Environment.getExternalStoragePublicDirectory(ROOT_FOLDER_NAME);
+        File asapRoot = null;
+        asapRoot = Environment.getExternalStoragePublicDirectory(
+                ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME);
 
-        this.asapEngineRootFolderName = ASAPRoot.getAbsolutePath();
+        this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
         Log.d(LOGSTART,"work with folder: "
                 + this.asapEngineRootFolderName);
 
