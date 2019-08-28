@@ -81,12 +81,17 @@ public class ASAPApplicationHelper
         asapServiceCreationIntent.putExtra(ASAP.USER, asapOwner);
 
         activity.startService(asapServiceCreationIntent);
+    }
 
-        ASAPServiceRequestNotifyBroadcastReceiver srbc =
-                new ASAPServiceRequestNotifyBroadcastReceiver(this, this);
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAPServiceRequestNotifyIntent.ASAP_SERVICE_REQUEST_ACTION);
-        activity.registerReceiver(srbc, filter);
+    private ASAPServiceRequestNotifyBroadcastReceiver srbc = null;
+    private ASAPServiceRequestNotifyBroadcastReceiver
+        getASAPServiceRequestNotifyBroadcastReceiver() {
+        if(this.srbc == null) {
+            this.srbc = new ASAPServiceRequestNotifyBroadcastReceiver(
+                    this, this);
+        }
+
+        return this.srbc;
     }
 
     protected Activity getActivity() {
@@ -276,10 +281,54 @@ public class ASAPApplicationHelper
         this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
     }
 
+    protected void registerASAPBroadcastReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ASAPServiceRequestNotifyIntent.ASAP_SERVICE_REQUEST_ACTION);
+        activity.registerReceiver(
+                this.getASAPServiceRequestNotifyBroadcastReceiver(),
+                filter);
+    }
+
+    protected void unregisterASAPBroadcastReceiver() {
+        if(this.srbc != null) {
+            try {
+                this.activity.unregisterReceiver(this.srbc);
+            }
+            catch(RuntimeException re) {
+                Log.d(this.getLogStart(), "could not unregister asap br rc - ignore"
+                        + re.getLocalizedMessage());
+            }
+        }
+    }
+
+    private boolean asapBCOn = false;
+    private void setupASAPServiceBroadcast() {
+        if(asapBCOn) {
+            Log.d(this.getLogStart(), "asap bc always running");
+        } else {
+            Log.d(this.getLogStart(), "start asap bc");
+            this.registerASAPBroadcastReceiver();
+            this.startASAPEngineBroadcasts();
+            this.asapBCOn = true;
+        }
+    }
+
+    private void shutdownASAPServiceBroadcast() {
+        if(!asapBCOn) {
+            Log.d(this.getLogStart(), "asap bc already off");
+        } else {
+            Log.d(this.getLogStart(), "stop asap bc");
+            this.unregisterASAPBroadcastReceiver();
+            this.stopASAPEngineBroadcasts();
+            this.asapBCOn = false;
+        }
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     //                                       life cycle                                //
     /////////////////////////////////////////////////////////////////////////////////////
 
+    /** currently, we have only two stats: on and off */
     public void onStart() {
         // Bind to the service
         Log.d(this.getLogStart(), "onStart: going to bind service(s)");
@@ -287,18 +336,19 @@ public class ASAPApplicationHelper
     }
 
     public void onResume() {
-        Log.d(this.getLogStart(), "onResume: going to bind service(s)");
-        this.bindServices();
+        Log.d(this.getLogStart(), "onResume: re-start asap broadcasts");
+        this.setupASAPServiceBroadcast();
     }
 
     public void onPause() {
-        Log.d(this.getLogStart(), "onPause: going to unbind service(s)");
-        this.unbindServices();
+        Log.d(this.getLogStart(), "onPause: shutdown asap broadcasts");
+        this.shutdownASAPServiceBroadcast();
     }
 
     public void onStop() {
         // Unbind from the service
-        Log.d(this.getLogStart(), "onStop: going to unbind service(s)");
+        Log.d(this.getLogStart(), "onStop: shotdown asap bc / unbind service(s)");
+        this.shutdownASAPServiceBroadcast();
         this.unbindServices();
         // TODO: stop protocols?
     }
@@ -306,7 +356,8 @@ public class ASAPApplicationHelper
     public void onDestroy() {
         // its called even when changing activities - cannot should down protocols.
         // stop
-        Log.d(this.getLogStart(), "onDestroy: going to unbind service(s)");
+        Log.d(this.getLogStart(), "onDestroy: act as onStop");
+        this.onStop();
         /*
         this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
         this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
@@ -316,7 +367,6 @@ public class ASAPApplicationHelper
         this.activity.stopService(new Intent(this.activity, ASAPService.class));
 
          */
-        this.unbindServices();
     }
 
     public void stopAll() {
@@ -332,10 +382,16 @@ public class ASAPApplicationHelper
         this.activity.bindService(new Intent(this.activity, ASAPService.class),
                 mConnection, Context.BIND_AUTO_CREATE);
     }
-        private void unbindServices() {
+
+    private void unbindServices() {
         if (mBound) {
-            this.activity.unbindService(mConnection);
-            mBound = false;
+            try {
+                this.activity.unbindService(mConnection);
+            }
+            catch(RuntimeException re) {
+                Log.d(this.getLogStart(), "exception when trying to unbind: "
+                        + re.getLocalizedMessage());
+            }
         }
     }
 
@@ -351,6 +407,9 @@ public class ASAPApplicationHelper
             // representation of that from the raw IBinder object.
             mService = new Messenger(service);
             mBound = true;
+
+            Log.d(getLogStart(), "call setup asap bc - there can be a race condition");
+            setupASAPServiceBroadcast();
         }
 
         public void onServiceDisconnected(ComponentName className) {
