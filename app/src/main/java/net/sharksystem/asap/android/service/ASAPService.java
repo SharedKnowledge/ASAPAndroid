@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android;
+package net.sharksystem.asap.android.service;
 
 import android.Manifest;
 import android.app.Service;
@@ -12,9 +12,13 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPOnlineMessageSender;
+import net.sharksystem.asap.ASAPOnlineMessageSender_Impl;
 import net.sharksystem.asap.ASAPReceivedChunkListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
+import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPBroadcastIntent;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 
@@ -34,6 +38,10 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
     //private ASAPEngine ASAPEngine = null;
     private MultiASAPEngineFS ASAPEngine;
+    private ASAPOnlineMessageSender asapOnlineMessageSender;
+    private CharSequence owner;
+    private CharSequence rootFolder;
+    private boolean onlineExchange;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -98,8 +106,8 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
                 ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME);
 
         this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
-        Log.d(LOGSTART,"work with folder: "
-                + this.asapEngineRootFolderName);
+        Log.d(LOGSTART,"onCreate(): parameter rootFolder not yet used when setting up engine - change it soon");
+        Log.d(LOGSTART,"work with folder: " + this.asapEngineRootFolderName);
 
         Log.d(LOGSTART, "created");
     }
@@ -108,6 +116,11 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOGSTART, "start");
+
+        this.owner = intent.getCharSequenceExtra(ASAP.USER);
+        this.rootFolder = intent.getCharSequenceExtra(ASAP.FOLDER);
+        this.onlineExchange = intent.getBooleanExtra(ASAP.ONLINE_EXCHANGE, ASAP.ONLINE_EXCHANGE_DEFAULT);
+
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -233,5 +246,19 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
     public void pauseBroadcasts() {
         Log.d(LOGSTART, "pauseBroadcasts");
         this.broadcastOn = false;
+    }
+
+    public ASAPOnlineMessageSender getASAPOnlineMessageSender() {
+        if(!this.onlineExchange) {
+            Log.d(LOGSTART, "cannot create online message sender - service was started " +
+                    "with not to support online message exchange");
+            return null;
+        }
+
+        if(this.asapOnlineMessageSender == null) {
+            this.asapOnlineMessageSender = new ASAPOnlineMessageSender_Impl(this.getASAPEngine());
+        }
+
+        return this.asapOnlineMessageSender;
     }
 }

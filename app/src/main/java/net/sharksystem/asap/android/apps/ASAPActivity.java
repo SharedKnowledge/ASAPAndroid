@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android;
+package net.sharksystem.asap.android.apps;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
@@ -15,6 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.asap.android.ASAPServiceMethods;
+import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;

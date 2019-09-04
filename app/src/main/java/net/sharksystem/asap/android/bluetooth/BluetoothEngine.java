@@ -10,9 +10,9 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.ASAPSession;
-import net.sharksystem.asap.android.MacLayerEngine;
-import net.sharksystem.asap.android.ASAPService;
+import net.sharksystem.asap.android.service.ASAPSession;
+import net.sharksystem.asap.android.service.MacLayerEngine;
+import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
@@ -272,8 +272,7 @@ public class BluetoothEngine extends MacLayerEngine {
          */
 
         // set up new ASAP Session and we are done here.
-
         new ASAPSession(socket.getInputStream(), socket.getOutputStream(),
-                this.getASAPService().getASAPEngine(), this).start();
+                this.getAsapService().getASAPEngine(), this).start();
     }
 }

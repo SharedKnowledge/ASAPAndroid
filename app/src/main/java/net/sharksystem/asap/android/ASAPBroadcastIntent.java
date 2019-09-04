@@ -1,8 +1,10 @@
 package net.sharksystem.asap.android;
 
+import android.content.Context;
 import android.content.Intent;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.android.service.ASAPService;
 
 public class ASAPBroadcastIntent extends Intent {
 
@@ -11,8 +13,8 @@ public class ASAPBroadcastIntent extends Intent {
     private int era;
     private CharSequence user;
 
-    public ASAPBroadcastIntent(CharSequence user, CharSequence folderName, CharSequence uri,
-                               int eraInt) throws ASAPException {
+    public ASAPBroadcastIntent(CharSequence user, CharSequence folderName,
+                               CharSequence uri, int eraInt) throws ASAPException {
         super();
 
         if(folderName == null || uri == null || user == null)

@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android;
+package net.sharksystem.asap.android.service;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,7 +8,11 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPOnlineMessageSender;
 import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPBroadcastIntent;
+import net.sharksystem.asap.android.ASAPServiceMethods;
 
 import java.io.IOException;
 
@@ -28,8 +32,8 @@ class ASAPMessageHandler extends Handler {
                     Bundle msgData = msg.getData();
                     if (msgData != null) {
                         String uri = msgData.getString(ASAP.URI);
-                        String content = msgData.getString(ASAP.MESSAGE_CONTENT);
                         String format = msgData.getString(ASAP.FORMAT);
+                        byte[] content = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
 
                         if(uri == null) {
                             Log.e(LOGSTART, "uri must not be empty");
@@ -50,6 +54,17 @@ class ASAPMessageHandler extends Handler {
                         Log.d(LOGSTART, text);
 
                         try {
+                            ASAPOnlineMessageSender onlineMessageSender =
+                                    this.ASAPService.getASAPOnlineMessageSender();
+
+                            if(onlineMessageSender == null) {
+                                Log.w(LOGSTART, "no online message sender in place");
+                            } else {
+                                Log.d(LOGSTART, "put message on online message handler");
+                                onlineMessageSender.sendASAPAssimilate(format, uri, content);
+                            }
+
+                            /*
                             MultiASAPEngineFS asapMulti = this.ASAPService.getASAPEngine();
                             ASAPEngine asapEngine = asapMulti.getEngineByFormat(format);
 
@@ -68,6 +83,7 @@ class ASAPMessageHandler extends Handler {
 
                                 this.ASAPService.sendBroadcast(intent);
                             }
+                             */
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android;
+package net.sharksystem.asap.android.service;
 
 import android.content.Context;
 import android.util.Log;
@@ -13,7 +13,7 @@ public abstract class MacLayerEngine implements ASAPSessionListener {
     public static final UUID ASAP_UUID = UUID.fromString("42ba5e3b-d4f0-4578-91dc-8dab6c2067ae");
     public static final String ASAP_SERVICE_NAME = "ASAP";
 
-    private final ASAPService ASAPService;
+    private final ASAPService asapService;
     private final Context context;
 
     public static final long DEFAULT_WAIT_BEFORE_RECONNECT_TIME = 1000*60; // a minute
@@ -24,7 +24,7 @@ public abstract class MacLayerEngine implements ASAPSessionListener {
     }
 
     public MacLayerEngine(ASAPService asapService, Context context, long waitingPeriod) {
-        this.ASAPService = asapService;
+        this.asapService = asapService;
         this.context = context;
         this.waitBeforeReconnect = waitingPeriod;
     }
@@ -33,8 +33,8 @@ public abstract class MacLayerEngine implements ASAPSessionListener {
         return this.context;
     }
 
-    protected ASAPService getASAPService() {
-        return this.ASAPService;
+    protected ASAPService getAsapService() {
+        return this.asapService;
     }
 
     public abstract void start();

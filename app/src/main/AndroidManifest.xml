@@ -19,7 +19,7 @@
         </activity>
 
         <service
-            android:name="net.sharksystem.asap.android.ASAPService"
+            android:name="net.sharksystem.asap.android.service.ASAPService"
             android:enabled="true"
             android:exported="true"
         />

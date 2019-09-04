@@ -5,7 +5,7 @@ import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.MacLayerEngine;
+import net.sharksystem.asap.android.service.MacLayerEngine;
 
 import java.io.IOException;
 

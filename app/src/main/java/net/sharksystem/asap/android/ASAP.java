@@ -20,4 +20,6 @@ public class ASAP {
     public static final String ERA = "ASAP_ERA";
     public static final int PORT_NUMBER = 7777;
 
+    public static final String ONLINE_EXCHANGE = "ASAP_ONLINE_EXCHANGE";
+    public static final boolean ONLINE_EXCHANGE_DEFAULT = true;
 }

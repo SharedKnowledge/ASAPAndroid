@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android;
+package net.sharksystem.asap.android.apps;
 
 import android.content.Intent;
 

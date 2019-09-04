@@ -8,10 +8,10 @@ import android.view.View;
 import android.widget.Toast;
 
 import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPActivity;
+import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.R;
-import net.sharksystem.asap.android.ASAPApplication;
+import net.sharksystem.asap.android.apps.ASAPApplication;
 
 public class MainActivity extends ASAPActivity {
     private static final CharSequence TESTURI ="asap://testuri";

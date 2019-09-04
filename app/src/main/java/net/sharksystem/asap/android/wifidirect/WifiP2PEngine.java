@@ -9,11 +9,10 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
-import net.sharksystem.asap.android.MacLayerEngine;
-import net.sharksystem.asap.android.ASAPSession;
+import net.sharksystem.asap.android.service.MacLayerEngine;
+import net.sharksystem.asap.android.service.ASAPSession;
 import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPService;
-import net.sharksystem.asap.android.ASAPSessionListener;
+import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.util.ArrayList;
@@ -301,7 +300,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
 
         // create an AASPSession with connection parameters
         ASAPSession ASAPSession = new ASAPSession(channelCreator,
-                this.getASAPService().getASAPEngine(),
+                this.getAsapService().getASAPEngine(),
                 this);
 
         ASAPSession.start();

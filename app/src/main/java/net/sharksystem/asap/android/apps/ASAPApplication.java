@@ -1,38 +1,30 @@
-package net.sharksystem.asap.android;
+package net.sharksystem.asap.android.apps;
 
 import android.Manifest;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.Toast;
 
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPServiceCreationIntent;
+import net.sharksystem.asap.android.service.ASAPService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.app.Activity.RESULT_OK;
 import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
+import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 
 public class ASAPApplication {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
     private final CharSequence asapOwner;
+    private final CharSequence rootFolder;
+    private final boolean onlineExchange;
     private boolean initialized = false;
 
     private boolean btDisoverableOn = false;
@@ -47,7 +39,15 @@ public class ASAPApplication {
     private int activityCount = 0;
 
     protected ASAPApplication(CharSequence asapOwner) {
+        this(asapOwner, DEFAULT_ROOT_FOLDER_NAME, ASAP.ONLINE_EXCHANGE_DEFAULT);
+    }
+
+    protected ASAPApplication(CharSequence asapOwner,
+                              CharSequence rootFolder,
+                              boolean onlineExchange) {
         this.asapOwner = asapOwner;
+        this.rootFolder = rootFolder;
+        this.onlineExchange = onlineExchange;
     }
 
     private void initialize() {
@@ -69,12 +69,18 @@ public class ASAPApplication {
             this.askForPermissions();
 
             // start service - which allows service to outlive unbind
-            Intent asapServiceCreationIntent = new Intent(activity, ASAPService.class);
-            asapServiceCreationIntent.putExtra(ASAP.USER, this.asapOwner);
+//            Intent asapServiceCreationIntent = new Intent(activity, ASAPService.class);
+//            asapServiceCreationIntent.putExtra(ASAP.USER, this.asapOwner);
 
-            this.activity.startService(asapServiceCreationIntent);
+            try {
+                Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(activity,
+                        this.asapOwner, this.rootFolder, this.onlineExchange);
 
-            this.initialized = true;
+                this.activity.startService(asapServiceCreationIntent);
+                this.initialized = true;
+            } catch (ASAPException e) {
+                Log.e(this.getLogStart(), "could not start ASAP Service - fatal");
+            }
         }
     }
 
