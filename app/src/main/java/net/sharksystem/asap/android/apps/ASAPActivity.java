@@ -254,6 +254,8 @@ public class ASAPActivity extends AppCompatActivity implements
     protected void onDestroy() {
         super.onDestroy();
         Log.d(this.getLogStart(), "onDestroy");
+        this.shutdownASAPServiceNotificationBroadcastReceiver();
+        this.unbindServices();
         this.asapApplication.activityDestroyed(this);
 
         /*

@@ -94,39 +94,41 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
     // comes first
     public void onCreate() {
-        Log.d(LOGSTART,"creating");
-
-        String text = "started: ";
-
-        Log.d(LOGSTART,text);
-
-        // get root directory
-        File asapRoot = null;
-        asapRoot = Environment.getExternalStoragePublicDirectory(
-                ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME);
-
-        this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
-        Log.d(LOGSTART,"onCreate(): parameter rootFolder not yet used when setting up engine - change it soon");
-        Log.d(LOGSTART,"work with folder: " + this.asapEngineRootFolderName);
-
-        Log.d(LOGSTART, "created");
+        super.onCreate();
+        Log.d(LOGSTART,"onCreate");
     }
 
     // comes second - could remove that overwriting method
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOGSTART, "start");
+        Log.d(LOGSTART, "onStartCommand");
+        if(intent == null) {
+            Log.d(LOGSTART, "intent is null");
+            this.owner = ASAP.UNKNOWN_USER;
+            this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
+            this.onlineExchange = ASAP.ONLINE_EXCHANGE_DEFAULT;
+        } else {
+            Log.d(LOGSTART, "intent is not null");
+            this.owner = intent.getCharSequenceExtra(ASAP.USER);
+            this.rootFolder = intent.getCharSequenceExtra(ASAP.FOLDER);
+            this.onlineExchange = intent.getBooleanExtra(ASAP.ONLINE_EXCHANGE, ASAP.ONLINE_EXCHANGE_DEFAULT);
+            Log.d(LOGSTART, "owner | folder | online == " + this.owner
+                    + " | " + this.rootFolder + " | " + this.onlineExchange);
+        }
 
-        this.owner = intent.getCharSequenceExtra(ASAP.USER);
-        this.rootFolder = intent.getCharSequenceExtra(ASAP.FOLDER);
-        this.onlineExchange = intent.getBooleanExtra(ASAP.ONLINE_EXCHANGE, ASAP.ONLINE_EXCHANGE_DEFAULT);
+        // get root directory
+        File asapRoot = null;
+        asapRoot = Environment.getExternalStoragePublicDirectory(this.rootFolder.toString());
+
+        this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
+        Log.d(LOGSTART,"work with folder: " + this.asapEngineRootFolderName);
 
         return super.onStartCommand(intent, flags, startId);
     }
 
     public void onDestroy() {
         super.onDestroy();
-        Log.d(LOGSTART,"destroy");
+        Log.d(LOGSTART,"onDestroy");
     }
     /**
      * Target we publish for clients to send messages to IncomingHandler.
