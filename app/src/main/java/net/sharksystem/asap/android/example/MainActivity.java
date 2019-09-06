@@ -76,10 +76,6 @@ public class MainActivity extends ASAPActivity {
         }
     }
 
-    private String getLogStart() {
-        return "ASAPExampleActivity";
-    }
-
     @Override
     public void asapNotifyBTDiscoverableStopped() {
         super.asapNotifyBTDiscoverableStopped();

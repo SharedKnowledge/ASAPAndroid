@@ -116,7 +116,7 @@ public class ASAPActivity extends AppCompatActivity implements
         }
     }
 
-    private String getLogStart() {
+    protected String getLogStart() {
         return this.getClass().getSimpleName();
     }
 

@@ -11,7 +11,7 @@ import android.util.Log;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
-import net.sharksystem.asap.android.service.ASAPService;
+import net.sharksystem.asap.android.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +22,10 @@ import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 
 public class ASAPApplication {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
-    private final CharSequence asapOwner;
-    private final CharSequence rootFolder;
-    private final boolean onlineExchange;
+    private static ASAPApplication singleton;
+    private CharSequence asapOwner;
+    private CharSequence rootFolder;
+    private boolean onlineExchange;
     private boolean initialized = false;
 
     private boolean btDisoverableOn = false;
@@ -38,8 +39,12 @@ public class ASAPApplication {
     private List<String> deniedPermissions = new ArrayList<>();
     private int activityCount = 0;
 
-    protected ASAPApplication(CharSequence asapOwner) {
-        this(asapOwner, DEFAULT_ROOT_FOLDER_NAME, ASAP.ONLINE_EXCHANGE_DEFAULT);
+    /**
+     * setup application by calling getASAPOwner(), getFolderName(), getASAPOnlineExchange().
+     * Those messagen can and should be overwritten from actual implementations.
+     */
+    protected ASAPApplication() {
+        this(ASAP.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME, ASAP.ONLINE_EXCHANGE_DEFAULT);
     }
 
     protected ASAPApplication(CharSequence asapOwner,
@@ -72,6 +77,11 @@ public class ASAPApplication {
 //            Intent asapServiceCreationIntent = new Intent(activity, ASAPService.class);
 //            asapServiceCreationIntent.putExtra(ASAP.USER, this.asapOwner);
 
+            // get owner when initializing
+            this.asapOwner = this.getASAPOwner(this.getActivity());
+            this.rootFolder = this.getASAPRootFolder(this.getActivity());
+            this.onlineExchange = this.getASAPOnlineExchange(this.getActivity());
+
             try {
                 Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(activity,
                         this.asapOwner, this.rootFolder, this.onlineExchange);
@@ -84,9 +94,50 @@ public class ASAPApplication {
         }
     }
 
-    public static ASAPApplication getASAPApplication() {
-        return new ASAPApplication("DummyUser");
+    /**
+     * could be overwritten
+     * @param activity
+     * @return
+     */
+    protected boolean getASAPOnlineExchange(Activity activity) {
+        return this.onlineExchange;
     }
+
+    public boolean getASAPOnlineExchange() {
+        return this.onlineExchange;
+    }
+
+    /**
+     * could be overwritten
+     */
+    protected CharSequence getASAPRootFolder(Activity activity) {
+        return this.rootFolder;
+    }
+
+    public CharSequence getASAPRootFolder() {
+        return Util.getASAPRootDirectory(
+                this.getActivity(), this.rootFolder, this.asapOwner).getAbsolutePath();
+    }
+
+    /**
+     * could be overwritten
+     */
+    protected CharSequence getASAPOwner(Activity activity) {
+        return this.asapOwner;
+    }
+
+    public CharSequence getASAPOwner() {
+        return this.asapOwner;
+    }
+
+    public static ASAPApplication getASAPApplication() {
+        if(ASAPApplication.singleton == null) {
+            ASAPApplication.singleton = new ASAPApplication();
+        }
+
+        return ASAPApplication.singleton;
+    }
+
 
     public void activityCreated(ASAPActivity asapActivity) {
         this.setActivity(asapActivity);

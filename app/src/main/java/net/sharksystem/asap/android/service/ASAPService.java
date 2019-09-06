@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
@@ -19,6 +18,7 @@ import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPBroadcastIntent;
+import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 
@@ -98,7 +98,7 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
         Log.d(LOGSTART,"onCreate");
     }
 
-    // comes second - could remove that overwriting method
+    // comes second - do initializing stuff here
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(LOGSTART, "onStartCommand");
@@ -118,7 +118,9 @@ public class ASAPService extends Service implements ASAPReceivedChunkListener {
 
         // get root directory
         File asapRoot = null;
-        asapRoot = Environment.getExternalStoragePublicDirectory(this.rootFolder.toString());
+        //asapRoot = Environment.getExternalStoragePublicDirectory(this.rootFolder.toString());
+        Log.d(LOGSTART, "use Util.getASAPRootDirectory()");
+        asapRoot = Util.getASAPRootDirectory(this, this.rootFolder, this.owner);
 
         this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
         Log.d(LOGSTART,"work with folder: " + this.asapEngineRootFolderName);
