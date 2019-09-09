@@ -9,11 +9,11 @@ import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPOnlineMessageSender;
 import net.sharksystem.asap.ASAPOnlineMessageSender_Impl;
-import net.sharksystem.asap.ASAPReceivedChunkListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
@@ -32,7 +32,7 @@ import java.util.List;
  * to run an ASAP session.
  */
 
-public class ASAPService extends Service implements ASAPReceivedChunkListener {
+public class ASAPService extends Service implements ASAPChunkReceivedListener {
     private static final String LOGSTART = "ASAPService";
     private String asapEngineRootFolderName;
 
