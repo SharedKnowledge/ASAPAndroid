@@ -1,26 +1,24 @@
 package net.sharksystem.asap.android;
 
-import android.content.Context;
 import android.content.Intent;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.service.ASAPService;
 
-public class ASAPBroadcastIntent extends Intent {
+public class ASAPReceivedBroadcastIntent extends Intent {
 
     private CharSequence folder;
     private CharSequence uri;
     private int era;
     private CharSequence user;
 
-    public ASAPBroadcastIntent(CharSequence user, CharSequence folderName,
-                               CharSequence uri, int eraInt) throws ASAPException {
+    public ASAPReceivedBroadcastIntent(CharSequence user, CharSequence folderName,
+                                       CharSequence uri, int eraInt) throws ASAPException {
         super();
 
         if(folderName == null || uri == null || user == null)
             throw new ASAPException("parameters must no be null");
 
-        this.setAction(ASAP.BROADCAST_ACTION);
+        this.setAction(ASAP.ASAP_RECEIVED_ACTION);
 
         this.putExtra(ASAP.ERA, eraInt);
         this.putExtra(ASAP.FOLDER, folderName);
@@ -33,7 +31,7 @@ public class ASAPBroadcastIntent extends Intent {
         this.user = user;
     }
 
-    public ASAPBroadcastIntent(Intent intent) throws ASAPException {
+    public ASAPReceivedBroadcastIntent(Intent intent) throws ASAPException {
         super();
 
         // just parse extras

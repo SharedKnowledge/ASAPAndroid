@@ -17,7 +17,7 @@ import net.sharksystem.asap.ASAPOnlineMessageSender_Impl;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPBroadcastIntent;
+import net.sharksystem.asap.android.ASAPReceivedBroadcastIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
@@ -212,14 +212,14 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
     //////////////////////////////////////////////////////////////////////////////////////
 
     private boolean broadcastOn = false;
-    private List<ASAPBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
+    private List<ASAPReceivedBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
 
     @Override
     public void chunkReceived(String sender, String uri, int era) {
         // issue broadcast
-        ASAPBroadcastIntent intent = null;
+        ASAPReceivedBroadcastIntent intent = null;
         try {
-            intent = new ASAPBroadcastIntent(
+            intent = new ASAPReceivedBroadcastIntent(
                     sender, this.getASAPRootFolderName(), uri, era);
         } catch (ASAPException e) {
             e.printStackTrace();
@@ -227,6 +227,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
         }
 
         if(this.broadcastOn) {
+            Log.d(LOGSTART, "send broadcast");
             this.sendBroadcast(intent);
         } else {
             // store it

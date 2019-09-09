@@ -11,7 +11,7 @@ public class ASAP {
     public static final String USER = "user";
     public static final String FOLDER = "folder";
 
-    public static final String BROADCAST_ACTION = "net.sharksystem.asap.received";
+    public static final String ASAP_RECEIVED_ACTION = "net.sharksystem.asap.received";
 
     public static final String URI = "ASAP_MESSAGE_URI";
     public static final String MESSAGE_CONTENT = "ASAP_MESSAGE_CONTENT";

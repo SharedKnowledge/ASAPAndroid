@@ -1,17 +1,13 @@
 package net.sharksystem.asap.android.service;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPOnlineMessageSender;
-import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 
 import java.io.IOException;

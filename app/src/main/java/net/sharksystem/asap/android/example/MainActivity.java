@@ -29,7 +29,7 @@ public class MainActivity extends ASAPActivity {
         // create broadcast receiver
         ExampleASAPBroadcastReceiver br = new ExampleASAPBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAP.BROADCAST_ACTION);
+        filter.addAction(ASAP.ASAP_RECEIVED_ACTION);
         this.registerReceiver(br, filter);
     }
 

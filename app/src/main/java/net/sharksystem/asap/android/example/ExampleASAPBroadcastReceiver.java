@@ -8,7 +8,7 @@ import android.widget.Toast;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.android.ASAPBroadcastIntent;
+import net.sharksystem.asap.android.ASAPReceivedBroadcastIntent;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ public class ExampleASAPBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         try {
-            ASAPBroadcastIntent aaspIntent = new ASAPBroadcastIntent(intent);
+            ASAPReceivedBroadcastIntent aaspIntent = new ASAPReceivedBroadcastIntent(intent);
 
             String text = "ASAPService notified: "
                     + aaspIntent.getUser() + " / "

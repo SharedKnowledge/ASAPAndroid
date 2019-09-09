@@ -2,16 +2,23 @@ package net.sharksystem.asap.android.apps;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +27,7 @@ import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
 import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 
-public class ASAPApplication {
+public class ASAPApplication extends BroadcastReceiver {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
     private static ASAPApplication singleton;
     private CharSequence asapOwner;
@@ -247,15 +254,35 @@ public class ASAPApplication {
         return this.btDisoveryOn;
     }
 
-    /*
-    public void stopAll() {
-        this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
-        this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
-        this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+    /////////////////////////////////////////////////////////////////////////////////////
+    //                        asap received broadcast management                       //
+    /////////////////////////////////////////////////////////////////////////////////////
 
-        // and kill service itself
-        this.activity.stopService(new Intent(this.activity, ASAPService.class));
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Log.d(this.getLogStart(), "received asap received from asap engine/service");
+
+        try {
+            ASAPReceivedBroadcastIntent asapReceivedIntent
+                    = new ASAPReceivedBroadcastIntent(intent);
+
+            // call listener - that's me in that case
+            this.chunkReceived(
+                    asapReceivedIntent.getUser().toString(),
+                    asapReceivedIntent.getUri().toString(),
+                    asapReceivedIntent.getFoldername().toString(),
+                    asapReceivedIntent.getEra());
+
+        } catch (ASAPException e) {
+            Log.w(this.getLogStart(), "could not handle intent: " + e.getLocalizedMessage());
+
+        }
     }
 
-     */
+    public void chunkReceived(String sender, String uri, String foldername, int era) {
+        Log.d(this.getLogStart(), "got chunk received message: "
+                + sender + " | " + uri  + " | " + foldername + " | " + era);
+
+        Log.d(this.getLogStart(), "should inform apps about it");
+    }
 }

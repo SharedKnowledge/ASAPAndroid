@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
@@ -200,6 +201,31 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
+    //                        asap received broadcast management                       //
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    // asap application handles message from asap engine
+    private void setupASAPReceivedBroadcastReceiver() {
+        Log.d(this.getLogStart(), "setup asap received bc receiver");
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ASAP.ASAP_RECEIVED_ACTION);
+
+        // register
+        this.registerReceiver(this.asapApplication, filter);
+    }
+
+    private void shutdownASAPReceivedBroadcastReceiver() {
+        Log.d(this.getLogStart(), "shutdown asap received bc receiver");
+        try {
+            this.unregisterReceiver(this.asapApplication);
+        }
+        catch(RuntimeException re) {
+            Log.d(this.getLogStart(), "problems when unregister asap received bcr - ignore"
+                    + re.getLocalizedMessage());
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
     //                                       life cycle                                //
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -224,6 +250,7 @@ public class ASAPActivity extends AppCompatActivity implements
         super.onStart();
         Log.d(this.getLogStart(), "onStart");
         this.setupASAPServiceNotificationBroadcastReceiver();
+        this.setupASAPReceivedBroadcastReceiver();
         this.bindServices();
         // (re-)start asap broadcast request is issued whenever connection was established
         // see ServiceConnection below
@@ -247,6 +274,7 @@ public class ASAPActivity extends AppCompatActivity implements
         super.onStop();
         Log.d(this.getLogStart(), "onStop");
         this.shutdownASAPServiceNotificationBroadcastReceiver();
+        this.shutdownASAPReceivedBroadcastReceiver();
         this.unbindServices();
         // stop protocols?
     }
