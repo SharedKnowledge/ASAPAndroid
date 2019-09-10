@@ -23,6 +23,9 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListe
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ASAPActivity extends AppCompatActivity implements
         ASAPServiceRequestListener, ASAPServiceNotificationListener {
 
@@ -96,17 +99,26 @@ public class ASAPActivity extends AppCompatActivity implements
         if(resultCode == this.visibilityTime) {
             Log.d(this.getLogStart(), "user allowed BT discoverability for seconds: "
                     + this.visibilityTime);
+
+            // notify
+            Log.d(this.getLogStart(), "call aspNotifyBTDiscoverableStarted()");
+            this.aspNotifyBTDiscoverableStarted();
         }
     }
 
+    private List<Message> messageStorage = null;
     protected void sendMessage2Service(int messageNumber) {
-        if(this.mService == null) {
-            Log.d(this.getLogStart(), "service not yet available - cannot send message");
-            return;
-        }
-
         Message msg = Message.obtain(null, messageNumber, 0, 0);
-        this.sendMessage2Service(msg);
+
+        if(this.mService == null) {
+            Log.d(this.getLogStart(), "service not yet available - cannot send but store message");
+            if(this.messageStorage == null) {
+                this.messageStorage  = new ArrayList<Message>();
+            }
+            this.messageStorage.add(msg);
+        } else {
+            this.sendMessage2Service(msg);
+        }
     }
 
     public void sendMessage2Service(Message msg) {
@@ -163,6 +175,11 @@ public class ASAPActivity extends AppCompatActivity implements
     public void stopASAPEngineBroadcasts() {
         Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
         this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+    }
+
+    public void refreshProtocolStatus() {
+        Log.d(this.getLogStart(), "send message to ask for protocol status broadcasts");
+        this.sendMessage2Service(ASAPServiceMethods.ASK_PROTOCOL_STATUS);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -276,6 +293,9 @@ public class ASAPActivity extends AppCompatActivity implements
         this.shutdownASAPServiceNotificationBroadcastReceiver();
         this.shutdownASAPReceivedBroadcastReceiver();
         this.unbindServices();
+
+        // forget stored messages
+        this.messageStorage = null;
         // stop protocols?
     }
 
@@ -285,6 +305,9 @@ public class ASAPActivity extends AppCompatActivity implements
         this.shutdownASAPServiceNotificationBroadcastReceiver();
         this.unbindServices();
         this.asapApplication.activityDestroyed(this);
+
+        // forget stored messages
+        this.messageStorage = null;
 
         /*
         this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
@@ -326,8 +349,15 @@ public class ASAPActivity extends AppCompatActivity implements
             mService = new Messenger(service);
             mBound = true;
 
-            Log.d(getLogStart(), "connection established - asap engine can start broadcast");
-            startASAPEngineBroadcasts();
+            Log.d(getLogStart(), "connection established");
+            if(messageStorage != null && messageStorage.size() > 0) {
+                Log.d(getLogStart(), "send stored messages | #msg = " + messageStorage.size());
+                for(Message msg : messageStorage) {
+                    sendMessage2Service(msg);
+                }
+
+                messageStorage = null;
+            }
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -365,7 +395,7 @@ public class ASAPActivity extends AppCompatActivity implements
 
     @Override
     public void aspNotifyBTDiscoveryStopped() {
-        this.asapApplication.setBTDiscovery(true);
+        this.asapApplication.setBTDiscovery(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

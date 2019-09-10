@@ -14,10 +14,10 @@ import java.io.IOException;
 
 class ASAPMessageHandler extends Handler {
     private static final String LOGSTART = "AASPMessageHandler";
-    private ASAPService ASAPService;
+    private ASAPService asapService;
 
     ASAPMessageHandler(ASAPService context) {
-        this.ASAPService = context;
+        this.asapService = context;
     }
 
     @Override
@@ -51,7 +51,7 @@ class ASAPMessageHandler extends Handler {
 
                         try {
                             ASAPOnlineMessageSender onlineMessageSender =
-                                    this.ASAPService.getASAPOnlineMessageSender();
+                                    this.asapService.getASAPOnlineMessageSender();
 
                             if(onlineMessageSender == null) {
                                 Log.w(LOGSTART, "no online message sender in place");
@@ -61,7 +61,7 @@ class ASAPMessageHandler extends Handler {
                             }
 
                             /*
-                            MultiASAPEngineFS asapMulti = this.ASAPService.getASAPEngine();
+                            MultiASAPEngineFS asapMulti = this.asapService.getASAPEngine();
                             ASAPEngine asapEngine = asapMulti.getEngineByFormat(format);
 
                             if (asapEngine == null) {
@@ -73,11 +73,11 @@ class ASAPMessageHandler extends Handler {
                                 // simulate broadcast
                                 Intent intent = new ASAPBroadcastIntent(
                                         ASAP.UNKNOWN_USER,
-                                        this.ASAPService.getASAPRootFolderName(),
+                                        this.asapService.getASAPRootFolderName(),
                                         uri,
                                         asapEngine.getEra());
 
-                                this.ASAPService.sendBroadcast(intent);
+                                this.asapService.sendBroadcast(intent);
                             }
                              */
                         } catch (IOException e) {
@@ -88,35 +88,39 @@ class ASAPMessageHandler extends Handler {
                     break;
 
                 case ASAPServiceMethods.START_WIFI_DIRECT:
-                    this.ASAPService.startWifiDirect();
+                    this.asapService.startWifiDirect();
+                    break;
+
+                case ASAPServiceMethods.ASK_PROTOCOL_STATUS:
+                    this.asapService.propagateProtocolStatus();
                     break;
 
                 case ASAPServiceMethods.STOP_WIFI_DIRECT:
-                    this.ASAPService.stopWifiDirect();
+                    this.asapService.stopWifiDirect();
                     break;
 
                 case ASAPServiceMethods.START_BLUETOOTH:
-                    this.ASAPService.startBluetooth();
+                    this.asapService.startBluetooth();
                     break;
 
                 case ASAPServiceMethods.STOP_BLUETOOTH:
-                    this.ASAPService.stopBluetooth();
+                    this.asapService.stopBluetooth();
                     break;
 
                 case ASAPServiceMethods.START_BLUETOOTH_DISCOVERABLE:
-                    this.ASAPService.startBluetoothDiscoverable();
+                    this.asapService.startBluetoothDiscoverable();
                     break;
 
                 case ASAPServiceMethods.START_BLUETOOTH_DISCOVERY:
-                    this.ASAPService.startBluetoothDiscovery();
+                    this.asapService.startBluetoothDiscovery();
                     break;
 
                 case ASAPServiceMethods.START_BROADCASTS:
-                    this.ASAPService.resumeBroadcasts();
+                    this.asapService.resumeBroadcasts();
                     break;
 
                 case ASAPServiceMethods.STOP_BROADCASTS:
-                    this.ASAPService.pauseBroadcasts();
+                    this.asapService.pauseBroadcasts();
                     break;
 
                 default:

@@ -14,6 +14,7 @@ import net.sharksystem.asap.android.service.ASAPSession;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.io.IOException;
@@ -50,6 +51,13 @@ public class BluetoothEngine extends MacLayerEngine {
 
     private BluetoothEngine(ASAPService ASAPService, Context context) {
         super(ASAPService, context);
+
+        // get default bt adapter
+        this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            // Device doesn't support Bluetooth
+            Log.i(this.getLogStart(), "device does not support bluetooth - give up");
+        }
     }
 
     private String getLogStart() {
@@ -81,8 +89,7 @@ public class BluetoothEngine extends MacLayerEngine {
         //                                 setup bt environment                              //
         ///////////////////////////////////////////////////////////////////////////////////////
 
-        // get default bt adapter
-        this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        // reference was set in constructor - or not
         if (mBluetoothAdapter == null) {
             // Device doesn't support Bluetooth
             Log.i(this.getLogStart(), "device does not support bluetooth - give up");
@@ -274,5 +281,31 @@ public class BluetoothEngine extends MacLayerEngine {
         // set up new ASAP Session and we are done here.
         new ASAPSession(socket.getInputStream(), socket.getOutputStream(),
                 this.getAsapService().getASAPEngine(), this).start();
+    }
+
+    public void propagateStatus(Context ctx) {
+        Log.d(this.getLogStart(), "going to send status broadcast messages");
+        ASAPServiceRequestNotifyIntent notifyIntent = null;
+
+        // Bluetooth running?
+        if(this.mBluetoothAdapter.isEnabled()) {
+             notifyIntent = new ASAPServiceRequestNotifyIntent(
+                            ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STARTED);
+        } else {
+            notifyIntent = new ASAPServiceRequestNotifyIntent(
+                    ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STOPPED);
+        }
+
+        ctx.sendBroadcast(notifyIntent);
+
+        if(this.mBluetoothAdapter.isDiscovering()) {
+            notifyIntent = new ASAPServiceRequestNotifyIntent(
+                    ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERY_STARTED);
+        } else {
+            notifyIntent = new ASAPServiceRequestNotifyIntent(
+                    ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERY_STOPPED);
+        }
+
+        ctx.sendBroadcast(notifyIntent);
     }
 }

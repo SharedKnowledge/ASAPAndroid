@@ -5,6 +5,7 @@ import android.os.Message;
 
 public class ASAPServiceMethods {
     public static final int ADD_MESSAGE = 0;
+    public static final int ASK_PROTOCOL_STATUS = 9;
 
     public static final int START_WIFI_DIRECT = 1;
     public static final int STOP_WIFI_DIRECT = 2;
