@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="net.sharksystem.asap.android.example.MainActivity">
+        <activity android:name="net.sharksystem.asap.android.example.ASAPServiceTestActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

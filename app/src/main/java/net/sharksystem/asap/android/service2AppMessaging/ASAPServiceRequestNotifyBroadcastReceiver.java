@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.util.Log;
 
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
+import net.sharksystem.asap.util.Helper;
+
+import java.util.List;
 
 public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver {
     private final ASAPServiceRequestListener requestListener;
@@ -54,27 +57,34 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERY_STOPPED:
                 Log.d(this.getLogStart(), "notified bluetooth discovery stopped");
-                this.notificationListener.aspNotifyBTDiscoveryStopped();
+                this.notificationListener.asapNotifyBTDiscoveryStopped();
                 break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERY_STARTED:
                 Log.d(this.getLogStart(), "notified bluetooth discovery started");
-                this.notificationListener.aspNotifyBTDiscoveryStarted();
+                this.notificationListener.asapNotifyBTDiscoveryStarted();
                 break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERABLE_STARTED:
                 Log.d(this.getLogStart(), "notified bluetooth discoverable started");
-                this.notificationListener.aspNotifyBTDiscoverableStarted();
+                this.notificationListener.asapNotifyBTDiscoverableStarted();
                 break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STARTED:
                 Log.d(this.getLogStart(), "notified bluetooth environment started");
-                this.notificationListener.aspNotifyBTEnvironmentStarted();
+                this.notificationListener.asapNotifyBTEnvironmentStarted();
                 break;
 
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STOPPED:
                 Log.d(this.getLogStart(), "notified bluetooth environment stopped");
-                this.notificationListener.aspNotifyBTEnvironmentStopped();
+                this.notificationListener.asapNotifyBTEnvironmentStopped();
+                break;
+
+            case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_ONLINE_PEERS_CHANGED:
+                Log.d(this.getLogStart(), "notified online peers changed");
+                String peers = intent.getStringExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1);
+                List<CharSequence> peersList = Helper.string2CharSequenceList(peers);
+                this.notificationListener.asapNotifyOnlinePeersChanged(peersList);
                 break;
 
             default:

@@ -13,14 +13,17 @@ import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPOnlineMessageSender;
-import net.sharksystem.asap.ASAPOnlineMessageSender_Impl;
+import net.sharksystem.asap.ASAPOnlineMessageSenderEngineSide;
+import net.sharksystem.asap.ASAPOnlinePeersChangedListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPReceivedBroadcastIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
+import net.sharksystem.asap.util.Helper;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +35,14 @@ import java.util.List;
  * to run an ASAP session.
  */
 
-public class ASAPService extends Service implements ASAPChunkReceivedListener {
+public class ASAPService extends Service implements ASAPChunkReceivedListener,
+        ASAPOnlinePeersChangedListener {
+
     private static final String LOGSTART = "ASAPService";
     private String asapEngineRootFolderName;
 
-    //private ASAPEngine ASAPEngine = null;
-    private MultiASAPEngineFS ASAPEngine;
+    //private asapMultiEngine asapMultiEngine = null;
+    private MultiASAPEngineFS asapMultiEngine;
     private ASAPOnlineMessageSender asapOnlineMessageSender;
     private CharSequence owner;
     private CharSequence rootFolder;
@@ -48,8 +53,8 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
     }
 
     public MultiASAPEngineFS getASAPEngine() {
-        if(this.ASAPEngine == null) {
-            Log.d(LOGSTART, "try to get ASAPEngine");
+        if(this.asapMultiEngine == null) {
+            Log.d(LOGSTART, "try to get asapMultiEngine");
 
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
@@ -63,7 +68,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
 
             // we have write permissions
 
-            // set up ASAPEngine
+            // set up asapMultiEngine
             File rootFolder = new File(this.asapEngineRootFolderName);
             try {
                 if (!rootFolder.exists()) {
@@ -71,7 +76,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
                     rootFolder.mkdirs();
                     Log.d(LOGSTART,"createdFolder");
                 }
-                this.ASAPEngine = MultiASAPEngineFS_Impl.createMultiEngine(
+                this.asapMultiEngine = MultiASAPEngineFS_Impl.createMultiEngine(
                         this.asapEngineRootFolderName, this);
                 Log.d(LOGSTART,"engine created");
             } catch (IOException e) {
@@ -85,7 +90,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
             }
         }
 
-        return this.ASAPEngine;
+        return this.asapMultiEngine;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -264,17 +269,36 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener {
         this.broadcastOn = false;
     }
 
-    public ASAPOnlineMessageSender getASAPOnlineMessageSender() {
-        if(!this.onlineExchange) {
-            Log.d(LOGSTART, "cannot create online message sender - service was started " +
-                    "with not to support online message exchange");
-            return null;
-        }
-
+    public ASAPOnlineMessageSender getASAPOnlineMessageSender() throws ASAPException {
         if(this.asapOnlineMessageSender == null) {
-            this.asapOnlineMessageSender = new ASAPOnlineMessageSender_Impl(this.getASAPEngine());
+            if(this.asapMultiEngine == null) {
+                throw new ASAPException("asap engine not initialized");
+            }
+
+            this.asapOnlineMessageSender =
+                    new ASAPOnlineMessageSenderEngineSide(this.asapMultiEngine);
         }
 
         return this.asapOnlineMessageSender;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //                           ASAPOnlinePeersChangedListener                     //
+    //////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void onlinePeersChanged(MultiASAPEngineFS multiASAPEngineFS) {
+        Log.d(LOGSTART, "onlinePeersChanged");
+
+        // broadcast
+        String serializedOnlinePeers = Helper.collection2String(multiASAPEngineFS.getOnlinePeers());
+
+        ASAPServiceRequestNotifyIntent intent =
+                new ASAPServiceRequestNotifyIntent(
+                        ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_ONLINE_PEERS_CHANGED);
+
+        intent.putExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1, serializedOnlinePeers);
+
+        this.sendBroadcast(intent);
     }
 }

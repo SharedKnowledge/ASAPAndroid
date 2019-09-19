@@ -24,6 +24,8 @@ import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED;
 import static android.bluetooth.BluetoothAdapter.ACTION_SCAN_MODE_CHANGED;
 import static android.bluetooth.BluetoothDevice.ACTION_FOUND;
 
+//https://developer.android.com/guide/topics/connectivity/bluetooth#java
+
 public class BluetoothEngine extends MacLayerEngine {
     private static BluetoothEngine engine = null;
     private BluetoothAdapter mBluetoothAdapter;
@@ -77,8 +79,6 @@ public class BluetoothEngine extends MacLayerEngine {
     /////////////////////////////////////////////////////////////////////////////////
     //                             do the real bluetooth stuff                     //
     /////////////////////////////////////////////////////////////////////////////////
-
-    //https://developer.android.com/guide/topics/connectivity/bluetooth#java
 
     /**
      * Setup Bluetooth environment. Note: Only the environment is created.

@@ -1,15 +1,19 @@
 package net.sharksystem.asap.android.service2AppMessaging;
 
+import java.util.List;
+
 public interface ASAPServiceNotificationListener {
     void asapNotifyBTDiscoverableStopped();
 
-    void aspNotifyBTDiscoveryStopped();
+    void asapNotifyBTDiscoveryStopped();
 
-    void aspNotifyBTDiscoveryStarted();
+    void asapNotifyBTDiscoveryStarted();
 
-    void aspNotifyBTDiscoverableStarted();
+    void asapNotifyBTDiscoverableStarted();
 
-    void aspNotifyBTEnvironmentStarted();
+    void asapNotifyBTEnvironmentStarted();
 
-    void aspNotifyBTEnvironmentStopped();
+    void asapNotifyBTEnvironmentStopped();
+
+    void asapNotifyOnlinePeersChanged(List<CharSequence> peerList);
 }

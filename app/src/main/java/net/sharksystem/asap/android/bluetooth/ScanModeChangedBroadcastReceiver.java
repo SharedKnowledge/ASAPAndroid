@@ -36,6 +36,7 @@ public class ScanModeChangedBroadcastReceiver extends BroadcastReceiver {
 
             // check if discovery is gone
             if(mode == SCAN_MODE_NONE || mode == SCAN_MODE_CONNECTABLE) {
+                Log.d(this.getLogStart(), "seems that discoverable stopped: ");
                 this.context.sendBroadcast(
                         new ASAPServiceRequestNotifyIntent(
                                 ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERABLE_STOPPED

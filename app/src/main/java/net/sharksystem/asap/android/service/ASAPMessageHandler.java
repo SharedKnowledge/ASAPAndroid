@@ -11,26 +11,31 @@ import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 class ASAPMessageHandler extends Handler {
-    private static final String LOGSTART = "AASPMessageHandler";
+    private static final String LOGSTART = "ASAPMessageHandler";
     private ASAPService asapService;
 
-    ASAPMessageHandler(ASAPService context) {
-        this.asapService = context;
+    ASAPMessageHandler(ASAPService asapService) {
+        this.asapService = asapService;
     }
 
     @Override
     public void handleMessage(Message msg) {
         try {
             switch (msg.what) {
-                case ASAPServiceMethods.ADD_MESSAGE:
+                case ASAPServiceMethods.SEND_MESSAGE:
                     Bundle msgData = msg.getData();
                     if (msgData != null) {
+                        String recipient = msgData.getString(ASAP.RECIPIENT);
                         String uri = msgData.getString(ASAP.URI);
                         String format = msgData.getString(ASAP.FORMAT);
                         byte[] content = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
+                        int era = msgData.getInt(ASAP.ERA);
 
+                        Log.d(LOGSTART, "received send message request");
                         if(uri == null) {
                             Log.e(LOGSTART, "uri must not be empty");
                             return;
@@ -46,45 +51,40 @@ class ASAPMessageHandler extends Handler {
                             return;
                         }
 
-                        String text = uri + " / " + content;
-                        Log.d(LOGSTART, text);
-
                         try {
-                            ASAPOnlineMessageSender onlineMessageSender =
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("going to send message to service:");
+                            sb.append(" | format: ");
+                            sb.append(format);
+                            sb.append(" | uri: ");
+                            sb.append(uri);
+                            sb.append(" | recipient: ");
+                            if(recipient == null) {
+                                sb.append("not set");
+                            } else {
+                                sb.append(recipient);
+                            }
+                            sb.append(" | era: ");
+                            sb.append(era);
+
+                            Log.d(LOGSTART, sb.toString());
+
+                            ASAPOnlineMessageSender asapOnlineMessageSender =
                                     this.asapService.getASAPOnlineMessageSender();
+                            List<CharSequence> recipients = null;
 
-                            if(onlineMessageSender == null) {
-                                Log.w(LOGSTART, "no online message sender in place");
-                            } else {
-                                Log.d(LOGSTART, "put message on online message handler");
-                                onlineMessageSender.sendASAPAssimilate(format, uri, content);
+                            if(recipient != null) {
+                                recipients = new ArrayList<>();
+                                recipients.add(recipient);
                             }
 
-                            /*
-                            MultiASAPEngineFS asapMulti = this.asapService.getASAPEngine();
-                            ASAPEngine asapEngine = asapMulti.getEngineByFormat(format);
-
-                            if (asapEngine == null) {
-                                Log.d(LOGSTART, "NO AASPEngine!!");
-                            } else {
-                                asapEngine.add(uri, content);
-                                Log.d(LOGSTART, "wrote");
-
-                                // simulate broadcast
-                                Intent intent = new ASAPBroadcastIntent(
-                                        ASAP.UNKNOWN_USER,
-                                        this.asapService.getASAPRootFolderName(),
-                                        uri,
-                                        asapEngine.getEra());
-
-                                this.asapService.sendBroadcast(intent);
-                            }
-                             */
-                        } catch (IOException e) {
+                            asapOnlineMessageSender.sendASAPAssimilate(
+                                    format, uri, recipients, content, era);
+                        } catch (Throwable e) {
                             e.printStackTrace();
                         }
                     }
-                    Log.d(LOGSTART, "finish aasp write");
+                    Log.d(LOGSTART, "finish asap write");
                     break;
 
                 case ASAPServiceMethods.START_WIFI_DIRECT:
@@ -127,9 +127,9 @@ class ASAPMessageHandler extends Handler {
                     super.handleMessage(msg);
             }
         }
-        catch(ASAPException e) {
+//        catch(ASAPException e) {
+        catch(Throwable e) {
             Log.d(LOGSTART, e.getLocalizedMessage());
         }
     }
-
 }

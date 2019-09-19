@@ -30,6 +30,7 @@ public class ASAPActivity extends AppCompatActivity implements
         ASAPServiceRequestListener, ASAPServiceNotificationListener {
 
     private static final int MY_REQUEST_2ENABLE_BT = 1;
+    private static final int MY_REQUEST_SET_BT_DISCOVERABLE = 2;
 
     private Messenger mService;
     private boolean mBound;
@@ -38,6 +39,10 @@ public class ASAPActivity extends AppCompatActivity implements
 
     public ASAPActivity(ASAPApplication asapApplication) {
         this.asapApplication = asapApplication;
+    }
+
+    protected ASAPApplication getASAPApplication() {
+        return this.asapApplication;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -83,12 +88,12 @@ public class ASAPActivity extends AppCompatActivity implements
                 this.visibilityTime);
 
         // ask user to confirm - result is passed to onActivityResult
-        this.startActivity(discoverableIntent);
+        this.startActivityForResult(discoverableIntent, MY_REQUEST_SET_BT_DISCOVERABLE);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(this.getLogStart(),
-                "requestCode == " + requestCode +
+                ".onActivityResult(): requestCode == " + requestCode +
                         " / resultCode == " + resultCode);
 
         if(requestCode == MY_REQUEST_2ENABLE_BT && resultCode == RESULT_OK) {
@@ -96,13 +101,14 @@ public class ASAPActivity extends AppCompatActivity implements
             this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH);
         }
 
-        if(resultCode == this.visibilityTime) {
-            Log.d(this.getLogStart(), "user allowed BT discoverability for seconds: "
-                    + this.visibilityTime);
+        if(requestCode == MY_REQUEST_SET_BT_DISCOVERABLE) {
+            Log.d(this.getLogStart(),
+                    "user allowed BT discoverability for seconds: "
+                        + resultCode);
 
             // notify
-            Log.d(this.getLogStart(), "call aspNotifyBTDiscoverableStarted()");
-            this.aspNotifyBTDiscoverableStarted();
+            Log.d(this.getLogStart(), "call asapNotifyBTDiscoverableStarted()");
+            this.asapNotifyBTDiscoverableStarted();
         }
     }
 
@@ -266,6 +272,7 @@ public class ASAPActivity extends AppCompatActivity implements
         // Bind to the service
         super.onStart();
         Log.d(this.getLogStart(), "onStart");
+        this.asapApplication.setActivity(this);
         this.setupASAPServiceNotificationBroadcastReceiver();
         this.setupASAPReceivedBroadcastReceiver();
         this.bindServices();
@@ -349,7 +356,7 @@ public class ASAPActivity extends AppCompatActivity implements
             mService = new Messenger(service);
             mBound = true;
 
-            Log.d(getLogStart(), "connection established");
+            Log.d(getLogStart(), "asap activity got connected to asap service");
             if(messageStorage != null && messageStorage.size() > 0) {
                 Log.d(getLogStart(), "send stored messages | #msg = " + messageStorage.size());
                 for(Message msg : messageStorage) {
@@ -369,7 +376,7 @@ public class ASAPActivity extends AppCompatActivity implements
     };
 
     @Override
-    public void aspNotifyBTDiscoverableStarted() {
+    public void asapNotifyBTDiscoverableStarted() {
         this.asapApplication.setBTDiscoverable(true);
     }
 
@@ -379,22 +386,27 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void aspNotifyBTEnvironmentStarted() {
+    public void asapNotifyBTEnvironmentStarted() {
         this.asapApplication.setBTEnvironmentRunning(true);
     }
 
     @Override
-    public void aspNotifyBTEnvironmentStopped() {
+    public void asapNotifyBTEnvironmentStopped() {
         this.asapApplication.setBTEnvironmentRunning(false);
     }
 
     @Override
-    public void aspNotifyBTDiscoveryStarted() {
+    public void asapNotifyOnlinePeersChanged(List<CharSequence> peerList) {
+        this.asapApplication.setOnlinePeersList(peerList);
+    }
+
+    @Override
+    public void asapNotifyBTDiscoveryStarted() {
         this.asapApplication.setBTDiscovery(true);
     }
 
     @Override
-    public void aspNotifyBTDiscoveryStopped() {
+    public void asapNotifyBTDiscoveryStopped() {
         this.asapApplication.setBTDiscovery(false);
     }
 

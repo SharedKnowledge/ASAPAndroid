@@ -20,6 +20,7 @@ import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,12 +40,13 @@ public class ASAPApplication extends BroadcastReceiver {
     private boolean btDisoveryOn = false;
     private boolean btEnvironmentOn = false;
 
-    private Activity activity;
+    private ASAPActivity activity;
 
     private List<String> requiredPermissions;
     private List<String> grantedPermissions = new ArrayList<>();
     private List<String> deniedPermissions = new ArrayList<>();
     private int activityCount = 0;
+    private List<CharSequence> onlinePeerList = new ArrayList<>();
 
     /**
      * setup application by calling getASAPOwner(), getFolderName(), getASAPOnlineExchange().
@@ -145,6 +147,9 @@ public class ASAPApplication extends BroadcastReceiver {
         return ASAPApplication.singleton;
     }
 
+    public String getApplicationRootFolder(String appName) {
+        return this.getASAPRootFolder() + "/" + appName;
+    }
 
     public void activityCreated(ASAPActivity asapActivity) {
         this.setActivity(asapActivity);
@@ -161,11 +166,11 @@ public class ASAPApplication extends BroadcastReceiver {
                 + this.activityCount);
     }
 
-    protected Activity getActivity() {
+    public ASAPActivity getActivity() {
         return this.activity;
     }
 
-    void setActivity(Activity activity) {
+    void setActivity(ASAPActivity activity) {
         Log.d(this.getLogStart(), "activity set");
         this.activity = activity;
     }
@@ -284,5 +289,23 @@ public class ASAPApplication extends BroadcastReceiver {
                 + sender + " | " + uri  + " | " + foldername + " | " + era);
 
         Log.d(this.getLogStart(), "should inform apps about it");
+    }
+
+    public List<CharSequence> getOnlinePeerList() {
+        return this.onlinePeerList;
+    }
+
+    public void setOnlinePeersList(List<CharSequence> peerList) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getLogStart());
+        sb.append("#online peers: ");
+        sb.append(peerList.size());
+        for(CharSequence peerName : peerList) {
+            sb.append(" | ");
+            sb.append(peerName);
+        }
+
+        Log.d(this.getLogStart(), sb.toString());
+        this.onlinePeerList = peerList;
     }
 }
