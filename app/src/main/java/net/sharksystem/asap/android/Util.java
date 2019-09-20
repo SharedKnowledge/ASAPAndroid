@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.util.Log;
 
+import net.sharksystem.Utils;
 import net.sharksystem.asap.ASAPException;
 
 import java.io.File;
@@ -21,9 +22,13 @@ public class Util {
         }
     }
 
-    static String makeValidFolderName(CharSequence rootFolder, CharSequence owner) {
-        Log.d("Util", "create asap folder name is just a dummy.");
-        return rootFolder + "/userName";
+    static String makeValidFolderName(CharSequence rootFolder, CharSequence ownerName) {
+        // substitute special chars
+        String folderName = Utils.url2FileName(ownerName.toString());
+        Log.d("Util", "create asap folder for "
+                + ownerName + " | use folderName" + folderName);
+
+        return rootFolder + "/" + folderName;
     }
 
     public static File getASAPRootDirectory(Context ctx,

@@ -14,7 +14,6 @@ import net.sharksystem.asap.android.service.ASAPSession;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.io.IOException;

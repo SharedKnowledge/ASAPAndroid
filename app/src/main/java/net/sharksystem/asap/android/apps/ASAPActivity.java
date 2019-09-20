@@ -208,7 +208,7 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     private void shutdownASAPServiceNotificationBroadcastReceiver() {
-        Log.d(this.getLogStart(), "shutdown asap service notification bc receiver");
+        Log.d(this.getLogStart(), "shutdown asap service rq / notification bc receiver");
         if(this.srbc == null) {
             Log.e(this.getLogStart(), "bc receiver is null");
             return;
