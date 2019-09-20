@@ -46,10 +46,6 @@ public class BluetoothEngine extends MacLayerEngine {
         return BluetoothEngine.engine;
     }
 
-    public static BluetoothEngine getASAPBluetoothEngine() {
-        return BluetoothEngine.engine;
-    }
-
     private BluetoothEngine(ASAPService ASAPService, Context context) {
         super(ASAPService, context);
 

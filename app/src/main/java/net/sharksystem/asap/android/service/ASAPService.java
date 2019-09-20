@@ -184,7 +184,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     void stopBluetooth() {
         Log.d("ASAPService", "stop bluetooth");
 
-        BluetoothEngine asapBluetoothEngine = BluetoothEngine.getASAPBluetoothEngine();
+        BluetoothEngine asapBluetoothEngine =
+                BluetoothEngine.getASAPBluetoothEngine(this, this);
+
         if(asapBluetoothEngine != null) {
             asapBluetoothEngine.stop();
         }
@@ -195,7 +197,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     void startBluetoothDiscoverable() {
         Log.d("ASAPService", "start bluetooth discoverable");
 
-        BluetoothEngine asapBluetoothEngine = BluetoothEngine.getASAPBluetoothEngine();
+        BluetoothEngine asapBluetoothEngine =
+                BluetoothEngine.getASAPBluetoothEngine(this, this);
+
         asapBluetoothEngine.startDiscoverable();
 
         Log.d("ASAPService", "started bluetooth discoverable");
@@ -205,7 +209,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     public void startBluetoothDiscovery() {
         Log.d("ASAPService", "start bluetooth discovery");
 
-        BluetoothEngine asapBluetoothEngine = BluetoothEngine.getASAPBluetoothEngine();
+        BluetoothEngine asapBluetoothEngine =
+                BluetoothEngine.getASAPBluetoothEngine(this, this);
+
         asapBluetoothEngine.startDiscovery();
 
         Log.d("ASAPService", "started bluetooth discovery");

@@ -26,7 +26,7 @@ public class Util {
         // substitute special chars
         String folderName = Utils.url2FileName(ownerName.toString());
         Log.d("Util", "create asap folder for "
-                + ownerName + " | use folderName" + folderName);
+                + ownerName + " | use folderName: " + folderName);
 
         return rootFolder + "/" + folderName;
     }
