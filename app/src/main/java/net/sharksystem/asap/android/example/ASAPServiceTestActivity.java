@@ -34,7 +34,7 @@ public class ASAPServiceTestActivity extends ASAPActivity {
         // create broadcast receiver
         ExampleASAPBroadcastReceiver br = new ExampleASAPBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAP.ASAP_RECEIVED_ACTION);
+        filter.addAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
         this.registerReceiver(br, filter);
     }
 

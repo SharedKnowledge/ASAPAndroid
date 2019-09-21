@@ -228,16 +228,16 @@ public class ASAPActivity extends AppCompatActivity implements
     /////////////////////////////////////////////////////////////////////////////////////
 
     // asap application handles message from asap engine
-    private void setupASAPReceivedBroadcastReceiver() {
+    private void setupASAPChunkReceivedBroadcastReceiver() {
         Log.d(this.getLogStart(), "setup asap received bc receiver");
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAP.ASAP_RECEIVED_ACTION);
+        filter.addAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
 
         // register
         this.registerReceiver(this.asapApplication, filter);
     }
 
-    private void shutdownASAPReceivedBroadcastReceiver() {
+    private void shutdownASAPChunkReceivedBroadcastReceiver() {
         Log.d(this.getLogStart(), "shutdown asap received bc receiver");
         try {
             this.unregisterReceiver(this.asapApplication);
@@ -274,7 +274,7 @@ public class ASAPActivity extends AppCompatActivity implements
         Log.d(this.getLogStart(), "onStart");
         this.asapApplication.setActivity(this);
         this.setupASAPServiceNotificationBroadcastReceiver();
-        this.setupASAPReceivedBroadcastReceiver();
+        this.setupASAPChunkReceivedBroadcastReceiver();
         this.bindServices();
         // (re-)start asap broadcast request is issued whenever connection was established
         // see ServiceConnection below
@@ -298,7 +298,7 @@ public class ASAPActivity extends AppCompatActivity implements
         super.onStop();
         Log.d(this.getLogStart(), "onStop");
         this.shutdownASAPServiceNotificationBroadcastReceiver();
-        this.shutdownASAPReceivedBroadcastReceiver();
+        this.shutdownASAPChunkReceivedBroadcastReceiver();
         this.unbindServices();
 
         // forget stored messages

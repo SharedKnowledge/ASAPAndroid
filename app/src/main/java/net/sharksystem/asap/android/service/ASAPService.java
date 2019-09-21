@@ -18,7 +18,7 @@ import net.sharksystem.asap.ASAPOnlinePeersChangedListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPReceivedBroadcastIntent;
+import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
@@ -244,14 +244,15 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     //////////////////////////////////////////////////////////////////////////////////////
 
     private boolean broadcastOn = false;
-    private List<ASAPReceivedBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
+    private List<ASAPChunkReceivedBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
 
     @Override
     public void chunkReceived(String sender, String uri, int era) {
+        Log.d(LOGSTART, "was notified ba engine that chunk received. Uri: " + uri);
         // issue broadcast
-        ASAPReceivedBroadcastIntent intent = null;
+        ASAPChunkReceivedBroadcastIntent intent = null;
         try {
-            intent = new ASAPReceivedBroadcastIntent(
+            intent = new ASAPChunkReceivedBroadcastIntent(
                     sender, this.getASAPRootFolderName(), uri, era);
         } catch (ASAPException e) {
             e.printStackTrace();

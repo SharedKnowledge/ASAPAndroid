@@ -4,21 +4,21 @@ import android.content.Intent;
 
 import net.sharksystem.asap.ASAPException;
 
-public class ASAPReceivedBroadcastIntent extends Intent {
+public class ASAPChunkReceivedBroadcastIntent extends Intent {
 
     private CharSequence folder;
     private CharSequence uri;
     private int era;
     private CharSequence user;
 
-    public ASAPReceivedBroadcastIntent(CharSequence user, CharSequence folderName,
-                                       CharSequence uri, int eraInt) throws ASAPException {
+    public ASAPChunkReceivedBroadcastIntent(CharSequence user, CharSequence folderName,
+                                            CharSequence uri, int eraInt) throws ASAPException {
         super();
 
         if(folderName == null || uri == null || user == null)
             throw new ASAPException("parameters must no be null");
 
-        this.setAction(ASAP.ASAP_RECEIVED_ACTION);
+        this.setAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
 
         this.putExtra(ASAP.ERA, eraInt);
         this.putExtra(ASAP.FOLDER, folderName);
@@ -31,7 +31,7 @@ public class ASAPReceivedBroadcastIntent extends Intent {
         this.user = user;
     }
 
-    public ASAPReceivedBroadcastIntent(Intent intent) throws ASAPException {
+    public ASAPChunkReceivedBroadcastIntent(Intent intent) throws ASAPException {
         super();
 
         // just parse extras

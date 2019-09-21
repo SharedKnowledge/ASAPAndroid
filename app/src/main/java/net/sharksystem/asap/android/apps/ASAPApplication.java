@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -14,15 +13,14 @@ import android.util.Log;
 import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.ASAP;
-import net.sharksystem.asap.android.ASAPReceivedBroadcastIntent;
+import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
-import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
@@ -265,11 +263,11 @@ public class ASAPApplication extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(this.getLogStart(), "received asap received from asap engine/service");
+        Log.d(this.getLogStart(), "received asap chunk received from asap engine/service");
 
         try {
-            ASAPReceivedBroadcastIntent asapReceivedIntent
-                    = new ASAPReceivedBroadcastIntent(intent);
+            ASAPChunkReceivedBroadcastIntent asapReceivedIntent
+                    = new ASAPChunkReceivedBroadcastIntent(intent);
 
             // call listener - that's me in that case
             this.chunkReceived(
@@ -284,11 +282,20 @@ public class ASAPApplication extends BroadcastReceiver {
         }
     }
 
+    private Map<CharSequence, ASAPChunkReceivedListener> chunkReceivedListener = new HashMap<>();
     public void chunkReceived(String sender, String uri, String foldername, int era) {
         Log.d(this.getLogStart(), "got chunk received message: "
                 + sender + " | " + uri  + " | " + foldername + " | " + era);
 
         Log.d(this.getLogStart(), "should inform apps about it");
+    }
+
+    public void addChunkReceivedListener(CharSequence uri, ASAPChunkReceivedListener listener) {
+        this.chunkReceivedListener.put(uri, listener);
+    }
+
+    public void removeChunkReceivedListener(CharSequence uri) {
+        this.chunkReceivedListener.remove(uri);
     }
 
     public List<CharSequence> getOnlinePeerList() {
