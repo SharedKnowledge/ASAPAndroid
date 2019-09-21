@@ -287,7 +287,11 @@ public class ASAPApplication extends BroadcastReceiver {
         Log.d(this.getLogStart(), "got chunk received message: "
                 + sender + " | " + uri  + " | " + foldername + " | " + era);
 
-        Log.d(this.getLogStart(), "should inform apps about it");
+        Log.d(this.getLogStart(), "going to inform listener about it");
+        ASAPChunkReceivedListener listener = this.chunkReceivedListener.get(uri);
+        if(listener != null) {
+            listener.chunkReceived(sender, uri, era);
+        }
     }
 
     public void addChunkReceivedListener(CharSequence uri, ASAPChunkReceivedListener listener) {
