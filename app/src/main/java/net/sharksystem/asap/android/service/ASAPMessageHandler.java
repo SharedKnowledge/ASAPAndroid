@@ -27,64 +27,7 @@ class ASAPMessageHandler extends Handler {
         try {
             switch (msg.what) {
                 case ASAPServiceMethods.SEND_MESSAGE:
-                    Bundle msgData = msg.getData();
-                    if (msgData != null) {
-                        String recipient = msgData.getString(ASAP.RECIPIENT);
-                        String uri = msgData.getString(ASAP.URI);
-                        String format = msgData.getString(ASAP.FORMAT);
-                        byte[] content = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
-                        int era = msgData.getInt(ASAP.ERA);
-
-                        Log.d(LOGSTART, "received send message request");
-                        if(uri == null) {
-                            Log.e(LOGSTART, "uri must not be empty");
-                            return;
-                        }
-
-                        if(content == null) {
-                            Log.e(LOGSTART, "format content must not be empty");
-                            return;
-                        }
-
-                        if(format == null) {
-                            Log.e(LOGSTART, "format must not be empty");
-                            return;
-                        }
-
-                        try {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("going to send message to service:");
-                            sb.append(" | format: ");
-                            sb.append(format);
-                            sb.append(" | uri: ");
-                            sb.append(uri);
-                            sb.append(" | recipient: ");
-                            if(recipient == null) {
-                                sb.append("not set");
-                            } else {
-                                sb.append(recipient);
-                            }
-                            sb.append(" | era: ");
-                            sb.append(era);
-
-                            Log.d(LOGSTART, sb.toString());
-
-                            ASAPOnlineMessageSender asapOnlineMessageSender =
-                                    this.asapService.getASAPOnlineMessageSender();
-                            List<CharSequence> recipients = null;
-
-                            if(recipient != null) {
-                                recipients = new ArrayList<>();
-                                recipients.add(recipient);
-                            }
-
-                            asapOnlineMessageSender.sendASAPAssimilate(
-                                    format, uri, recipients, content, era);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    Log.d(LOGSTART, "finish asap write");
+                    this.handleSendMessage(msg);
                     break;
 
                 case ASAPServiceMethods.START_WIFI_DIRECT:
@@ -130,6 +73,66 @@ class ASAPMessageHandler extends Handler {
 //        catch(ASAPException e) {
         catch(Throwable e) {
             Log.d(LOGSTART, e.getLocalizedMessage());
+        }
+    }
+
+    private void handleSendMessage(Message msg) {
+        Bundle msgData = msg.getData();
+        if (msgData != null) {
+            String format = msgData.getString(ASAP.FORMAT);
+            String uri = msgData.getString(ASAP.URI);
+            String recipient = msgData.getString(ASAP.RECIPIENT);
+            byte[] content = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
+            int era = msgData.getInt(ASAP.ERA);
+
+            Log.d(LOGSTART, "received send message request");
+            if(uri == null) {
+                Log.e(LOGSTART, "uri must not be empty");
+                return;
+            }
+
+            if(content == null) {
+                Log.e(LOGSTART, "format content must not be empty");
+                return;
+            }
+
+            if(format == null) {
+                Log.e(LOGSTART, "format must not be empty");
+                return;
+            }
+
+            try {
+                StringBuilder sb = new StringBuilder();
+                sb.append("going to send message to service:");
+                sb.append(" | format: ");
+                sb.append(format);
+                sb.append(" | uri: ");
+                sb.append(uri);
+                sb.append(" | recipient: ");
+                if(recipient == null) {
+                    sb.append("not set");
+                } else {
+                    sb.append(recipient);
+                }
+                sb.append(" | era: ");
+                sb.append(era);
+
+                Log.d(LOGSTART, sb.toString());
+
+                ASAPOnlineMessageSender asapOnlineMessageSender =
+                        this.asapService.getASAPOnlineMessageSender();
+
+                if(asapOnlineMessageSender == null) {
+                    Log.e(LOGSTART, "got no asap online message sender from service");
+                    return;
+                }
+
+                asapOnlineMessageSender.sendASAPAssimilate(
+                        format, uri, recipient, content, era);
+
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
     }
 }

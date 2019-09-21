@@ -10,7 +10,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.service.ASAPSession;
+import net.sharksystem.asap.android.service.ASAPConnectionLauncher;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
@@ -185,11 +185,13 @@ public class BluetoothEngine extends MacLayerEngine {
      * Start a BT scanning sweep of the area. According to android manual, each
      * sweep takes 12 seconds - thus that method could be called frequently.
      */
-    public void startDiscovery() {
+    public boolean startDiscovery() {
         if(this.mBluetoothAdapter.startDiscovery()) {
             Log.d(this.getLogStart(), "successfully started Bluetooth discovery");
+            return true;
         } else {
             Log.e(this.getLogStart(), "could not start Bluetooth discovery");
+            return false;
         }
     }
 
@@ -240,16 +242,26 @@ public class BluetoothEngine extends MacLayerEngine {
     /////////////////////////////////////////////////////////////////////////////////////////
 
     void deviceFound(BluetoothDevice btDevice, BluetoothClass btClass) {
-        Log.d(this.getLogStart(), "deviceFound called");
         String macAddress = btDevice.getAddress();// MAC address
-        btDevice.getName(); // name
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("device found: ");
+        sb.append(macAddress);
+        sb.append(" | ");
+        sb.append(btDevice.getName());
+        sb.append("my address: ");
+        sb.append(this.mBluetoothAdapter.getAddress());
+        Log.d(this.getLogStart(), sb.toString());
 
         // strongly recommended to stop discovery
         //this.mBluetoothAdapter.cancelDiscovery();
 
         if(this.shouldConnectToMACPeer(macAddress)) {
-            Log.d(this.getLogStart(), "create and BT client socket thread");
+            Log.d(this.getLogStart(), "create a BT client socket thread");
             new BluetoothClientSocketThread(this, btDevice).start();
+        } else {
+            Log.d(this.getLogStart(), "should and will not connect to that device: "
+                    + macAddress);
         }
     }
 
@@ -274,8 +286,8 @@ public class BluetoothEngine extends MacLayerEngine {
          */
 
         // set up new ASAP Session and we are done here.
-        new ASAPSession(socket.getInputStream(), socket.getOutputStream(),
-                this.getAsapService().getASAPEngine(), this).start();
+        new ASAPConnectionLauncher(socket.getInputStream(), socket.getOutputStream(),
+                this.getAsapService().getASAPEngine()).start();
     }
 
     public void propagateStatus(Context ctx) {

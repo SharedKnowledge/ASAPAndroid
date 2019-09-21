@@ -4,47 +4,43 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.android.Util;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class ASAPSession extends Thread {
+public class ASAPConnectionLauncher extends Thread {
     private TCPChannelMaker channelMaker;
     private final MultiASAPEngineFS asapEngine;
-    private final ASAPSessionListener asapSessionListener;
     private InputStream is;
     private OutputStream os;
 
-    public ASAPSession(TCPChannelMaker channelMaker, MultiASAPEngineFS asapEngine,
-                       ASAPSessionListener asapSessionListener) {
-
-        this(asapEngine, asapSessionListener);
+    public ASAPConnectionLauncher(TCPChannelMaker channelMaker, MultiASAPEngineFS asapEngine) {
+        this(asapEngine);
         this.channelMaker = channelMaker;
         this.is = null;
         this.os = null;
     }
 
-    public ASAPSession(InputStream is, OutputStream os, MultiASAPEngineFS asapEngine,
-                       ASAPSessionListener asapSessionListener) {
-        this(asapEngine, asapSessionListener);
+    public ASAPConnectionLauncher(InputStream is, OutputStream os, MultiASAPEngineFS asapEngine) {
+        this(asapEngine);
         this.is = is;
         this.os = os;
         this.channelMaker = null;
     }
 
-    private ASAPSession(MultiASAPEngineFS asapEngine,ASAPSessionListener asapSessionListener) {
+    private ASAPConnectionLauncher(MultiASAPEngineFS asapEngine) {
         this.asapEngine = asapEngine;
-        this.asapSessionListener = asapSessionListener;
     }
     
     private String getLogStart() {
-        return "ASAPSession";
+        return Util.getLogStart(this);
     }
 
     public void run() {
-        Log.d(this.getLogStart(), "session started");
+        Log.d(this.getLogStart(), "started");
 
         try {
             if(this.is == null) {
@@ -65,12 +61,10 @@ public class ASAPSession extends Thread {
                 this.os = this.channelMaker.getOutputStream();
             }
 
-            this.asapSessionListener.sessionStarted();
+            Log.d(this.getLogStart(), "call asapMultiEngine to handle connection");
             this.asapEngine.handleConnection(this.is, this.os);
-            this.asapSessionListener.asapSessionFinished();
-
         } catch (IOException | ASAPException e) {
-            Log.d(this.getLogStart(), "while handling connection: " + e.getLocalizedMessage());
+            Log.d(this.getLogStart(), "while laucnhing asap connection: " + e.getLocalizedMessage());
             try {
                 this.os.close();
             } catch (IOException ex) {

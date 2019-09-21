@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class MacLayerEngine implements ASAPSessionListener {
+public abstract class MacLayerEngine {
     // TODO - create a real UUID.
     public static final UUID ASAP_UUID = UUID.fromString("42ba5e3b-d4f0-4578-91dc-8dab6c2067ae");
     public static final String ASAP_SERVICE_NAME = "ASAP";
@@ -95,20 +95,5 @@ public abstract class MacLayerEngine implements ASAPSessionListener {
 
     private String getLogStart() {
         return "ASAPMacLayerEngine";
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    //                        AASPSessionListener interface support                     //
-    //////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void sessionStarted() {
-        Log.d(this.getLogStart(), "ASAPSession started");
-    }
-
-
-    @Override
-    public void asapSessionFinished() {
-        Log.d(this.getLogStart(), "ASAPSession finished");
     }
 }

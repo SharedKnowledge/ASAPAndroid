@@ -6,7 +6,6 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPAbstractOnlineMessageSender;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.Util;
@@ -15,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class ASAPOnlineMessageSenderUserSide extends ASAPAbstractOnlineMessageSender {
+
     private final ASAPApplication asapApplication;
 
     public ASAPOnlineMessageSenderUserSide(ASAPApplication asapApplication) {
@@ -24,7 +24,7 @@ public class ASAPOnlineMessageSenderUserSide extends ASAPAbstractOnlineMessageSe
     @Override
     public void sendASAPAssimilate(CharSequence format, CharSequence uri,
                                    List<CharSequence> recipients, byte[] messageAsBytes,
-                                   int era) throws IOException, ASAPException {
+                                   int era) throws ASAPException {
 
         Message msg;
 
@@ -61,7 +61,7 @@ public class ASAPOnlineMessageSenderUserSide extends ASAPAbstractOnlineMessageSe
     public void sendASAPAssimilate(CharSequence format, CharSequence uri, byte[] messageAsBytes, int era)
             throws IOException, ASAPException {
 
-        this.sendASAPAssimilate(format, uri, null, messageAsBytes, era);
+        this.sendASAPAssimilate(format, uri, (CharSequence) null, messageAsBytes, era);
     }
 
     private Message createSendASAPMessageMessage(CharSequence format, CharSequence uri,
@@ -78,9 +78,10 @@ public class ASAPOnlineMessageSenderUserSide extends ASAPAbstractOnlineMessageSe
         Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
         Bundle msgData = new Bundle();
         msgData.putCharSequence(ASAP.FORMAT, format);
-        if(recipient != null) { msgData.putCharSequence(ASAP.RECIPIENT, recipient); }
         msgData.putCharSequence(ASAP.URI, uri);
+        if(recipient != null) { msgData.putCharSequence(ASAP.RECIPIENT, recipient); }
         msgData.putByteArray(ASAP.MESSAGE_CONTENT, asapMessage);
+        msgData.putInt(ASAP.ERA, era);
         msg.setData(msgData);
 
         return msg;

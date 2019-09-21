@@ -79,6 +79,10 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                 this.asapMultiEngine = MultiASAPEngineFS_Impl.createMultiEngine(
                         this.asapEngineRootFolderName, this);
                 Log.d(LOGSTART,"engine created");
+
+                this.asapMultiEngine.addOnlinePeersChangedListener(this);
+                Log.d(LOGSTART,"added online peer changed listener");
+
             } catch (IOException e) {
                 Log.d(LOGSTART,"IOException");
                 Log.d(LOGSTART,e.getLocalizedMessage());
@@ -202,19 +206,25 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
         asapBluetoothEngine.startDiscoverable();
 
-        Log.d("ASAPService", "started bluetooth discoverable");
+        Log.d(this.getLogStart(), "started bluetooth discoverable");
     }
 
 
     public void startBluetoothDiscovery() {
-        Log.d("ASAPService", "start bluetooth discovery");
+        Log.d(this.getLogStart(), "start bluetooth discovery");
 
         BluetoothEngine asapBluetoothEngine =
                 BluetoothEngine.getASAPBluetoothEngine(this, this);
 
-        asapBluetoothEngine.startDiscovery();
+        if(asapBluetoothEngine.startDiscovery()) {
+            Log.d(this.getLogStart(), "started bluetooth discovery");
+        } else {
+            Log.d(this.getLogStart(), "starting bluetooth discovery failed");
+        }
+    }
 
-        Log.d("ASAPService", "started bluetooth discovery");
+    private String getLogStart() {
+        return Util.getLogStart(this);
     }
 
 
