@@ -80,16 +80,16 @@ public abstract class MacLayerEngine {
         Log.d(this.getLogStart(),"connectBefore: " + reconnectBefore.toString());
 
         // known peer
-        Log.d(this.getLogStart(), "device in encounteredDevices list");
+        Log.d(this.getLogStart(), "device (" + macAddress + ") in encounteredDevices list?");
         // it was in the list
         if(lastEncounter.before(reconnectBefore)) {
-            Log.d(this.getLogStart(), "yes - should connect - waiting period is over");
+            Log.d(this.getLogStart(), "yes - should connect: " + macAddress);
             // remember that
             this.encounteredDevices.put(macAddress, now);
             return true;
         }
 
-        Log.d(this.getLogStart(), "no - should not connect - still in waiting period");
+        Log.d(this.getLogStart(), "should not connect - recently met: " + macAddress);
         return false;
     }
 

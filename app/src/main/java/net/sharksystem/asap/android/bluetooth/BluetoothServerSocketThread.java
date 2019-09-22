@@ -43,22 +43,12 @@ class BluetoothServerSocketThread extends Thread {
             Log.d(this.getLogStart(), "entered wait loop - going to block in accept()");
             try {
                 socket = mmServerSocket.accept();
-                Log.d(this.getLogStart(), "new BT connection established to "
-                        + socket.getRemoteDevice().getAddress());
+                Log.d(this.getLogStart(),
+                        "new BT connection established to "
+                                + socket.getRemoteDevice().getAddress());
 
-                // this must be handled here - see comments in BluetoothEngine
-                if(this.btEngine.shouldConnectToMACPeer(socket.getRemoteDevice().getAddress())) {
-                    this.btEngine.handleBTSocket(socket);
-                } else {
-                    Log.d(this.getLogStart(), "shall not talk to this peer - close");
-                    try {
-                        socket.close();
-                    }
-                    catch(IOException e) {
-                        Log.d(this.getLogStart(), "could not close - ignore: "
-                                + e.getLocalizedMessage());
-                    }
-                }
+                // possible parallel connection are handle by BT engine
+                this.btEngine.handleBTSocket(socket);
             } catch (IOException e) {
                 Log.d(this.getLogStart(), "Socket's accept() method failed", e);
                 break;

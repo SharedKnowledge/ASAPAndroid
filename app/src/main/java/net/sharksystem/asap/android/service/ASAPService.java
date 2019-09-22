@@ -210,7 +210,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     }
 
 
-    public void startBluetoothDiscovery() {
+    public void startBluetoothDiscovery() throws ASAPException {
         Log.d(this.getLogStart(), "start bluetooth discovery");
 
         BluetoothEngine asapBluetoothEngine =
@@ -232,7 +232,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     //                                  status management                               //
     //////////////////////////////////////////////////////////////////////////////////////
 
-    public void propagateProtocolStatus() {
+    public void propagateProtocolStatus() throws ASAPException {
         BluetoothEngine.getASAPBluetoothEngine(this, this)
                 .propagateStatus(this);
         // Wifi.propagateStatus();
@@ -309,6 +309,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
         // broadcast
         String serializedOnlinePeers = Helper.collection2String(multiASAPEngineFS.getOnlinePeers());
+        Log.d(this.getLogStart(), "online peers serialized: " + serializedOnlinePeers);
 
         ASAPServiceRequestNotifyIntent intent =
                 new ASAPServiceRequestNotifyIntent(

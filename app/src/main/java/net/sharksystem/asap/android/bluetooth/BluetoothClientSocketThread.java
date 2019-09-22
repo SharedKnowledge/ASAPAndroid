@@ -40,7 +40,11 @@ class BluetoothClientSocketThread extends Thread {
         }
     }
 
+    private String logStartString = null;
     private String getLogStart() {
-        return "BTClientSocketThread";
+        if(this.logStartString == null) {
+            this.logStartString = "BTClientSocketThread (to " + btDevice.getAddress() + "): ";
+        }
+        return this.logStartString;
     }
 }

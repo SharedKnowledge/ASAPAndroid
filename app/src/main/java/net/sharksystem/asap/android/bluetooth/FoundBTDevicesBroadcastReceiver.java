@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPException;
+
 class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
 
     private final BluetoothEngine bluetoothEngine;
@@ -35,7 +37,12 @@ class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
             BluetoothClass btClass = intent.getParcelableExtra(BluetoothDevice.EXTRA_CLASS);
             Log.d(this.getLogStart(), "found BT class: " + btClass.toString());
 
-            this.bluetoothEngine.deviceFound(device, btClass);
+            try {
+                this.bluetoothEngine.deviceFound(device, btClass);
+            } catch (ASAPException e) {
+                Log.e(this.getLogStart(),
+                        "could not handle device found: " + e.getLocalizedMessage());
+            }
         }
     }
 }

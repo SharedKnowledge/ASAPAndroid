@@ -55,6 +55,18 @@
         android:layout_gravity="left|top" />
 
     <Button
+        android:id="@+id/startDiscoverableAndDiscovery"
+        android:onClick="onClick"
+        android:text="startBT_D_And_D"
+        android:layout_gravity="left|top" />
+
+    <Button
+        android:id="@+id/nothing"
+        android:onClick="onClick"
+        android:text="nothing"
+        android:layout_gravity="left|top" />
+
+    <Button
         android:id="@+id/setupCleanASAPStorageButton"
         android:onClick="onSetupCleanASAPStorageClick"
         android:text="setupASAPStorage"

@@ -17,6 +17,8 @@ import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED;
 import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED;
@@ -68,7 +70,11 @@ public class BluetoothEngine extends MacLayerEngine {
 
     public void stop() {
         Log.d(this.getLogStart(), "stop bluetooth");
-        this.shutdown();
+        try {
+            this.shutdown();
+        } catch (ASAPException e) {
+            Log.e(this.getLogStart(), "could not shutdown bt: " + e.getLocalizedMessage());
+        }
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +101,7 @@ public class BluetoothEngine extends MacLayerEngine {
         Log.d(this.getLogStart(), "check if BT is enabled");
         if (!mBluetoothAdapter.isEnabled()) {
             Log.i(this.getLogStart(),
-                    "Bluetooth disabled - ask application for help - stop setting up bt");
+                    "Bluetooth disabled - ask application to start BT - stop setting up so far");
 
             Intent requestIntent = new ASAPServiceRequestNotifyIntent(
                     ASAPServiceRequestNotifyIntent.ASAP_RQ_ASK_USER_TO_ENABLE_BLUETOOTH);
@@ -185,8 +191,8 @@ public class BluetoothEngine extends MacLayerEngine {
      * Start a BT scanning sweep of the area. According to android manual, each
      * sweep takes 12 seconds - thus that method could be called frequently.
      */
-    public boolean startDiscovery() {
-        if(this.mBluetoothAdapter.startDiscovery()) {
+    public boolean startDiscovery() throws ASAPException {
+        if(this.getBTAdapter().startDiscovery()) {
             Log.d(this.getLogStart(), "successfully started Bluetooth discovery");
             return true;
         } else {
@@ -195,7 +201,7 @@ public class BluetoothEngine extends MacLayerEngine {
         }
     }
 
-    private void shutdown() {
+    private void shutdown() throws ASAPException {
         // unregister broadcast receiver
         if (this.foundBTDeviceBC != null) {
             Util.unregisterBCR(this.getLogStart(), this.getContext(), this.foundBTDeviceBC);
@@ -219,8 +225,8 @@ public class BluetoothEngine extends MacLayerEngine {
         }
 
         // stop BT adapter
-        this.mBluetoothAdapter.cancelDiscovery();
-        this.mBluetoothAdapter.disable();
+        this.getBTAdapter().cancelDiscovery();
+        this.getBTAdapter().disable();
 
         this.btEnvironmentOn = false;
 
@@ -234,6 +240,7 @@ public class BluetoothEngine extends MacLayerEngine {
         if(this.mBluetoothAdapter == null)
             throw new ASAPException("bluetooth not yet initialized");
 
+        Log.d(this.getLogStart(), "my mac address: " + this.mBluetoothAdapter.getAddress());
         return this.mBluetoothAdapter;
     }
 
@@ -241,7 +248,7 @@ public class BluetoothEngine extends MacLayerEngine {
     //                       handle connections and connection attempts                    //
     /////////////////////////////////////////////////////////////////////////////////////////
 
-    void deviceFound(BluetoothDevice btDevice, BluetoothClass btClass) {
+    void deviceFound(BluetoothDevice btDevice, BluetoothClass btClass) throws ASAPException {
         String macAddress = btDevice.getAddress();// MAC address
 
         StringBuilder sb = new StringBuilder();
@@ -250,7 +257,7 @@ public class BluetoothEngine extends MacLayerEngine {
         sb.append(" | ");
         sb.append(btDevice.getName());
         sb.append("my address: ");
-        sb.append(this.mBluetoothAdapter.getAddress());
+        sb.append(this.getBTAdapter().getAddress());
         Log.d(this.getLogStart(), sb.toString());
 
         // strongly recommended to stop discovery
@@ -265,37 +272,46 @@ public class BluetoothEngine extends MacLayerEngine {
         }
     }
 
+    private Map<String, BluetoothSocket> openSockets = new HashMap<>();
+
     /**
      * Both client and server sockets
      * @param socket
      * @throws IOException
      */
-    void handleBTSocket(BluetoothSocket socket) throws IOException {
-        Log.d(this.getLogStart(), "new BT connection established");
-        /* don't check here with shouldConnectToMACPeer if to talk
-         with remote peer.
+    synchronized void handleBTSocket(BluetoothSocket socket) throws IOException {
+        String address = socket.getRemoteDevice().getAddress();
+        Log.d(this.getLogStart(), "going to handle new BT connection to " + address);
 
-         It must be checked before establishing a connection as client!
-         Checked again here would fail - due to missing waiting period.
+        // already an open connection?
+        BluetoothSocket bluetoothSocket = this.openSockets.get(address);
+        if(bluetoothSocket != null) {
+            // still active
+            if(bluetoothSocket.isConnected()) {
+                // already connected - connection is active
+                Log.d(this.getLogStart(),
+                        "we already have an open and active connection to " + address);
+                socket.close();
+                return;
+            } else {
+                Log.d(this.getLogStart(), "we had a connection but it is gone " + address);
+            }
+        }
 
-         Thus, this must be check in server socket as well. See comments there.
+        // remember that new connection
+        this.openSockets.put(address, socket);
 
-         more:
-         There is also a race condition between both peers - who will create connection
-         earlier - that mechanism drops the later connection attempt.
-         */
-
-        // set up new ASAP Session and we are done here.
+        // set up new ASAP Session on that connection
         new ASAPConnectionLauncher(socket.getInputStream(), socket.getOutputStream(),
                 this.getAsapService().getASAPEngine()).start();
     }
 
-    public void propagateStatus(Context ctx) {
+    public void propagateStatus(Context ctx) throws ASAPException {
         Log.d(this.getLogStart(), "going to send status broadcast messages");
         ASAPServiceRequestNotifyIntent notifyIntent = null;
 
         // Bluetooth running?
-        if(this.mBluetoothAdapter.isEnabled()) {
+        if(this.getBTAdapter().isEnabled()) {
              notifyIntent = new ASAPServiceRequestNotifyIntent(
                             ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STARTED);
         } else {
@@ -305,7 +321,7 @@ public class BluetoothEngine extends MacLayerEngine {
 
         ctx.sendBroadcast(notifyIntent);
 
-        if(this.mBluetoothAdapter.isDiscovering()) {
+        if(this.getBTAdapter().isDiscovering()) {
             notifyIntent = new ASAPServiceRequestNotifyIntent(
                     ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_DISCOVERY_STARTED);
         } else {

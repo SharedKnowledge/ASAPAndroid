@@ -62,6 +62,8 @@ public class ASAPConnectionLauncher extends Thread {
             }
 
             Log.d(this.getLogStart(), "call asapMultiEngine to handle connection");
+//            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
+//            testConnectionHandler.start();
             this.asapEngine.handleConnection(this.is, this.os);
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "while laucnhing asap connection: " + e.getLocalizedMessage());

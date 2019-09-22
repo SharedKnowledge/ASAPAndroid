@@ -13,11 +13,11 @@ import net.sharksystem.asap.android.Util;
 import java.io.IOException;
 import java.util.List;
 
-public class ASAPOnlineMessageSenderUserSide extends ASAPAbstractOnlineMessageSender {
+public class ASAPOnlineMessageSenderAndroidUserSide extends ASAPAbstractOnlineMessageSender {
 
     private final ASAPApplication asapApplication;
 
-    public ASAPOnlineMessageSenderUserSide(ASAPApplication asapApplication) {
+    public ASAPOnlineMessageSenderAndroidUserSide(ASAPApplication asapApplication) {
         this.asapApplication = asapApplication;
     }
 

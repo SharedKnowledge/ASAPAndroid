@@ -83,6 +83,7 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_ONLINE_PEERS_CHANGED:
                 Log.d(this.getLogStart(), "notified online peers changed");
                 String peers = intent.getStringExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1);
+                Log.d(this.getLogStart(), "new peers: " + peers);
                 List<CharSequence> peersList = Helper.string2CharSequenceList(peers);
                 this.notificationListener.asapNotifyOnlinePeersChanged(peersList);
                 break;

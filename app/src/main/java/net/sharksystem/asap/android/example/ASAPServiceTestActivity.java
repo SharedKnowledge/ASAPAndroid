@@ -13,14 +13,14 @@ import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPApplication;
-import net.sharksystem.asap.android.apps.ASAPOnlineMessageSenderUserSide;
+import net.sharksystem.asap.android.apps.ASAPOnlineMessageSenderAndroidUserSide;
 
 import java.io.IOException;
 
 public class ASAPServiceTestActivity extends ASAPActivity {
     private static final CharSequence TESTURI ="asap://testuri";
     private static final CharSequence TESTMESSAGE = "Hi there from asap writing activity";
-    private ASAPOnlineMessageSenderUserSide asapOnlineSender;
+    private ASAPOnlineMessageSenderAndroidUserSide asapOnlineSender;
 
     public ASAPServiceTestActivity() {
         super(ASAPApplication.getASAPApplication());
@@ -67,6 +67,12 @@ public class ASAPServiceTestActivity extends ASAPActivity {
         else if(view == findViewById(R.id.startDiscovery)) {
             Log.d(this.getLogStart(), "start discover button pressed - send message");
             this.startBluetoothDiscovery();
+        }
+        else if(view == findViewById(R.id.startDiscoverableAndDiscovery)) {
+            Log.d(this.getLogStart(),
+                    "start disoverable and discover button pressed - send messages");
+            this.startBluetoothDiscovery();
+            this.startBluetoothDiscoverable();
         }
     }
 
@@ -180,7 +186,7 @@ public class ASAPServiceTestActivity extends ASAPActivity {
                 return;
             }
 
-            this.asapOnlineSender = new ASAPOnlineMessageSenderUserSide(this.getASAPApplication());
+            this.asapOnlineSender = new ASAPOnlineMessageSenderAndroidUserSide(this.getASAPApplication());
             this.asapStorage.attachASAPMessageAddListener(this.asapOnlineSender);
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "exception: " + e.getLocalizedMessage());
