@@ -322,9 +322,11 @@ public class ASAPApplication extends BroadcastReceiver {
 
         Log.d(this.getLogStart(), sb.toString());
         if(onlinePeerList.size() < peerList.size()) {
-            Toast.makeText(this.getActivity(), "new online connections", Toast.LENGTH_SHORT);
+            Toast.makeText(this.getActivity(),
+                    "new online connections", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this.getActivity(), "online connections changed", Toast.LENGTH_SHORT);
+            Toast.makeText(this.getActivity(),
+                    "online connections changed", Toast.LENGTH_SHORT).show();
         }
 
         this.onlinePeerList = peerList;

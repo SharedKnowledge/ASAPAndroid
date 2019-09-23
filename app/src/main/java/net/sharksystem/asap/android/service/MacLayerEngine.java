@@ -3,6 +3,10 @@ package net.sharksystem.asap.android.service;
 import android.content.Context;
 import android.util.Log;
 
+import net.sharksystem.asap.MultiASAPEngineFS;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,5 +99,16 @@ public abstract class MacLayerEngine {
 
     private String getLogStart() {
         return "ASAPMacLayerEngine";
+    }
+
+    protected void launchASAPConnection(
+            String address, InputStream inputStream, OutputStream outputStream) {
+
+        // set up new ASAP Session on that connection
+        ASAPConnectionLauncher asapConnectionLauncher =
+                new ASAPConnectionLauncher(
+                        inputStream, outputStream, this.getAsapService().getASAPEngine());
+
+        asapConnectionLauncher.start();
     }
 }

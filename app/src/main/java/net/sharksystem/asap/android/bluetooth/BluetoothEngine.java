@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.service.ASAPConnectionLauncher;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
@@ -165,6 +164,44 @@ public class BluetoothEngine extends MacLayerEngine {
                         ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_BT_ENVIRONMENT_STARTED));
     }
 
+
+    void acceptServerSocketKilled() {
+        Log.d(this.getLogStart(), "was told accept socket died - shutdown");
+        // server socket was killed - that most probably because BT was switched off by users
+        try {
+            this.shutdown();
+        } catch (ASAPException e) {
+            Log.d(this.getLogStart(), "problems with shutdown: " + e.getLocalizedMessage());
+        }
+
+        /* BT on Android shows that weired behaviour that process can write into a BT socket
+        even when BT is off. That's impossible - but kill all sockets they are only zombies
+         */
+
+        for(BluetoothSocket socket : this.openSockets.values()) {
+            String name = "no remote Device";
+            String address = name;
+            BluetoothDevice remoteDevice = socket.getRemoteDevice();
+            if( remoteDevice != null) {
+                name = remoteDevice.getName();
+                address = remoteDevice.getAddress();
+            }
+
+            Log.d(this.getLogStart(), "kill zombie socket "
+                    + "name: " + name
+                    + " | address: " + address
+                    + " | isConnected: " + socket.isConnected());
+            try {
+                socket.getInputStream().close();
+                socket.getOutputStream().close();
+            } catch (IOException e) {
+                Log.d(this.getLogStart(), "could not close");
+            }
+        }
+
+        this.openSockets = new HashMap<>();
+    }
+
     public void startDiscoverable() {
         this.startDiscoverable(BluetoothEngine.DEFAULT_VISIBILITY_TIME);
     }
@@ -301,9 +338,7 @@ public class BluetoothEngine extends MacLayerEngine {
         // remember that new connection
         this.openSockets.put(address, socket);
 
-        // set up new ASAP Session on that connection
-        new ASAPConnectionLauncher(socket.getInputStream(), socket.getOutputStream(),
-                this.getAsapService().getASAPEngine()).start();
+        this.launchASAPConnection(address, socket.getInputStream(), socket.getOutputStream());
     }
 
     public void propagateStatus(Context ctx) throws ASAPException {
