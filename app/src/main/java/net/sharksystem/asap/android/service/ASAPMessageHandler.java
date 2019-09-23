@@ -103,7 +103,7 @@ class ASAPMessageHandler extends Handler {
 
             try {
                 StringBuilder sb = new StringBuilder();
-                sb.append("going to send message to service:");
+                sb.append("going to send message over an open connection:");
                 sb.append(" | format: ");
                 sb.append(format);
                 sb.append(" | uri: ");
