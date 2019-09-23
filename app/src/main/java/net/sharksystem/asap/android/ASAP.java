@@ -23,4 +23,5 @@ public class ASAP {
 
     public static final String ONLINE_EXCHANGE = "ASAP_ONLINE_EXCHANGE";
     public static final boolean ONLINE_EXCHANGE_DEFAULT = true;
+    public static final String MAX_EXECUTION_TIME = "ASAP_MAX_EXECUTION_TIME";
 }

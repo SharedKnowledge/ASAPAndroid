@@ -1,10 +1,11 @@
 package net.sharksystem.asap.android;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 
+import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.android.service.ASAPService;
 
 public class ASAPServiceCreationIntent extends Intent {
@@ -12,9 +13,19 @@ public class ASAPServiceCreationIntent extends Intent {
     private final CharSequence owner;
     private final CharSequence rootFolder;
     private final boolean onlineExchange;
+    private final long maxExecutionTime;
 
     public ASAPServiceCreationIntent(Activity activity, CharSequence owner, CharSequence rootFolder,
-                                     boolean onlineExchange) throws ASAPException {
+                                     boolean onlineExchange)
+            throws ASAPException {
+
+        this(activity, owner, rootFolder, onlineExchange,
+                MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME);
+    }
+
+    public ASAPServiceCreationIntent(Activity activity, CharSequence owner, CharSequence rootFolder,
+        boolean onlineExchange, long maxExecutionTime)
+            throws ASAPException {
 
         super(activity, ASAPService.class);
 
@@ -24,10 +35,12 @@ public class ASAPServiceCreationIntent extends Intent {
         this.putExtra(ASAP.USER, owner);
         this.putExtra(ASAP.FOLDER, rootFolder);
         this.putExtra(ASAP.ONLINE_EXCHANGE, onlineExchange);
+        this.putExtra(ASAP.MAX_EXECUTION_TIME, maxExecutionTime);
 
         this.owner = owner;
         this.rootFolder = rootFolder;
         this.onlineExchange = onlineExchange;
+        this.maxExecutionTime = maxExecutionTime;
     }
 
     public ASAPServiceCreationIntent(Intent intent) {
@@ -38,6 +51,8 @@ public class ASAPServiceCreationIntent extends Intent {
         this.rootFolder = intent.getStringExtra(ASAP.FOLDER);
         this.onlineExchange = intent.getBooleanExtra(ASAP.ONLINE_EXCHANGE,
                 ASAP.ONLINE_EXCHANGE_DEFAULT);
+        this.maxExecutionTime = intent.getLongExtra(ASAP.MAX_EXECUTION_TIME,
+                MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME);
 
     }
 
@@ -52,4 +67,24 @@ public class ASAPServiceCreationIntent extends Intent {
     public boolean isOnlineExchange() {
         return this.onlineExchange;
     }
+
+    public long getMaxExecutionTime() {
+        return this.maxExecutionTime;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("owner: ");
+        sb.append(this.owner);
+        sb.append(" | folder: ");
+        sb.append(this.rootFolder);
+        sb.append(" | onlineExchange: ");
+        sb.append(this.onlineExchange);
+        sb.append(" | maxExecutionTime: ");
+        sb.append(this.maxExecutionTime);
+
+        return sb.toString();
+    }
+
 }

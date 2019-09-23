@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPException;
@@ -92,6 +93,9 @@ public class ASAPApplication extends BroadcastReceiver {
             try {
                 Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(activity,
                         this.asapOwner, this.rootFolder, this.onlineExchange);
+
+                Log.d(this.getLogStart(), "start service with intent: "
+                        + asapServiceCreationIntent.toString());
 
                 this.activity.startService(asapServiceCreationIntent);
                 this.initialized = true;
@@ -317,6 +321,12 @@ public class ASAPApplication extends BroadcastReceiver {
         }
 
         Log.d(this.getLogStart(), sb.toString());
+        if(onlinePeerList.size() < peerList.size()) {
+            Toast.makeText(this.getActivity(), "new online connections", Toast.LENGTH_SHORT);
+        } else {
+            Toast.makeText(this.getActivity(), "online connections changed", Toast.LENGTH_SHORT);
+        }
+
         this.onlinePeerList = peerList;
     }
 }

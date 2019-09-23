@@ -19,6 +19,7 @@ import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
+import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
@@ -47,6 +48,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private CharSequence owner;
     private CharSequence rootFolder;
     private boolean onlineExchange;
+    private long maxExecutionTime;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -77,7 +79,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                     Log.d(LOGSTART,"createdFolder");
                 }
                 this.asapMultiEngine = MultiASAPEngineFS_Impl.createMultiEngine(
-                        this.asapEngineRootFolderName, this);
+                        this.owner, this.asapEngineRootFolderName, this.maxExecutionTime, this);
                 Log.d(LOGSTART,"engine created");
 
                 this.asapMultiEngine.addOnlinePeersChangedListener(this);
@@ -116,13 +118,20 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             this.owner = ASAP.UNKNOWN_USER;
             this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
             this.onlineExchange = ASAP.ONLINE_EXCHANGE_DEFAULT;
+            this.maxExecutionTime = MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
         } else {
-            Log.d(LOGSTART, "intent is not null");
-            this.owner = intent.getCharSequenceExtra(ASAP.USER);
-            this.rootFolder = intent.getCharSequenceExtra(ASAP.FOLDER);
-            this.onlineExchange = intent.getBooleanExtra(ASAP.ONLINE_EXCHANGE, ASAP.ONLINE_EXCHANGE_DEFAULT);
-            Log.d(LOGSTART, "owner | folder | online == " + this.owner
-                    + " | " + this.rootFolder + " | " + this.onlineExchange);
+            Log.d(LOGSTART, "service was created with an intent");
+
+            ASAPServiceCreationIntent asapServiceCreationIntent =
+                    new ASAPServiceCreationIntent(intent);
+
+            Log.d(this.getLogStart(), "started with intent: "
+                    + asapServiceCreationIntent.toString());
+
+            this.owner = asapServiceCreationIntent.getOwner();
+            this.rootFolder = asapServiceCreationIntent.getRootFolder();
+            this.onlineExchange = asapServiceCreationIntent.isOnlineExchange();
+            this.maxExecutionTime = asapServiceCreationIntent.getMaxExecutionTime();
         }
 
         // get root directory
@@ -248,7 +257,8 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
     @Override
     public void chunkReceived(String sender, String uri, int era) {
-        Log.d(LOGSTART, "was notified ba engine that chunk received. Uri: " + uri);
+        Log.d(LOGSTART, "was notified by asap engine that chunk received - broadcast. Uri: "
+                + uri);
         // issue broadcast
         ASAPChunkReceivedBroadcastIntent intent = null;
         try {
