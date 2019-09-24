@@ -40,7 +40,7 @@ public class ASAPConnectionLauncher extends Thread {
     }
 
     public void run() {
-        Log.d(this.getLogStart(), "started");
+        Log.d(this.getLogStart(), "going to launch a new asap connection");
 
         try {
             if(this.is == null) {
