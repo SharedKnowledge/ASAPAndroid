@@ -165,7 +165,7 @@ public class BluetoothEngine extends MacLayerEngine {
     }
 
 
-    void acceptServerSocketKilled() {
+    void doServerAcceptSocketKilled() {
         Log.d(this.getLogStart(), "was told accept socket died - shutdown");
         // server socket was killed - that most probably because BT was switched off by users
         try {
@@ -179,7 +179,7 @@ public class BluetoothEngine extends MacLayerEngine {
          */
 
         for(BluetoothSocket socket : this.openSockets.values()) {
-            String name = "no remote Device";
+            String name = "no remote device";
             String address = name;
             BluetoothDevice remoteDevice = socket.getRemoteDevice();
             if( remoteDevice != null) {
@@ -192,7 +192,8 @@ public class BluetoothEngine extends MacLayerEngine {
                     + " | address: " + address
                     + " | isConnected: " + socket.isConnected());
             try {
-                socket.getInputStream().close();
+                this.kill(address); // kill connection that runs on top of it
+                socket.getInputStream().close(); // and underlying sockets
                 socket.getOutputStream().close();
             } catch (IOException e) {
                 Log.d(this.getLogStart(), "could not close");

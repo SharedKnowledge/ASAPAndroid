@@ -50,9 +50,9 @@ class BluetoothServerSocketThread extends Thread {
                 // possible parallel connection are handle by BT engine
                 this.btEngine.handleBTSocket(socket);
             } catch (IOException e) {
-                Log.d(this.getLogStart(), "Socket's accept() method failed", e);
+                Log.d(this.getLogStart(), "Socket's accept() method failed: " + e.getLocalizedMessage());
                 // tell engine
-                this.btEngine.acceptServerSocketKilled();
+                this.btEngine.doServerAcceptSocketKilled();
                 break;
             }
         }

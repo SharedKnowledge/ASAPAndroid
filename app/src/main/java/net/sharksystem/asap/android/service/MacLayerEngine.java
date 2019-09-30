@@ -104,24 +104,34 @@ public abstract class MacLayerEngine {
         return "ASAPMacLayerEngine";
     }
 
+    private Map<String, ASAPConnection> asapConnections = new HashMap<>();
+
+    /**
+     * kill connection to address
+     * @param address
+     */
+    protected void kill(String address) {
+        ASAPConnection asapConnection = this.asapConnections.get(address);
+        if(asapConnection != null) {
+            Log.d(this.getLogStart(), "going kill connection to: " + address);
+            asapConnection.kill();
+        } else {
+            Log.d(this.getLogStart(), "no connection to kill to: " + address);
+        }
+    }
+
     protected void launchASAPConnection(
             String address, InputStream inputStream, OutputStream outputStream) {
-/*
-        // set up new ASAP Session on that connection
-        ASAPConnectionLauncher asapConnectionLauncher =
-                new ASAPConnectionLauncher(
-                        inputStream, outputStream, this.getAsapService().getASAPEngine());
 
-        asapConnectionLauncher.start();
-*/
         Log.d(this.getLogStart(), "going to launch a new asap connection");
 
         try {
             Log.d(this.getLogStart(), "call asapMultiEngine to handle connection");
 //            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
 //            testConnectionHandler.start();
-            ASAPConnection asapConnection =
-                    this.getAsapService().getASAPEngine().handleConnection(inputStream, outputStream);
+            this.asapConnections.put(address,
+                this.getAsapService().getASAPEngine().handleConnection(inputStream, outputStream));
+
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "while lauching asap connection: " + e.getLocalizedMessage());
         }
