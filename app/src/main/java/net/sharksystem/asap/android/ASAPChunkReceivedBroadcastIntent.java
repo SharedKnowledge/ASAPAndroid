@@ -10,21 +10,24 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
     private CharSequence uri;
     private int era;
     private CharSequence user;
+    private CharSequence format;
 
-    public ASAPChunkReceivedBroadcastIntent(CharSequence user, CharSequence folderName,
+    public ASAPChunkReceivedBroadcastIntent(CharSequence format, CharSequence user, CharSequence folderName,
                                             CharSequence uri, int eraInt) throws ASAPException {
         super();
 
-        if(folderName == null || uri == null || user == null)
+        if(format == null || folderName == null || uri == null || user == null)
             throw new ASAPException("parameters must no be null");
 
         this.setAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
 
         this.putExtra(ASAP.ERA, eraInt);
+        this.putExtra(ASAP.FORMAT, format);
         this.putExtra(ASAP.FOLDER, folderName);
         this.putExtra(ASAP.URI, uri);
         this.putExtra(ASAP.USER, user);
 
+        this.format = format;
         this.folder = folderName;
         this.uri = uri;
         this.era = era;
@@ -35,6 +38,7 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         super();
 
         // just parse extras
+        this.format = intent.getStringExtra(ASAP.FORMAT);
         this.folder = intent.getStringExtra(ASAP.FOLDER);
         this.uri = intent.getStringExtra(ASAP.URI);
         this.era = intent.getIntExtra(ASAP.ERA, 0);
@@ -56,4 +60,6 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
     public int getEra() {
         return this.era;
     }
+
+    public CharSequence getFormat() { return this.format; }
 }

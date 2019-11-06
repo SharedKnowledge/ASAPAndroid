@@ -12,6 +12,7 @@ import net.sharksystem.asap.android.Util;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public class ASAPOnlineMessageSenderAndroidUserSide extends ASAPAbstractOnlineMessageSender {
 
@@ -23,7 +24,7 @@ public class ASAPOnlineMessageSenderAndroidUserSide extends ASAPAbstractOnlineMe
 
     @Override
     public void sendASAPAssimilate(CharSequence format, CharSequence uri,
-                                   List<CharSequence> recipients, byte[] messageAsBytes,
+                                   Set<CharSequence> recipients, byte[] messageAsBytes,
                                    int era) throws ASAPException {
 
         Message msg;
@@ -56,6 +57,7 @@ public class ASAPOnlineMessageSenderAndroidUserSide extends ASAPAbstractOnlineMe
         Log.d(this.getLogStart(), "TODO: need string comparision a la equalsIgnoreCase?");
         return this.asapApplication.getOnlinePeerList().contains(peer);
     }
+
 
     @Override
     public void sendASAPAssimilate(CharSequence format, CharSequence uri, byte[] messageAsBytes, int era)

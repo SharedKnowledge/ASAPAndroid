@@ -23,7 +23,8 @@ public abstract class MacLayerEngine {
     private final ASAPService asapService;
     private final Context context;
 
-    public static final long DEFAULT_WAIT_BEFORE_RECONNECT_TIME = 1000*60; // a minute
+//    public static final long DEFAULT_WAIT_BEFORE_RECONNECT_TIME = 1000*60; // a minute
+    public static final long DEFAULT_WAIT_BEFORE_RECONNECT_TIME = 1000; // a second - debugging
     private final long waitBeforeReconnect;
 
     public MacLayerEngine(ASAPService asapService, Context context) {
@@ -111,7 +112,7 @@ public abstract class MacLayerEngine {
      * @param address
      */
     protected void kill(String address) {
-        ASAPConnection asapConnection = this.asapConnections.get(address);
+        ASAPConnection asapConnection = this.asapConnections.remove(address);
         if(asapConnection != null) {
             Log.d(this.getLogStart(), "going kill connection to: " + address);
             asapConnection.kill();

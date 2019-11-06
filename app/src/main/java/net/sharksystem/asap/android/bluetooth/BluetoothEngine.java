@@ -187,7 +187,7 @@ public class BluetoothEngine extends MacLayerEngine {
                 address = remoteDevice.getAddress();
             }
 
-            Log.d(this.getLogStart(), "kill zombie socket "
+            Log.d(this.getLogStart(), "remove connection from list. "
                     + "name: " + name
                     + " | address: " + address
                     + " | isConnected: " + socket.isConnected());

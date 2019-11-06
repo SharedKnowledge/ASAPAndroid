@@ -12,14 +12,20 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPChunkReceivedListener;
+import net.sharksystem.asap.ASAPEngine;
+import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
+import net.sharksystem.asap.apps.ASAPMessages;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -275,6 +281,7 @@ public class ASAPApplication extends BroadcastReceiver {
 
             // call listener - that's me in that case
             this.chunkReceived(
+                    asapReceivedIntent.getFormat().toString(),
                     asapReceivedIntent.getUser().toString(),
                     asapReceivedIntent.getUri().toString(),
                     asapReceivedIntent.getFoldername().toString(),
@@ -287,19 +294,61 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     private Map<CharSequence, ASAPChunkReceivedListener> chunkReceivedListener = new HashMap<>();
-    public void chunkReceived(String sender, String uri, String foldername, int era) {
+
+    private Map<CharSequence, Collection<ASAPMessageReceivedListener>> messageReceivedListener
+            = new HashMap<>();
+
+    public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
         Log.d(this.getLogStart(), "got chunk received message: "
-                + sender + " | " + uri  + " | " + foldername + " | " + era);
+                + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
 
         Log.d(this.getLogStart(), "going to inform listener about it");
         ASAPChunkReceivedListener listener = this.chunkReceivedListener.get(uri);
         if(listener != null) {
-            listener.chunkReceived(sender, uri, era);
+            listener.chunkReceived(format, sender, uri, era);
+        }
+
+        try {
+            ASAPEngine existingASAPEngineFS = ASAPEngineFS.getExistingASAPEngineFS(foldername);
+            ASAPMessages messages = existingASAPEngineFS.getChannel(uri).getMessages();
+
+            Collection<ASAPMessageReceivedListener> messageListeners =
+                    this.messageReceivedListener.get(uri);
+
+            Log.d(this.getLogStart(), "going to inform message listener about it");
+            if(messageListeners != null) {
+                for(ASAPMessageReceivedListener messageListener : messageListeners) {
+                    messageListener.asapMessagesReceived(messages);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ASAPException e) {
+            e.printStackTrace();
         }
     }
 
+    /**
+     * @deprecated
+     * @param uri
+     * @param listener
+     */
     public void addChunkReceivedListener(CharSequence uri, ASAPChunkReceivedListener listener) {
         this.chunkReceivedListener.put(uri, listener);
+    }
+
+    public void addASAPMessageReceivedListener(CharSequence uri,
+                                               ASAPMessageReceivedListener listener) {
+        Collection<ASAPMessageReceivedListener> messageListeners =
+                this.messageReceivedListener.get(uri);
+
+        if(messageListeners == null) {
+            this.messageReceivedListener.put(uri, new HashSet());
+            this.addASAPMessageReceivedListener(uri, listener);
+        } else {
+            messageListeners.add(listener);
+        }
     }
 
     public void removeChunkReceivedListener(CharSequence uri) {

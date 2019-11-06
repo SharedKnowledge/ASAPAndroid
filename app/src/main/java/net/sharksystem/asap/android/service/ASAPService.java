@@ -256,14 +256,14 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private List<ASAPChunkReceivedBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
 
     @Override
-    public void chunkReceived(String sender, String uri, int era) {
+    public void chunkReceived(String format, String sender, String uri, int era) {
         Log.d(LOGSTART, "was notified by asap engine that chunk received - broadcast. Uri: "
                 + uri);
         // issue broadcast
         ASAPChunkReceivedBroadcastIntent intent = null;
         try {
             intent = new ASAPChunkReceivedBroadcastIntent(
-                    sender, this.getASAPRootFolderName(), uri, era);
+                    format, sender, this.getASAPRootFolderName(), uri, era);
         } catch (ASAPException e) {
             e.printStackTrace();
             return;
@@ -284,7 +284,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         this.broadcastOn = true;
 
         int index = 0;
-        // flag can change while in that methode due to calls from other threads
+        // flag can change while in that method due to calls from other threads
         while(this.broadcastOn &&  this.chunkReceivedBroadcasts.size() > 0) {
             Log.d(LOGSTART, "send stored broadcast");
             this.sendBroadcast(chunkReceivedBroadcasts.remove(0));

@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.service.ASAPService;
@@ -24,6 +25,7 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotif
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ASAPActivity extends AppCompatActivity implements
@@ -43,6 +45,28 @@ public class ASAPActivity extends AppCompatActivity implements
 
     protected ASAPApplication getASAPApplication() {
         return this.asapApplication;
+    }
+
+    public void sendASAPMessage(CharSequence appName, CharSequence uri,
+                                Collection<CharSequence> recipients, byte[] message) throws ASAPException {
+
+        if(appName == null || appName.length() == 0
+                || uri == null || uri.length() == 0
+                || recipients == null || recipients.size() == 0
+                || message == null || message.length == 0
+        ) throw new ASAPException("parameter must not be null");
+
+        for(CharSequence recipient : recipients) {
+            Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
+            Bundle bundle = new Bundle();
+            bundle.putString(ASAP.FORMAT, appName.toString());
+            bundle.putString(ASAP.URI, uri.toString());
+            bundle.putString(ASAP.RECIPIENT, recipient.toString());
+            bundle.putByteArray(ASAP.MESSAGE_CONTENT, message); // important
+            // bundle.putInt(ASAP.ERA, 0); // optional
+
+            this.sendMessage2Service(msg);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
