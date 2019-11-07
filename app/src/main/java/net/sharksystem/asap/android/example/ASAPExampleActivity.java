@@ -82,7 +82,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    //                      asap message receiver example implementation                     //
+    //                      asap message send/receiver example implementation                //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
@@ -94,6 +94,20 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         sb.append(messages.getURI());
         Log.d(this.getLogStart(), "asap message arrived: " + sb.toString());
         Toast.makeText(this, sb.toString(), Toast.LENGTH_LONG).show();
+    }
+
+
+    private void addMessage() throws IOException, ASAPException {
+        // indirect - prefered way - send via ASAPService
+        Log.d(this.getLogStart(), "ask asap service to deliver a message");
+        this.sendASAPMessage(APPNAME, URI, null, BYTE_MESSAGE);
+
+        /*
+        // direct approach - write into local file system
+        this.checkStorage();
+        Log.d(this.getLogStart(), "add message to storage:  " + MESSAGE);
+        this.asapStorage.add(URI, MESSAGE);
+         */
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -235,18 +249,5 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
             Log.d(this.getLogStart(), "storage not yet initialized - clean and setup:  " + MESSAGE);
             this.setupCleanASAPStorage();
         }
-    }
-
-    private void addMessage() throws IOException, ASAPException {
-        // indirect - prefered way - send via ASAPService
-        Log.d(this.getLogStart(), "ask asap service to deliver a message");
-        this.sendASAPMessage(APPNAME, URI, null, BYTE_MESSAGE);
-
-        /*
-        // direct approach - write into local file system
-        this.checkStorage();
-        Log.d(this.getLogStart(), "add message to storage:  " + MESSAGE);
-        this.asapStorage.add(URI, MESSAGE);
-         */
     }
 }
