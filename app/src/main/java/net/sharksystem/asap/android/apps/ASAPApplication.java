@@ -15,6 +15,8 @@ import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
@@ -36,6 +38,7 @@ import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 public class ASAPApplication extends BroadcastReceiver {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
     private static ASAPApplication singleton;
+    private final Collection<CharSequence> supportedFormats;
     private CharSequence asapOwner;
     private CharSequence rootFolder;
     private boolean onlineExchange;
@@ -54,16 +57,30 @@ public class ASAPApplication extends BroadcastReceiver {
     private List<CharSequence> onlinePeerList = new ArrayList<>();
 
     /**
-     * setup application by calling getASAPOwner(), getFolderName(), getASAPOnlineExchange().
-     * Those messagen can and should be overwritten from actual implementations.
+     * Setup application using default setting
+     * @param supportedFormats ensure that asap engines using that formats are present -
+     *                         create if necessary.
      */
-    protected ASAPApplication() {
-        this(ASAP.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME, ASAP.ONLINE_EXCHANGE_DEFAULT);
+    protected ASAPApplication(Collection<CharSequence> supportedFormats) {
+        this(supportedFormats, ASAP.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
+                ASAP.ONLINE_EXCHANGE_DEFAULT);
     }
 
-    protected ASAPApplication(CharSequence asapOwner,
+    /**
+     * setup application without parameter. Use default for owner, root folder for asap storage
+     * and online exchange behaviour. Don't setup any asap engine - take engines which are
+     * already present when starting up.
+     */
+    protected ASAPApplication() {
+        this(null, ASAP.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
+                ASAP.ONLINE_EXCHANGE_DEFAULT);
+    }
+
+    protected ASAPApplication(Collection<CharSequence> supportedFormats,
+                              CharSequence asapOwner,
                               CharSequence rootFolder,
                               boolean onlineExchange) {
+        this.supportedFormats = supportedFormats;
         this.asapOwner = asapOwner;
         this.rootFolder = rootFolder;
         this.onlineExchange = onlineExchange;
@@ -147,9 +164,32 @@ public class ASAPApplication extends BroadcastReceiver {
         return this.asapOwner;
     }
 
+    public Collection<CharSequence> getSupportFormats() {
+        return this.supportedFormats;
+    }
+
     public static ASAPApplication getASAPApplication() {
         if(ASAPApplication.singleton == null) {
             ASAPApplication.singleton = new ASAPApplication();
+        }
+
+        return ASAPApplication.singleton;
+    }
+
+    public static ASAPApplication getASAPApplication(Collection<CharSequence> supportedFormats) {
+        if(ASAPApplication.singleton == null) {
+            ASAPApplication.singleton = new ASAPApplication(supportedFormats);
+        }
+
+        return ASAPApplication.singleton;
+    }
+
+    public static ASAPApplication getASAPApplication(CharSequence supportedFormat) {
+
+        if(ASAPApplication.singleton == null) {
+            Collection<CharSequence> formats = new HashSet<>();
+            formats.add(supportedFormat);
+            ASAPApplication.singleton = new ASAPApplication(formats);
         }
 
         return ASAPApplication.singleton;

@@ -55,6 +55,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     }
 
     public MultiASAPEngineFS getMultiASAPEngine() {
+        Log.d(LOGSTART, "TODO: setup multi engine each time to keep in sync with external changes.");
+        // TODO: setup multi engine each time to keep in sync with external changes.
+        this.asapMultiEngine = null;
         if(this.asapMultiEngine == null) {
             Log.d(LOGSTART, "try to get asapMultiEngine");
 

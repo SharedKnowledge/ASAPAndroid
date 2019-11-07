@@ -16,8 +16,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
+import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
@@ -26,6 +29,8 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotif
 import net.sharksystem.asap.apps.ASAPMessages;
 import net.sharksystem.asap.util.Helper;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,12 +57,25 @@ public class ASAPActivity extends AppCompatActivity implements
 
     public void sendASAPMessage(CharSequence appName, CharSequence uri,
                                 Collection<CharSequence> recipients, byte[] message)
-                                    throws ASAPException {
+            throws ASAPException, IOException {
 
         if(appName == null || appName.length() == 0
                 || uri == null || uri.length() == 0
                 || message == null || message.length == 0
         ) throw new ASAPException("parameter must not be null");
+
+        // ensure that any format is supporter by an engine
+        Collection<CharSequence> supportedFormats = asapApplication.getSupportFormats();
+        if(supportedFormats != null && supportedFormats.size() > 0) {
+            Log.d(this.getLogStart(), "use Util.getASAPRootDirectory()");
+            CharSequence asapRoot = this.asapApplication.getASAPRootFolder();
+
+            MultiASAPEngineFS multiEngine = MultiASAPEngineFS_Impl.createMultiEngine(asapRoot,null);
+
+            for(CharSequence supportedFormat : supportedFormats) {
+                multiEngine.createEngineByFormat(supportedFormat);
+            }
+        }
 
         // prepare message
         Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);

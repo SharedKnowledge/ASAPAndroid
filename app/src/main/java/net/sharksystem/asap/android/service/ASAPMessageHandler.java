@@ -115,12 +115,9 @@ class ASAPMessageHandler extends Handler {
                 }
                 catch(ASAPException e ) {
                     // engine does not yet exist
-                    Log.d(LOGSTART, " (TODO): asap engine for format not exists - going to create one - potential security leak:" + format);
-                }
-
-                if(asapEngine == null) {
-                    // still null - create on - TODO security leak?
-                    asapEngine = multiASAPEngine.createEngineByFormat(format);
+                    Log.d(LOGSTART, "asap engine for format not exists - give up " +
+                            "(better create ASAPApplication with supportedFormats):" + format);
+                    return;
                 }
 
                 if(recipientsString != null) {

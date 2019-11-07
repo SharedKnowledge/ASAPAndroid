@@ -23,9 +23,11 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
     private static final CharSequence TESTURI ="asap://testuri";
     private static final CharSequence TESTMESSAGE = "Hi there from asap writing activity";
     private ASAPOnlineMessageSenderAndroidUserSide asapOnlineSender;
+    private static final String APPNAME = "ASAP_TEST_APP";
 
-    public ASAPExampleActivity() {
-        super(ASAPApplication.getASAPApplication());
+    public ASAPExampleActivity() throws IOException, ASAPException {
+//        super(ASAPApplication.getASAPApplication());
+        super(ASAPApplication.getASAPApplication(APPNAME));
     }
 
     @Override
@@ -161,7 +163,6 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
     //                              asap store test scenario(s)                              //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    private final String APPNAME = "ASAP_TEST_APP";
     private final String URI = "sn://chat";
     private final String MESSAGE = "Hi, that's a message";
     private final byte[] BYTE_MESSAGE = MESSAGE.getBytes();
