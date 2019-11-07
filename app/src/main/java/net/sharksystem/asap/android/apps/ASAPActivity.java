@@ -23,6 +23,7 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotification
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.util.Helper;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,25 +49,30 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     public void sendASAPMessage(CharSequence appName, CharSequence uri,
-                                Collection<CharSequence> recipients, byte[] message) throws ASAPException {
+                                Collection<CharSequence> recipients, byte[] message)
+                                    throws ASAPException {
 
         if(appName == null || appName.length() == 0
                 || uri == null || uri.length() == 0
-                || recipients == null || recipients.size() == 0
                 || message == null || message.length == 0
         ) throw new ASAPException("parameter must not be null");
 
-        for(CharSequence recipient : recipients) {
-            Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
-            Bundle bundle = new Bundle();
-            bundle.putString(ASAP.FORMAT, appName.toString());
-            bundle.putString(ASAP.URI, uri.toString());
-            bundle.putString(ASAP.RECIPIENT, recipient.toString());
-            bundle.putByteArray(ASAP.MESSAGE_CONTENT, message); // important
-            // bundle.putInt(ASAP.ERA, 0); // optional
+        // prepare message
+        Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
+        Bundle bundle = new Bundle();
+        bundle.putString(ASAP.FORMAT, appName.toString());
+        bundle.putString(ASAP.URI, uri.toString());
+        bundle.putByteArray(ASAP.MESSAGE_CONTENT, message); // important
+        // bundle.putInt(ASAP.ERA, 0); // optional
 
-            this.sendMessage2Service(msg);
+        msg.setData(bundle);
+        if(recipients != null && recipients.size() > 0) {
+            String recipientsString = Helper.collection2String(recipients);
+            bundle.putString(ASAP.RECIPIENTS, recipientsString);
         }
+
+        msg.setData(bundle);
+        this.sendMessage2Service(msg);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////

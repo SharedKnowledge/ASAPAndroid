@@ -130,6 +130,7 @@ public class ASAPServiceTestActivity extends ASAPActivity {
     private final String APPNAME = "ASAP_TEST_APP";
     private final String URI = "sn://chat";
     private final String MESSAGE = "Hi, that's a message";
+    private final byte[] BYTE_MESSAGE = MESSAGE.getBytes();
 
     ASAPStorage asapStorage;
 
@@ -217,8 +218,15 @@ public class ASAPServiceTestActivity extends ASAPActivity {
     }
 
     private void addMessage() throws IOException, ASAPException {
+        // indirect - prefered way - send via ASAPService
+        Log.d(this.getLogStart(), "ask asap service to deliver a message");
+        this.sendASAPMessage(APPNAME, URI, null, BYTE_MESSAGE);
+
+        /*
+        // direct approach - write into local file system
         this.checkStorage();
         Log.d(this.getLogStart(), "add message to storage:  " + MESSAGE);
         this.asapStorage.add(URI, MESSAGE);
+         */
     }
 }

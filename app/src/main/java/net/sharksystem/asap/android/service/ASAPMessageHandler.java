@@ -5,10 +5,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPEngine;
+import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPOnlineMessageSender;
+import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPServiceMethods;
+import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,9 +28,11 @@ class ASAPMessageHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
+        Log.d(LOGSTART, "handleMessage called with what == " + msg.what);
         try {
             switch (msg.what) {
                 case ASAPServiceMethods.SEND_MESSAGE:
+                    Log.d(LOGSTART, "handleMessage SEND_MESSAGE called");
                     this.handleSendMessage(msg);
                     break;
 
@@ -81,8 +87,8 @@ class ASAPMessageHandler extends Handler {
         if (msgData != null) {
             String format = msgData.getString(ASAP.FORMAT);
             String uri = msgData.getString(ASAP.URI);
-            String recipient = msgData.getString(ASAP.RECIPIENT);
-            byte[] content = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
+            String recipientsString = msgData.getString(ASAP.RECIPIENTS);
+            byte[] message = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
             int era = msgData.getInt(ASAP.ERA);
 
             Log.d(LOGSTART, "received send message request");
@@ -91,8 +97,8 @@ class ASAPMessageHandler extends Handler {
                 return;
             }
 
-            if(content == null) {
-                Log.e(LOGSTART, "format content must not be empty");
+            if(message == null) {
+                Log.e(LOGSTART, "message must not be empty");
                 return;
             }
 
@@ -101,6 +107,35 @@ class ASAPMessageHandler extends Handler {
                 return;
             }
 
+            MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
+            try {
+                ASAPEngine asapEngine = null;
+                try {
+                    asapEngine = multiASAPEngine.getEngineByFormat(format);
+                }
+                catch(ASAPException e ) {
+                    // engine does not yet exist
+                    Log.d(LOGSTART, " (TODO): asap engine for format not exists - going to create one - potential security leak:" + format);
+                }
+
+                if(asapEngine == null) {
+                    // still null - create on - TODO security leak?
+                    asapEngine = multiASAPEngine.createEngineByFormat(format);
+                }
+
+                if(recipientsString != null) {
+                    // extract recipients - and setup closed channel.
+                    asapEngine.createChannel(uri, Helper.string2CharSequenceSet(recipientsString));
+                }
+
+                asapEngine.add(uri, message);
+
+            } catch (ASAPException | IOException e) {
+                Log.w(LOGSTART, e.getLocalizedMessage());
+            }
+
+
+            /*
             try {
                 StringBuilder sb = new StringBuilder();
                 sb.append("going to send message over an open connection:");
@@ -128,11 +163,12 @@ class ASAPMessageHandler extends Handler {
                 }
 
                 asapOnlineMessageSender.sendASAPAssimilate(
-                        format, uri, recipient, content, era);
+                        format, uri, recipient, message, era);
 
             } catch (Throwable e) {
                 e.printStackTrace();
             }
+            */
         }
     }
 }

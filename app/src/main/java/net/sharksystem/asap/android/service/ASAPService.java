@@ -54,7 +54,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         return this.asapEngineRootFolderName;
     }
 
-    public MultiASAPEngineFS getASAPEngine() {
+    public MultiASAPEngineFS getMultiASAPEngine() {
         if(this.asapMultiEngine == null) {
             Log.d(LOGSTART, "try to get asapMultiEngine");
 

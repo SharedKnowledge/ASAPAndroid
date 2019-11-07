@@ -11,6 +11,7 @@ public class ASAP {
     public static final String USER = "user";
     public static final String FOLDER = "folder";
     public static final String RECIPIENT = "recipient";
+    public static final String RECIPIENTS = "recipients";
 
     public static final String ASAP_CHUNK_RECEIVED_ACTION = "net.sharksystem.asap.received";
 

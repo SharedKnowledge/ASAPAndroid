@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.protocol.ASAPConnection;
 
 import java.io.IOException;
@@ -131,7 +130,7 @@ public abstract class MacLayerEngine {
 //            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
 //            testConnectionHandler.start();
             this.asapConnections.put(address,
-                this.getAsapService().getASAPEngine().handleConnection(inputStream, outputStream));
+                this.getAsapService().getMultiASAPEngine().handleConnection(inputStream, outputStream));
 
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "while lauching asap connection: " + e.getLocalizedMessage());

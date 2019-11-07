@@ -300,7 +300,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
 
         // create an ASAPSession with connection parameters
         ASAPConnectionLauncher ASAPConnectionLauncher = new ASAPConnectionLauncher(channelCreator,
-                this.getAsapService().getASAPEngine());
+                this.getAsapService().getMultiASAPEngine());
 
         ASAPConnectionLauncher.start();
     }
