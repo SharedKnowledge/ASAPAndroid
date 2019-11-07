@@ -23,8 +23,10 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotification
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.apps.ASAPMessages;
 import net.sharksystem.asap.util.Helper;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

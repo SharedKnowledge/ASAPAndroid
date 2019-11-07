@@ -13,16 +13,18 @@ import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPApplication;
+import net.sharksystem.asap.android.apps.ASAPMessageReceivedListener;
 import net.sharksystem.asap.android.apps.ASAPOnlineMessageSenderAndroidUserSide;
+import net.sharksystem.asap.apps.ASAPMessages;
 
 import java.io.IOException;
 
-public class ASAPServiceTestActivity extends ASAPActivity {
+public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageReceivedListener {
     private static final CharSequence TESTURI ="asap://testuri";
     private static final CharSequence TESTMESSAGE = "Hi there from asap writing activity";
     private ASAPOnlineMessageSenderAndroidUserSide asapOnlineSender;
 
-    public ASAPServiceTestActivity() {
+    public ASAPExampleActivity() {
         super(ASAPApplication.getASAPApplication());
     }
 
@@ -30,6 +32,9 @@ public class ASAPServiceTestActivity extends ASAPActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // add as message received listener
+        this.getASAPApplication().addASAPMessageReceivedListener(URI, this);
 
         // create broadcast receiver
         ExampleASAPBroadcastReceiver br = new ExampleASAPBroadcastReceiver();
@@ -74,6 +79,21 @@ public class ASAPServiceTestActivity extends ASAPActivity {
             this.startBluetoothDiscovery();
             this.startBluetoothDiscoverable();
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    //                      asap message receiver example implementation                     //
+    ///////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void asapMessagesReceived(ASAPMessages messages) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("received: | ");
+        sb.append(messages.getFormat());
+        sb.append( "| ");
+        sb.append(messages.getURI());
+        Log.d(this.getLogStart(), "asap message arrived: " + sb.toString());
+        Toast.makeText(this, sb.toString(), Toast.LENGTH_LONG).show();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
