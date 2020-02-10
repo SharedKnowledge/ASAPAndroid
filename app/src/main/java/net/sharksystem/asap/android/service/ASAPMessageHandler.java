@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class handles messages on service side.
+ */
 class ASAPMessageHandler extends Handler {
     private static final String LOGSTART = "ASAPMessageHandler";
     private ASAPService asapService;

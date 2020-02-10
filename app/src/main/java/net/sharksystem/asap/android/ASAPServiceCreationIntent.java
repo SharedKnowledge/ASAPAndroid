@@ -8,23 +8,27 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.android.service.ASAPService;
 
-public class ASAPServiceCreationIntent extends Intent {
+import java.util.ArrayList;
+import java.util.Collection;
 
+public class ASAPServiceCreationIntent extends Intent {
     private final CharSequence owner;
     private final CharSequence rootFolder;
     private final boolean onlineExchange;
     private final long maxExecutionTime;
+    private ArrayList<CharSequence> supportFormatsList;
 
     public ASAPServiceCreationIntent(Activity activity, CharSequence owner, CharSequence rootFolder,
-                                     boolean onlineExchange)
+                                     boolean onlineExchange,
+                                     Collection<CharSequence> supportedFormats)
             throws ASAPException {
 
-        this(activity, owner, rootFolder, onlineExchange,
+        this(activity, owner, rootFolder, onlineExchange, supportedFormats,
                 MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME);
     }
 
     public ASAPServiceCreationIntent(Activity activity, CharSequence owner, CharSequence rootFolder,
-        boolean onlineExchange, long maxExecutionTime)
+        boolean onlineExchange, Collection<CharSequence> supportedFormats, long maxExecutionTime)
             throws ASAPException {
 
         super(activity, ASAPService.class);
@@ -37,10 +41,18 @@ public class ASAPServiceCreationIntent extends Intent {
         this.putExtra(ASAP.ONLINE_EXCHANGE, onlineExchange);
         this.putExtra(ASAP.MAX_EXECUTION_TIME, maxExecutionTime);
 
+        ArrayList<CharSequence> supportFormatsList = new ArrayList<>();
+        for(CharSequence supportedFormat : supportedFormats) {
+            supportFormatsList.add(supportedFormat);
+        }
+        this.putCharSequenceArrayListExtra(ASAP.SUPPORTED_FORMATS, supportFormatsList);
+
+
         this.owner = owner;
         this.rootFolder = rootFolder;
         this.onlineExchange = onlineExchange;
         this.maxExecutionTime = maxExecutionTime;
+        this.supportFormatsList = supportFormatsList;
     }
 
     public ASAPServiceCreationIntent(Intent intent) {
@@ -53,7 +65,7 @@ public class ASAPServiceCreationIntent extends Intent {
                 ASAP.ONLINE_EXCHANGE_DEFAULT);
         this.maxExecutionTime = intent.getLongExtra(ASAP.MAX_EXECUTION_TIME,
                 MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME);
-
+        this.supportFormatsList = intent.getCharSequenceArrayListExtra(ASAP.SUPPORTED_FORMATS);
     }
 
     public CharSequence getOwner() {
@@ -72,6 +84,10 @@ public class ASAPServiceCreationIntent extends Intent {
         return this.maxExecutionTime;
     }
 
+    public ArrayList getSupportedFormats() {
+        return this.supportFormatsList;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
@@ -83,8 +99,9 @@ public class ASAPServiceCreationIntent extends Intent {
         sb.append(this.onlineExchange);
         sb.append(" | maxExecutionTime: ");
         sb.append(this.maxExecutionTime);
+        sb.append(" | supportedFormats: ");
+        sb.append(this.supportFormatsList);
 
         return sb.toString();
     }
-
 }

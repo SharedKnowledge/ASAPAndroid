@@ -76,10 +76,11 @@ public class ASAPApplication extends BroadcastReceiver {
                 ASAP.ONLINE_EXCHANGE_DEFAULT);
     }
 
-    protected ASAPApplication(Collection<CharSequence> supportedFormats,
+    private ASAPApplication(Collection<CharSequence> supportedFormats,
                               CharSequence asapOwner,
                               CharSequence rootFolder,
                               boolean onlineExchange) {
+
         this.supportedFormats = supportedFormats;
         this.asapOwner = asapOwner;
         this.rootFolder = rootFolder;
@@ -115,7 +116,7 @@ public class ASAPApplication extends BroadcastReceiver {
 
             try {
                 Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(activity,
-                        this.asapOwner, this.rootFolder, this.onlineExchange);
+                        this.asapOwner, this.rootFolder, this.onlineExchange, this.supportedFormats);
 
                 Log.d(this.getLogStart(), "start service with intent: "
                         + asapServiceCreationIntent.toString());

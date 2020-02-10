@@ -29,6 +29,7 @@ import net.sharksystem.asap.util.Helper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -49,6 +50,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private CharSequence rootFolder;
     private boolean onlineExchange;
     private long maxExecutionTime;
+    private ArrayList<CharSequence> supportedFormats;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -77,12 +79,15 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             File rootFolder = new File(this.asapEngineRootFolderName);
             try {
                 if (!rootFolder.exists()) {
-                    Log.d(LOGSTART,"createFolder");
+                    Log.d(LOGSTART,"root folder does not exist - create");
                     rootFolder.mkdirs();
-                    Log.d(LOGSTART,"createdFolder");
+                    Log.d(LOGSTART,"done creating root folder");
                 }
+
                 this.asapMultiEngine = MultiASAPEngineFS_Impl.createMultiEngine(
-                        this.owner, this.asapEngineRootFolderName, this.maxExecutionTime, this);
+                        this.owner, this.asapEngineRootFolderName,
+                        this.maxExecutionTime, this.supportedFormats, this);
+
                 Log.d(LOGSTART,"engine created");
 
                 this.asapMultiEngine.addOnlinePeersChangedListener(this);
@@ -135,6 +140,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             this.rootFolder = asapServiceCreationIntent.getRootFolder();
             this.onlineExchange = asapServiceCreationIntent.isOnlineExchange();
             this.maxExecutionTime = asapServiceCreationIntent.getMaxExecutionTime();
+            this.supportedFormats = asapServiceCreationIntent.getSupportedFormats();
         }
 
         // get root directory
