@@ -11,7 +11,11 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.Utils;
+import net.sharksystem.asap.ASAPChannel;
+import net.sharksystem.asap.ASAPChunk;
 import net.sharksystem.asap.ASAPChunkReceivedListener;
+import net.sharksystem.asap.ASAPChunkStorage;
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
@@ -340,26 +344,41 @@ public class ASAPApplication extends BroadcastReceiver {
             = new HashMap<>();
 
     public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
-        Log.d(this.getLogStart(), "got chunk received message: "
+        Log.d(this.getLogStart(), "got chunkReceived message: "
                 + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
 
-        Log.d(this.getLogStart(), "going to inform listener about it");
+        Log.d(this.getLogStart(), "going to inform (deprecated) ASAPChunkReceivedListener");
         ASAPChunkReceivedListener listener = this.chunkReceivedListener.get(uri);
         if(listener != null) {
+            Log.d(this.getLogStart(), "informed: " + listener.toString());
             listener.chunkReceived(format, sender, uri, era);
+        } else {
+            Log.d(this.getLogStart(),
+                    "no ASAPChunkReceivedListener but maybe ASAPMessageReceivedListener");
         }
 
         try {
-            ASAPEngine existingASAPEngineFS = ASAPEngineFS.getExistingASAPEngineFS(foldername);
-            ASAPMessages messages = existingASAPEngineFS.getChannel(uri).getMessages();
+            String rootIncomingStorage = foldername + "/" + Utils.url2FileName(format);
+            Log.d(this.getLogStart(), "try getting storage in folder " + rootIncomingStorage);
+            ASAPEngine existingASAPEngineFS =
+                    ASAPEngineFS.getExistingASAPEngineFS(rootIncomingStorage);
+            Log.d(this.getLogStart(), "got existing asap engine");
+
+            ASAPChunkStorage chunkStorage = existingASAPEngineFS.getIncomingChunkStorage(sender);
+            Log.d(this.getLogStart(), "got incoming channel of " + sender);
+
+            ASAPMessages asapMessages = chunkStorage.getASAPChunkCache(uri, era, era);
+            Log.d(this.getLogStart(), "got messages uri: " + uri + " / era: " + era);
 
             Collection<ASAPMessageReceivedListener> messageListeners =
                     this.messageReceivedListener.get(uri);
 
-            Log.d(this.getLogStart(), "going to inform message listener about it");
+            Log.d(this.getLogStart(), "going to inform message listener about it: "
+                    + messageListeners);
+
             if(messageListeners != null) {
                 for(ASAPMessageReceivedListener messageListener : messageListeners) {
-                    messageListener.asapMessagesReceived(messages);
+                    messageListener.asapMessagesReceived(asapMessages);
                 }
             }
 
@@ -379,14 +398,14 @@ public class ASAPApplication extends BroadcastReceiver {
         this.chunkReceivedListener.put(uri, listener);
     }
 
-    public void addASAPMessageReceivedListener(CharSequence uri,
+    public void addASAPMessageReceivedListener(CharSequence format,
                                                ASAPMessageReceivedListener listener) {
         Collection<ASAPMessageReceivedListener> messageListeners =
-                this.messageReceivedListener.get(uri);
+                this.messageReceivedListener.get(format);
 
         if(messageListeners == null) {
-            this.messageReceivedListener.put(uri, new HashSet());
-            this.addASAPMessageReceivedListener(uri, listener);
+            this.messageReceivedListener.put(format, new HashSet());
+            this.addASAPMessageReceivedListener(format, listener);
         } else {
             messageListeners.add(listener);
         }

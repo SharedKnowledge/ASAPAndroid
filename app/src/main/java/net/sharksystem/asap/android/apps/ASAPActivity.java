@@ -64,7 +64,8 @@ public class ASAPActivity extends AppCompatActivity implements
                 || message == null || message.length == 0
         ) throw new ASAPException("parameter must not be null");
 
-        // ensure that any format is supporter by an engine
+        /*
+        // ensure that any format is supported by an engine
         Collection<CharSequence> supportedFormats = asapApplication.getSupportFormats();
         if(supportedFormats != null && supportedFormats.size() > 0) {
             Log.d(this.getLogStart(), "use Util.getASAPRootDirectory()");
@@ -76,6 +77,7 @@ public class ASAPActivity extends AppCompatActivity implements
                 multiEngine.createEngineByFormat(supportedFormat);
             }
         }
+         */
 
         // prepare message
         Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);

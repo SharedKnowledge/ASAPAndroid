@@ -242,7 +242,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
             return;
         }
 
-        this.asapStorage.detachASAPMessageAddListener(this.asapOnlineSender);
+        this.asapStorage.detachASAPMessageAddListener();
     }
 
     private void checkStorage() throws IOException, ASAPException {

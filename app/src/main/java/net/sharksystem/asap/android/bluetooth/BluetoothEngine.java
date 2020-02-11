@@ -294,6 +294,7 @@ public class BluetoothEngine extends MacLayerEngine {
         sb.append(macAddress);
         sb.append(" | ");
         sb.append(btDevice.getName());
+        sb.append(" | ");
         sb.append("my address: ");
         sb.append(this.getBTAdapter().getAddress());
         Log.d(this.getLogStart(), sb.toString());

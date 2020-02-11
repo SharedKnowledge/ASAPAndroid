@@ -57,11 +57,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     }
 
     public MultiASAPEngineFS getMultiASAPEngine() {
-        Log.d(LOGSTART, "TODO: setup multi engine each time to keep in sync with external changes.");
-        // TODO: setup multi engine each time to keep in sync with external changes.
-        this.asapMultiEngine = null;
+        Log.d(LOGSTART, "asap multi engine is a singleton.");
         if(this.asapMultiEngine == null) {
-            Log.d(LOGSTART, "try to get asapMultiEngine");
+            Log.d(LOGSTART, "going to set up asapMultiEngine");
 
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
@@ -88,10 +86,15 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                         this.owner, this.asapEngineRootFolderName,
                         this.maxExecutionTime, this.supportedFormats, this);
 
-                Log.d(LOGSTART,"engine created");
+                Log.d(LOGSTART,"engines created");
 
+                // listener for radar app
                 this.asapMultiEngine.addOnlinePeersChangedListener(this);
                 Log.d(LOGSTART,"added online peer changed listener");
+
+                // add online feature to each engine
+                this.asapMultiEngine.activateOnlineMessages();
+                Log.d(LOGSTART,"online messages activated");
 
             } catch (IOException e) {
                 Log.d(LOGSTART,"IOException");
@@ -102,6 +105,8 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                 Log.d(LOGSTART,e.getLocalizedMessage());
                 e.printStackTrace();
             }
+        } else {
+            Log.d(LOGSTART, "multi engine was already created");
         }
 
         return this.asapMultiEngine;
