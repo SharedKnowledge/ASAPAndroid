@@ -2,6 +2,7 @@ package net.sharksystem.asap.android;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
@@ -41,11 +42,15 @@ public class ASAPServiceCreationIntent extends Intent {
         this.putExtra(ASAP.ONLINE_EXCHANGE, onlineExchange);
         this.putExtra(ASAP.MAX_EXECUTION_TIME, maxExecutionTime);
 
-        ArrayList<CharSequence> supportFormatsList = new ArrayList<>();
-        for(CharSequence supportedFormat : supportedFormats) {
-            supportFormatsList.add(supportedFormat);
+        if(supportedFormats != null) {
+            ArrayList<CharSequence> supportFormatsList = new ArrayList<>();
+            for (CharSequence supportedFormat : supportedFormats) {
+                supportFormatsList.add(supportedFormat);
+            }
+            this.putCharSequenceArrayListExtra(ASAP.SUPPORTED_FORMATS, supportFormatsList);
+        } else {
+            Log.d(this.getLogStart(), "no format set - FAILURE?");
         }
-        this.putCharSequenceArrayListExtra(ASAP.SUPPORTED_FORMATS, supportFormatsList);
 
 
         this.owner = owner;
@@ -103,5 +108,9 @@ public class ASAPServiceCreationIntent extends Intent {
         sb.append(this.supportFormatsList);
 
         return sb.toString();
+    }
+
+    private String getLogStart() {
+        return net.sharksystem.asap.util.Log.startLog(this).toString();
     }
 }

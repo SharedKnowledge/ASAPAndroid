@@ -94,7 +94,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
                 // add online feature to each engine
                 this.asapMultiEngine.activateOnlineMessages();
-                Log.d(LOGSTART,"online messages activated");
+                Log.d(LOGSTART,"online messages activated for ALL asap engines");
 
             } catch (IOException e) {
                 Log.d(LOGSTART,"IOException");
@@ -150,7 +150,6 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
         // get root directory
         File asapRoot = null;
-        //asapRoot = Environment.getExternalStoragePublicDirectory(this.rootFolder.toString());
         Log.d(LOGSTART, "use Util.getASAPRootDirectory()");
         asapRoot = Util.getASAPRootDirectory(this, this.rootFolder, this.owner);
 

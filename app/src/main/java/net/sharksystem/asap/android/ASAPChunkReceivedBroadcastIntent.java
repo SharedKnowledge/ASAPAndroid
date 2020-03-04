@@ -21,10 +21,10 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
 
         this.setAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
 
-        this.putExtra(ASAP.ERA, eraInt);
-        this.putExtra(ASAP.FORMAT, format);
+        this.putExtra(ASAPServiceMethods.ERA_TAG, eraInt);
+        this.putExtra(ASAPServiceMethods.FORMAT_TAG, format);
         this.putExtra(ASAP.FOLDER, folderName);
-        this.putExtra(ASAP.URI, uri);
+        this.putExtra(ASAPServiceMethods.URI_TAG, uri);
         this.putExtra(ASAP.USER, user);
 
         this.format = format;
@@ -38,10 +38,10 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         super();
 
         // just parse extras
-        this.format = intent.getStringExtra(ASAP.FORMAT);
+        this.format = intent.getStringExtra(ASAPServiceMethods.FORMAT_TAG);
         this.folder = intent.getStringExtra(ASAP.FOLDER);
-        this.uri = intent.getStringExtra(ASAP.URI);
-        this.era = intent.getIntExtra(ASAP.ERA, 0);
+        this.uri = intent.getStringExtra(ASAPServiceMethods.URI_TAG);
+        this.era = intent.getIntExtra(ASAPServiceMethods.ERA_TAG, 0);
         this.user = intent.getStringExtra(ASAP.USER);
     }
 

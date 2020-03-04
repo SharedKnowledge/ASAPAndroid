@@ -12,15 +12,12 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.Utils;
-import net.sharksystem.asap.ASAPChannel;
-import net.sharksystem.asap.ASAPChunk;
 import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPChunkStorage;
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.MultiASAPEngineFS;
-import net.sharksystem.asap.MultiASAPEngineFS_Impl;
+import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.ASAP;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
@@ -109,10 +106,6 @@ public class ASAPApplication extends BroadcastReceiver {
             // check for write permissions
             this.askForPermissions();
 
-            // start service - which allows service to outlive unbind
-//            Intent asapServiceCreationIntent = new Intent(activity, ASAPService.class);
-//            asapServiceCreationIntent.putExtra(ASAP.USER, this.asapOwner);
-
             // get owner when initializing
             this.asapOwner = this.getASAPOwner(this.getActivity());
             this.rootFolder = this.getASAPRootFolder(this.getActivity());
@@ -131,6 +124,13 @@ public class ASAPApplication extends BroadcastReceiver {
                 Log.e(this.getLogStart(), "could not start ASAP Service - fatal");
             }
         }
+    }
+
+    public ASAPStorage getASAPStorage(CharSequence appFormat) throws IOException, ASAPException {
+        return ASAPEngineFS.getASAPStorage(
+                this.asapOwner.toString(),
+                this.getApplicationRootFolder(appFormat.toString()),
+                appFormat.toString());
     }
 
     /**
@@ -338,23 +338,27 @@ public class ASAPApplication extends BroadcastReceiver {
         }
     }
 
-    private Map<CharSequence, ASAPChunkReceivedListener> chunkReceivedListener = new HashMap<>();
-
     private Map<CharSequence, Collection<ASAPMessageReceivedListener>> messageReceivedListener
+            = new HashMap<>();
+
+    private Map<CharSequence, Collection<ASAPUriContentChangedListener>> uriChangedListener
             = new HashMap<>();
 
     public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
         Log.d(this.getLogStart(), "got chunkReceived message: "
                 + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
 
-        Log.d(this.getLogStart(), "going to inform (deprecated) ASAPChunkReceivedListener");
-        ASAPChunkReceivedListener listener = this.chunkReceivedListener.get(uri);
-        if(listener != null) {
-            Log.d(this.getLogStart(), "informed: " + listener.toString());
-            listener.chunkReceived(format, sender, uri, era);
-        } else {
-            Log.d(this.getLogStart(),
-                    "no ASAPChunkReceivedListener but maybe ASAPMessageReceivedListener");
+        // inform uri changed listener
+        Collection<ASAPUriContentChangedListener> uriListeners =
+                this.uriChangedListener.get(uri);
+
+        Log.d(this.getLogStart(), "going to inform message listener about it: "
+                + uriListeners);
+
+        if(uriListeners != null) {
+            for(ASAPUriContentChangedListener uriListener : uriListeners) {
+                uriListener.asapUriContentChanged(uri);
+            }
         }
 
         try {
@@ -382,20 +386,11 @@ public class ASAPApplication extends BroadcastReceiver {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ASAPException e) {
-            e.printStackTrace();
+        } catch (IOException | ASAPException e) {
+            Log.e(this.getLogStart(),
+                    "could not access message after be informed about new chunk arrival"
+                    + e.getLocalizedMessage());
         }
-    }
-
-    /**
-     * @deprecated
-     * @param uri
-     * @param listener
-     */
-    public void addChunkReceivedListener(CharSequence uri, ASAPChunkReceivedListener listener) {
-        this.chunkReceivedListener.put(uri, listener);
     }
 
     public void addASAPMessageReceivedListener(CharSequence format,
@@ -411,8 +406,38 @@ public class ASAPApplication extends BroadcastReceiver {
         }
     }
 
-    public void removeChunkReceivedListener(CharSequence uri) {
-        this.chunkReceivedListener.remove(uri);
+    public void removeASAPMessageReceivedListener(CharSequence format,
+                                               ASAPMessageReceivedListener listener) {
+        Collection<ASAPMessageReceivedListener> messageListeners =
+                this.messageReceivedListener.get(format);
+
+        if(messageListeners != null) {
+            messageListeners.remove(listener);
+        }
+    }
+
+    public void addASAPUriContentChangedListener(CharSequence format,
+                                                 ASAPUriContentChangedListener listener) {
+
+        Collection<ASAPUriContentChangedListener> uriListeners =
+                this.uriChangedListener.get(format);
+
+        if(uriListeners == null) {
+            this.uriChangedListener.put(format, new HashSet());
+            this.addASAPUriContentChangedListener(format, listener);
+        } else {
+            uriListeners.add(listener);
+        }
+    }
+
+    public void removeASAPUriContentChangedListener(CharSequence format,
+                                                 ASAPUriContentChangedListener listener) {
+        Collection<ASAPUriContentChangedListener> uriListeners =
+                this.uriChangedListener.get(format);
+
+        if(uriListeners != null) {
+            uriListeners.remove(listener);
+        }
     }
 
     public List<CharSequence> getOnlinePeerList() {

@@ -102,7 +102,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
     private void addMessage() throws IOException, ASAPException {
         // indirect - prefered way - send via ASAPService
         Log.d(this.getLogStart(), "ask asap service to deliver a message");
-        this.sendASAPMessage(APPNAME, URI, null, BYTE_MESSAGE);
+        this.sendASAPMessage(APPNAME, URI, BYTE_MESSAGE);
 
         /*
         // direct approach - write into local file system

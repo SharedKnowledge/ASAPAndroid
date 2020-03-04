@@ -11,7 +11,6 @@ import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.Util;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 public class ASAPOnlineMessageSenderAndroidUserSide extends ASAPAbstractOnlineMessageSender {
@@ -79,11 +78,11 @@ public class ASAPOnlineMessageSenderAndroidUserSide extends ASAPAbstractOnlineMe
 
         Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
         Bundle msgData = new Bundle();
-        msgData.putCharSequence(ASAP.FORMAT, format);
-        msgData.putCharSequence(ASAP.URI, uri);
+        msgData.putCharSequence(ASAPServiceMethods.FORMAT_TAG, format);
+        msgData.putCharSequence(ASAPServiceMethods.URI_TAG, uri);
         if(recipient != null) { msgData.putCharSequence(ASAP.RECIPIENT, recipient); }
-        msgData.putByteArray(ASAP.MESSAGE_CONTENT, asapMessage);
-        msgData.putInt(ASAP.ERA, era);
+        msgData.putByteArray(ASAPServiceMethods.ASAP_MESSAGE_TAG, asapMessage);
+        msgData.putInt(ASAPServiceMethods.ERA_TAG, era);
         msg.setData(msgData);
 
         return msg;

@@ -1,22 +1,17 @@
 package net.sharksystem.asap.android.service;
 
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPEngine;
-import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPOnlineMessageSender;
 import net.sharksystem.asap.MultiASAPEngineFS;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
-import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Class handles messages on service side.
@@ -37,6 +32,11 @@ class ASAPMessageHandler extends Handler {
                 case ASAPServiceMethods.SEND_MESSAGE:
                     Log.d(LOGSTART, "handleMessage SEND_MESSAGE called");
                     this.handleSendMessage(msg);
+                    break;
+
+                case ASAPServiceMethods.CREATE_CLOSED_CHANNEL:
+                    Log.d(LOGSTART, "handleMessage CREATE_CLOSED_CHANNEL called");
+                    this.handleCreateClosedChannel(msg);
                     break;
 
                 case ASAPServiceMethods.START_WIFI_DIRECT:
@@ -85,90 +85,32 @@ class ASAPMessageHandler extends Handler {
         }
     }
 
-    private void handleSendMessage(Message msg) {
-        Bundle msgData = msg.getData();
-        if (msgData != null) {
-            String format = msgData.getString(ASAP.FORMAT);
-            String uri = msgData.getString(ASAP.URI);
-            String recipientsString = msgData.getString(ASAP.RECIPIENTS);
-            byte[] message = msgData.getByteArray(ASAP.MESSAGE_CONTENT);
-            int era = msgData.getInt(ASAP.ERA);
+    private void handleSendMessage(Message msg) throws ASAPException, IOException {
+        ASAPServiceMessage asapMessage = ASAPServiceMessage.createASAPServiceMessage(msg);
 
-            Log.d(LOGSTART, "received send message request");
-            if(uri == null) {
-                Log.e(LOGSTART, "uri must not be empty");
-                return;
-            }
+        MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
+        ASAPEngine asapEngine = multiASAPEngine.getEngineByFormat(asapMessage.getFormat());
 
-            if(message == null) {
-                Log.e(LOGSTART, "message must not be empty");
-                return;
-            }
+        Log.d(this.getLogStart(), "don't explicitely create open channel - just add message");
+        // asapEngine.createChannel(asapMessage.getURI());
 
-            if(format == null) {
-                Log.e(LOGSTART, "format must not be empty");
-                return;
-            }
+        asapEngine.add(asapMessage.getURI().toString(), asapMessage.getASAPMessage());
+    }
 
-            MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
-            try {
-                ASAPEngine asapEngine = null;
-                try {
-                    asapEngine = multiASAPEngine.getEngineByFormat(format);
-                }
-                catch(ASAPException e ) {
-                    // engine does not yet exist
-                    Log.d(LOGSTART, "asap engine for format not exists - give up " +
-                            "(better create ASAPApplication with supportedFormats):" + format);
-                    return;
-                }
+    private void handleCreateClosedChannel(Message msg) throws ASAPException, IOException {
+        ASAPServiceMessage asapMessage = ASAPServiceMessage.createASAPServiceMessage(msg);
 
-                if(recipientsString != null) {
-                    // extract recipients - and setup closed channel.
-                    asapEngine.createChannel(uri, Helper.string2CharSequenceSet(recipientsString));
-                }
+        MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
+        ASAPEngine asapEngine = multiASAPEngine.getEngineByFormat(asapMessage.getFormat());
 
-                asapEngine.add(uri, message);
+        Collection<CharSequence> recipients = asapMessage.getRecipients();
 
-            } catch (ASAPException | IOException e) {
-                Log.w(LOGSTART, e.getLocalizedMessage());
-            }
+        Log.d(this.getLogStart(), "create closed channel: "
+            + asapMessage.getURI() + " | " + asapMessage.getRecipients());
+        asapEngine.createChannel(asapMessage.getURI(), recipients);
+    }
 
-
-            /*
-            try {
-                StringBuilder sb = new StringBuilder();
-                sb.append("going to send message over an open connection:");
-                sb.append(" | format: ");
-                sb.append(format);
-                sb.append(" | uri: ");
-                sb.append(uri);
-                sb.append(" | recipient: ");
-                if(recipient == null) {
-                    sb.append("not set");
-                } else {
-                    sb.append(recipient);
-                }
-                sb.append(" | era: ");
-                sb.append(era);
-
-                Log.d(LOGSTART, sb.toString());
-
-                ASAPOnlineMessageSender asapOnlineMessageSender =
-                        this.asapService.getASAPOnlineMessageSender();
-
-                if(asapOnlineMessageSender == null) {
-                    Log.e(LOGSTART, "got no asap online message sender from service");
-                    return;
-                }
-
-                asapOnlineMessageSender.sendASAPAssimilate(
-                        format, uri, recipient, message, era);
-
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-            */
-        }
+    private String getLogStart() {
+        return net.sharksystem.asap.util.Log.startLog(this).toString();
     }
 }

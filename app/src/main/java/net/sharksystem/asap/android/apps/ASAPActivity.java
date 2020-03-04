@@ -16,22 +16,17 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.MultiASAPEngineFS;
-import net.sharksystem.asap.MultiASAPEngineFS_Impl;
 import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
-import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
-import net.sharksystem.asap.apps.ASAPMessages;
 import net.sharksystem.asap.util.Helper;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -55,46 +50,59 @@ public class ASAPActivity extends AppCompatActivity implements
         return this.asapApplication;
     }
 
-    public void sendASAPMessage(CharSequence appName, CharSequence uri,
-                                Collection<CharSequence> recipients, byte[] message)
-            throws ASAPException, IOException {
+    /**
+     * Create a closed asap channel. Ensure to call this method before ever sending a message into
+     * that channel.
+     * @param appName
+     * @param uri
+     * @param recipients
+     * @throws ASAPException
+     */
+    public void createClosedASAPChannel(CharSequence appName, CharSequence uri,
+                    Collection<CharSequence> recipients) throws ASAPException {
 
+        ASAPServiceMessage createClosedChannelMessage =
+                ASAPServiceMessage.createCreateClosedChannelMessage(appName, uri, recipients);
+
+        this.sendMessage2Service(createClosedChannelMessage.getMessage());
+    }
+
+    /**
+     * Send asap message. If that channel does not exist: it will be created as open channel
+     * (unrestricted recipient list). Closed channels must be created before
+     * @param appName
+     * @param uri
+     * @param message
+     * @throws ASAPException
+     */
+    public void sendASAPMessage(CharSequence appName, CharSequence uri, byte[] message)
+            throws ASAPException {
+
+        ASAPServiceMessage sendMessage = ASAPServiceMessage.createSendMessage(appName, uri, message);
+        this.sendMessage2Service(sendMessage.getMessage());
+
+        /*
         if(appName == null || appName.length() == 0
                 || uri == null || uri.length() == 0
                 || message == null || message.length == 0
         ) throw new ASAPException("parameter must not be null");
 
-        /*
-        // ensure that any format is supported by an engine
-        Collection<CharSequence> supportedFormats = asapApplication.getSupportFormats();
-        if(supportedFormats != null && supportedFormats.size() > 0) {
-            Log.d(this.getLogStart(), "use Util.getASAPRootDirectory()");
-            CharSequence asapRoot = this.asapApplication.getASAPRootFolder();
-
-            MultiASAPEngineFS multiEngine = MultiASAPEngineFS_Impl.createMultiEngine(asapRoot,null);
-
-            for(CharSequence supportedFormat : supportedFormats) {
-                multiEngine.createEngineByFormat(supportedFormat);
-            }
-        }
-         */
-
         // prepare message
         Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
         Bundle bundle = new Bundle();
-        bundle.putString(ASAP.FORMAT, appName.toString());
-        bundle.putString(ASAP.URI, uri.toString());
-        bundle.putByteArray(ASAP.MESSAGE_CONTENT, message); // important
+        bundle.putString(ASAPServiceMethods.FORMAT_TAG, appName.toString());
+        bundle.putString(ASAPServiceMethods.URI_TAG, uri.toString());
+        bundle.putByteArray(ASAPServiceMethods.ASAP_MESSAGE_TAG, message); // important
         // bundle.putInt(ASAP.ERA, 0); // optional
 
         msg.setData(bundle);
         if(recipients != null && recipients.size() > 0) {
             String recipientsString = Helper.collection2String(recipients);
-            bundle.putString(ASAP.RECIPIENTS, recipientsString);
+            bundle.putString(ASAPServiceMethods.RECIPIENTS_TAG, recipientsString);
         }
 
         msg.setData(bundle);
-        this.sendMessage2Service(msg);
+         */
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -166,7 +174,8 @@ public class ASAPActivity extends AppCompatActivity implements
 
     private List<Message> messageStorage = null;
     protected void sendMessage2Service(int messageNumber) {
-        Message msg = Message.obtain(null, messageNumber, 0, 0);
+        ASAPServiceMessage asapServiceMessage = ASAPServiceMessage.createMessage(messageNumber);
+        Message msg = asapServiceMessage.getMessage();
 
         if(this.mService == null) {
             Log.d(this.getLogStart(), "service not yet available - cannot send but store message");
@@ -181,7 +190,7 @@ public class ASAPActivity extends AppCompatActivity implements
 
     public void sendMessage2Service(Message msg) {
         try {
-            mService.send(msg);
+            this.mService.send(msg);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
