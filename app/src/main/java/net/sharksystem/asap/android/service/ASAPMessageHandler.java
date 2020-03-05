@@ -17,7 +17,6 @@ import java.util.Collection;
  * Class handles messages on service side.
  */
 class ASAPMessageHandler extends Handler {
-    private static final String LOGSTART = "ASAPMessageHandler";
     private ASAPService asapService;
 
     ASAPMessageHandler(ASAPService asapService) {
@@ -26,16 +25,16 @@ class ASAPMessageHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
-        Log.d(LOGSTART, "handleMessage called with what == " + msg.what);
+        //Log.d(this.getLogStart(), "handleMessage called with what == " + msg.what);
         try {
             switch (msg.what) {
                 case ASAPServiceMethods.SEND_MESSAGE:
-                    Log.d(LOGSTART, "handleMessage SEND_MESSAGE called");
+                    Log.d(this.getLogStart(), "handleMessage SEND_MESSAGE called");
                     this.handleSendMessage(msg);
                     break;
 
                 case ASAPServiceMethods.CREATE_CLOSED_CHANNEL:
-                    Log.d(LOGSTART, "handleMessage CREATE_CLOSED_CHANNEL called");
+                    Log.d(this.getLogStart(), "handleMessage CREATE_CLOSED_CHANNEL called");
                     this.handleCreateClosedChannel(msg);
                     break;
 
@@ -81,7 +80,7 @@ class ASAPMessageHandler extends Handler {
         }
 //        catch(ASAPException e) {
         catch(Throwable e) {
-            Log.d(LOGSTART, e.getLocalizedMessage());
+            Log.d(this.getLogStart(), e.getLocalizedMessage());
         }
     }
 

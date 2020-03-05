@@ -10,14 +10,17 @@ import net.sharksystem.asap.util.Helper;
 import java.util.Collection;
 
 import static net.sharksystem.asap.android.ASAPServiceMethods.ERA_TAG_NOT_SET;
+import static net.sharksystem.asap.android.ASAPServiceMethods.READABLE_NAME_TAG;
 
 public class ASAPServiceMessage {
+    private static final CharSequence DEFAULT_CLOSED_MAKAN_NAME = "closed makan";
     private int messageNumber;
     private String format = null;
     private String uri = null;
     private Collection<CharSequence> recipients = null;
     private int era = ERA_TAG_NOT_SET;
     private byte[] message = null;
+    private String readableName;
 
     private ASAPServiceMessage(int messageNumber) {
         this.messageNumber = messageNumber;
@@ -48,9 +51,18 @@ public class ASAPServiceMessage {
     public static ASAPServiceMessage createCreateClosedChannelMessage(
             CharSequence appFormat, CharSequence uri, Collection<CharSequence> recipients)
             throws ASAPException {
+        return ASAPServiceMessage.createCreateClosedChannelMessage(
+                appFormat, uri, DEFAULT_CLOSED_MAKAN_NAME, recipients);
+    }
+
+    public static ASAPServiceMessage createCreateClosedChannelMessage(
+                CharSequence appFormat, CharSequence uri, CharSequence readableName,
+                Collection<CharSequence> recipients)
+            throws ASAPException {
+
         ASAPServiceMessage asapServiceMessage =
                 new ASAPServiceMessage(ASAPServiceMethods.CREATE_CLOSED_CHANNEL);
-        asapServiceMessage.setupCreateClosedChannelMessage(appFormat, uri, recipients);
+        asapServiceMessage.setupCreateClosedChannelMessage(appFormat, uri, readableName, recipients);
         return asapServiceMessage;
     }
 
@@ -72,9 +84,13 @@ public class ASAPServiceMessage {
         if(this.era != ERA_TAG_NOT_SET) {
             bundle.putInt(ASAPServiceMethods.ERA_TAG, this.era); setAnything = true;
         }
-        if(this.recipients != null && !this.recipients.isEmpty()) {
+        if(this.recipients != null && this.readableName.length() > 0) {
             bundle.putString(ASAPServiceMethods.RECIPIENTS_TAG,
                     Helper.collection2String(this.recipients)); setAnything = true;
+        }
+        if(this.readableName != null && this.readableName.length() > 0) {
+            bundle.putString(ASAPServiceMethods.READABLE_NAME_TAG, this.readableName);
+                    setAnything = true;
         }
 
         if(setAnything) { msg.setData(bundle); }
@@ -99,7 +115,8 @@ public class ASAPServiceMessage {
     }
 
     private void setupCreateClosedChannelMessage(CharSequence format, CharSequence uri,
-                             Collection<CharSequence> recipients) throws ASAPException {
+                                 CharSequence readableName,
+                                 Collection<CharSequence> recipients) throws ASAPException {
 
         this.setupFormatAndUri(format, uri);
 
@@ -108,6 +125,7 @@ public class ASAPServiceMessage {
             throw new ASAPException("recipients must not be null/empty");
         }
 
+        this.readableName = readableName.toString();
         this.recipients = recipients;
     }
 
@@ -168,6 +186,7 @@ public class ASAPServiceMessage {
         Bundle msgData = this.parseBundle(msg);
         this.parseFormatAndUri(msgData, true);
         parseRecipients(msgData, true);
+        parseReadableName(msgData, true);
     }
 
     /////////////////////// helper
@@ -201,9 +220,17 @@ public class ASAPServiceMessage {
         }
     }
 
+    private void parseReadableName(Bundle msgData, boolean mandatory) throws ASAPException {
+        this.readableName = msgData.getString(READABLE_NAME_TAG);
+
+        if(mandatory && this.readableName == null) {
+            throw new ASAPException("readable must be set");
+        }
+    }
+
     private void parseRecipients(Bundle msgData, boolean mandatory) throws ASAPException {
         String recipientsString = msgData.getString(ASAPServiceMethods.RECIPIENTS_TAG);
-        if(recipientsString != null && recipientsString.length() < 1) {
+        if(recipientsString != null && recipientsString.length() > 0) {
             this.recipients = Helper.string2CharSequenceSet(recipientsString);
         } else {
             if(mandatory) {

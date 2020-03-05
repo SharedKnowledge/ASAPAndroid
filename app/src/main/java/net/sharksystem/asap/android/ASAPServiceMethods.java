@@ -35,4 +35,5 @@ public class ASAPServiceMethods {
     public static final String ERA_TAG = "ASAP_ERA";
     public static final int ERA_TAG_NOT_SET = -1;
     public static final String RECIPIENTS_TAG = "ASAP_RECIPIENTS";
+    public static final String READABLE_NAME_TAG = "ASAP_READABLE_NAME";
 }
