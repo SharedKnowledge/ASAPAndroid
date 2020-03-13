@@ -14,7 +14,6 @@ import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPApplication;
 import net.sharksystem.asap.android.apps.ASAPMessageReceivedListener;
-import net.sharksystem.asap.android.apps.ASAPOnlineMessageSenderAndroidUserSide;
 import net.sharksystem.asap.apps.ASAPMessages;
 
 import java.io.IOException;
@@ -22,7 +21,7 @@ import java.io.IOException;
 public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageReceivedListener {
     private static final CharSequence TESTURI ="asap://testuri";
     private static final CharSequence TESTMESSAGE = "Hi there from asap writing activity";
-    private ASAPOnlineMessageSenderAndroidUserSide asapOnlineSender;
+    //private ASAPOnlineMessageSenderAndroidUserSide asapOnlineSender;
     private static final String APPNAME = "ASAP_TEST_APP";
 
     public ASAPExampleActivity() throws IOException, ASAPException {
@@ -102,7 +101,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
     private void addMessage() throws IOException, ASAPException {
         // indirect - prefered way - send via ASAPService
         Log.d(this.getLogStart(), "ask asap service to deliver a message");
-        this.sendASAPMessage(APPNAME, URI, BYTE_MESSAGE);
+        this.sendASAPMessage(APPNAME, URI, BYTE_MESSAGE, true);
 
         /*
         // direct approach - write into local file system
@@ -215,6 +214,8 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
 
     public void onAddOnlineSenderClick(View view) {
         Log.d(this.getLogStart(), "onAddOnlineSenderClick reached");
+        Log.d(this.getLogStart(), "TODO: implement");
+        /*
         try {
             this.checkStorage();
             if(asapOnlineSender != null) {
@@ -227,11 +228,14 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "exception: " + e.getLocalizedMessage());
         }
+         */
     }
 
     public void onRemoveAddOnlineSenderClick(View view) {
         Log.d(this.getLogStart(), "onRemoveAddOnlineSenderClick reached");
+        Log.d(this.getLogStart(), "onAddOnlineSenderClick reached");
 
+        /*
         if(this.asapOnlineSender == null) {
             Log.d(this.getLogStart(), "online message sender not set");
             return;
@@ -243,6 +247,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         }
 
         this.asapStorage.detachASAPMessageAddListener();
+         */
     }
 
     private void checkStorage() throws IOException, ASAPException {

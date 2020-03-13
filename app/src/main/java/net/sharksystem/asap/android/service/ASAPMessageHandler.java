@@ -88,12 +88,33 @@ class ASAPMessageHandler extends Handler {
         ASAPServiceMessage asapMessage = ASAPServiceMessage.createASAPServiceMessage(msg);
 
         MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
-        ASAPEngine asapEngine = multiASAPEngine.getEngineByFormat(asapMessage.getFormat());
 
-        Log.d(this.getLogStart(), "don't explicitely create open channel - just add message");
-        // asapEngine.createChannel(asapMessage.getURI());
+        if(asapMessage.getPersistent()) {
+            Log.d(this.getLogStart(), "send persistent message");
+            ASAPEngine asapEngine = multiASAPEngine.getEngineByFormat(asapMessage.getFormat());
 
-        asapEngine.add(asapMessage.getURI().toString(), asapMessage.getASAPMessage());
+            Log.d(this.getLogStart(), "don't explicitly create open channel - just add message");
+            // asapEngine.createChannel(asapMessage.getURI());
+
+            asapEngine.add(asapMessage.getURI().toString(), asapMessage.getASAPMessage());
+        } else {
+            Log.d(this.getLogStart(), "send transient / online message");
+            if(asapMessage.isRecipientsListSet()) {
+                multiASAPEngine.sendOnlineASAPAssimilateMessage(
+                        asapMessage.getFormat(),
+                        asapMessage.getURI(),
+                        asapMessage.getRecipients(),
+                        asapMessage.getASAPMessage(),
+                        asapMessage.getEra());
+            } else {
+                multiASAPEngine.sendOnlineASAPAssimilateMessage(
+                        asapMessage.getFormat(),
+                        asapMessage.getURI(),
+                        null,
+                        asapMessage.getASAPMessage(),
+                        asapMessage.getEra());
+            }
+        }
     }
 
     private void handleCreateClosedChannel(Message msg) throws ASAPException, IOException {

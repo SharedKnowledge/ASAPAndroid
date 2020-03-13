@@ -73,36 +73,16 @@ public class ASAPActivity extends AppCompatActivity implements
      * @param appName
      * @param uri
      * @param message
+     * @param persistent keep in an asap store and resent in following asap sessions
      * @throws ASAPException
      */
-    public void sendASAPMessage(CharSequence appName, CharSequence uri, byte[] message)
-            throws ASAPException {
+    public void sendASAPMessage(CharSequence appName, CharSequence uri,
+                    byte[] message, boolean persistent) throws ASAPException {
 
-        ASAPServiceMessage sendMessage = ASAPServiceMessage.createSendMessage(appName, uri, message);
+        ASAPServiceMessage sendMessage =
+                ASAPServiceMessage.createSendMessage(appName, uri, message, persistent);
+
         this.sendMessage2Service(sendMessage.getMessage());
-
-        /*
-        if(appName == null || appName.length() == 0
-                || uri == null || uri.length() == 0
-                || message == null || message.length == 0
-        ) throw new ASAPException("parameter must not be null");
-
-        // prepare message
-        Message msg = Message.obtain(null, ASAPServiceMethods.SEND_MESSAGE, 0, 0);
-        Bundle bundle = new Bundle();
-        bundle.putString(ASAPServiceMethods.FORMAT_TAG, appName.toString());
-        bundle.putString(ASAPServiceMethods.URI_TAG, uri.toString());
-        bundle.putByteArray(ASAPServiceMethods.ASAP_MESSAGE_TAG, message); // important
-        // bundle.putInt(ASAP.ERA, 0); // optional
-
-        msg.setData(bundle);
-        if(recipients != null && recipients.size() > 0) {
-            String recipientsString = Helper.collection2String(recipients);
-            bundle.putString(ASAPServiceMethods.RECIPIENTS_TAG, recipientsString);
-        }
-
-        msg.setData(bundle);
-         */
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////

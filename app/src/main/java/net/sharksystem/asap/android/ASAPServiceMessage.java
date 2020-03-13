@@ -8,6 +8,8 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.util.Helper;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static net.sharksystem.asap.android.ASAPServiceMethods.ERA_TAG_NOT_SET;
 import static net.sharksystem.asap.android.ASAPServiceMethods.READABLE_NAME_TAG;
@@ -17,10 +19,11 @@ public class ASAPServiceMessage {
     private int messageNumber;
     private String format = null;
     private String uri = null;
-    private Collection<CharSequence> recipients = null;
+    private Set<CharSequence> recipients = null;
     private int era = ERA_TAG_NOT_SET;
     private byte[] message = null;
     private String readableName;
+    private boolean persistent;
 
     private ASAPServiceMessage(int messageNumber) {
         this.messageNumber = messageNumber;
@@ -35,16 +38,56 @@ public class ASAPServiceMessage {
         return new ASAPServiceMessage(methodeID);
     }
 
+    /**
+     * Prepare an ASAP message - no era set and no persistence
+     * @param appFormat
+     * @param uri
+     * @param message
+     * @return
+     * @throws ASAPException
+     */
     public static ASAPServiceMessage createSendMessage(
             CharSequence appFormat, CharSequence uri, byte[] message) throws ASAPException {
-        return createSendMessage(appFormat, uri, message, ERA_TAG_NOT_SET);
+
+        return createSendMessage(appFormat, uri, message, ERA_TAG_NOT_SET, false);
     }
 
+    /**
+     * Prepare an ASAP message - no era set
+     * @param appFormat
+     * @param uri
+     * @param message
+     * @param persistent true: message is kept in ASAP store and will be retransmitted to
+     *                   other peers in other communication sessions. False: Is only sent via
+     *                   open connections and forgotten afterwards
+     * @return
+     * @throws ASAPException
+     */
     public static ASAPServiceMessage createSendMessage(
-            CharSequence appFormat, CharSequence uri, byte[] message, int era) throws ASAPException {
+            CharSequence appFormat, CharSequence uri, byte[] message, boolean persistent)
+            throws ASAPException {
+
+        return createSendMessage(appFormat, uri, message, ERA_TAG_NOT_SET, persistent);
+    }
+
+    /**
+     * Prepare an ASAP message - no era set
+     * @param appFormat format / app name
+     * @param uri uri within app / format space
+     * @param message actual message
+     * @param persistent true: message is kept in ASAP store and will be retransmitted to
+     *                   other peers in other communication sessions. False: Is only sent via
+     *                   open connections and forgotten afterwards
+     * @return
+     * @throws ASAPException
+     */
+    public static ASAPServiceMessage createSendMessage(
+            CharSequence appFormat, CharSequence uri, byte[] message, int era, boolean persistent)
+            throws ASAPException {
+
         ASAPServiceMessage asapServiceMessage =
                 new ASAPServiceMessage(ASAPServiceMethods.SEND_MESSAGE);
-        asapServiceMessage.setupSendMessage(appFormat, uri, message, era);
+        asapServiceMessage.setupSendMessage(appFormat, uri, message, era, persistent);
         return asapServiceMessage;
     }
 
@@ -102,8 +145,8 @@ public class ASAPServiceMessage {
     //                                     set ups                                 //
     /////////////////////////////////////////////////////////////////////////////////
 
-    private void setupSendMessage(CharSequence format, CharSequence uri, byte[] message, int era)
-            throws ASAPException {
+    private void setupSendMessage(CharSequence format, CharSequence uri, byte[] message,
+                                  int era, boolean persistent) throws ASAPException {
         this.setupFormatAndUri(format, uri);
         this.setupEra(era);
 
@@ -112,6 +155,7 @@ public class ASAPServiceMessage {
         }
 
         this.message = message;
+        this.persistent = persistent;
     }
 
     private void setupCreateClosedChannelMessage(CharSequence format, CharSequence uri,
@@ -126,7 +170,12 @@ public class ASAPServiceMessage {
         }
 
         this.readableName = readableName.toString();
-        this.recipients = recipients;
+        this.recipients = new HashSet<>();
+        if(recipients != null) {
+            for(CharSequence recipient : recipients) {
+                this.recipients.add(recipient);
+            }
+        }
     }
 
     private void setupFormatAndUri(CharSequence format, CharSequence uri) throws ASAPException {
@@ -257,7 +306,7 @@ public class ASAPServiceMessage {
 
     public CharSequence getFormat() { return this.format; }
 
-    public Collection<CharSequence> getRecipients() { return this.recipients;}
+    public Set<CharSequence> getRecipients() { return this.recipients;}
     public boolean isRecipientsListSet() {
         return (this.recipients != null && !recipients.isEmpty());
     }
@@ -269,4 +318,6 @@ public class ASAPServiceMessage {
 
     public byte[] getASAPMessage() { return this.message; }
     public boolean isASAPMessageSet() { return this.message != null && this.message.length > 0;}
+
+    public boolean getPersistent() { return this.persistent; }
 }
