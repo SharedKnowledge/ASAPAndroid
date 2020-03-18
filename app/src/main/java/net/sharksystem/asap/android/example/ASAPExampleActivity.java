@@ -199,7 +199,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         ASAPEngineFS.removeFolder(absoluteFolderName);
 
         Log.d(this.getLogStart(), "create asap storage with:  "
-                + this.getASAPApplication().getASAPOwner()
+                + this.getASAPApplication().getASAPOwnerID()
                 + " | "
                 + this.getASAPApplication().getApplicationRootFolder(APPNAME)
                 + " | "
@@ -207,7 +207,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         );
 
         this.asapStorage = ASAPEngineFS.getASAPStorage(
-                        this.getASAPApplication().getASAPOwner().toString(),
+                        this.getASAPApplication().getASAPOwnerID().toString(),
                         this.getASAPApplication().getApplicationRootFolder(APPNAME),
                         APPNAME);
     }

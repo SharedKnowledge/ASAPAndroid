@@ -12,7 +12,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.Utils;
-import net.sharksystem.asap.ASAPChunkReceivedListener;
 import net.sharksystem.asap.ASAPChunkStorage;
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
@@ -90,7 +89,7 @@ public class ASAPApplication extends BroadcastReceiver {
 
     private void initialize() {
         if(!this.initialized) {
-            Log.d(this.getLogStart(), "initialize ASAPService");
+            Log.d(this.getLogStart(), "initialize ASAP Application user side");
 
             // required permissions
             this.requiredPermissions = new ArrayList<>();
@@ -107,9 +106,9 @@ public class ASAPApplication extends BroadcastReceiver {
             this.askForPermissions();
 
             // get owner when initializing
-            this.asapOwner = this.getASAPOwner(this.getActivity());
-            this.rootFolder = this.getASAPRootFolder(this.getActivity());
-            this.onlineExchange = this.getASAPOnlineExchange(this.getActivity());
+            this.asapOwner = this.getASAPOwnerID();
+            //this.rootFolder = this.getASAPRootFolder(); // service creates absolute path
+            this.onlineExchange = this.getASAPOnlineExchange();
 
             try {
                 Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(activity,
@@ -133,15 +132,6 @@ public class ASAPApplication extends BroadcastReceiver {
                 appFormat.toString());
     }
 
-    /**
-     * could be overwritten
-     * @param activity
-     * @return
-     */
-    protected boolean getASAPOnlineExchange(Activity activity) {
-        return this.onlineExchange;
-    }
-
     public boolean getASAPOnlineExchange() {
         return this.onlineExchange;
     }
@@ -161,11 +151,7 @@ public class ASAPApplication extends BroadcastReceiver {
     /**
      * could be overwritten
      */
-    protected CharSequence getASAPOwner(Activity activity) {
-        return this.asapOwner;
-    }
-
-    public CharSequence getASAPOwner() {
+    public CharSequence getASAPOwnerID() {
         return this.asapOwner;
     }
 
