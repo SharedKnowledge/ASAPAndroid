@@ -190,9 +190,9 @@ public class ASAPApplication extends BroadcastReceiver {
         return this.getASAPRootFolder() + "/" + appName;
     }
 
-    public void activityCreated(ASAPActivity asapActivity) {
+    public void activityCreated(ASAPActivity asapActivity, boolean initASAPApplication) {
         this.setActivity(asapActivity);
-        this.initialize();
+        if(initASAPApplication) this.initialize();
 
         this.activityCount++;
         Log.d(this.getLogStart(), "activity created. New activity count == "

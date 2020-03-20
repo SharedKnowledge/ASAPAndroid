@@ -306,7 +306,13 @@ public class ASAPActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(this.getLogStart(), "onCreate");
-        this.asapApplication.activityCreated(this);
+        this.asapApplication.activityCreated(this, this.initASAPApplication);
+    }
+
+    private boolean initASAPApplication;
+
+    protected void setInitASAPApplication(boolean init) {
+        this.initASAPApplication = init;
     }
 
     protected void onStart() {
