@@ -16,7 +16,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 import net.sharksystem.asap.android.service.ASAPService;
@@ -24,9 +24,7 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotification
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
-import net.sharksystem.asap.util.Helper;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -272,7 +270,7 @@ public class ASAPActivity extends AppCompatActivity implements
     private void setupASAPChunkReceivedBroadcastReceiver() {
         Log.d(this.getLogStart(), "setup asap received bc receiver");
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
+        filter.addAction(ASAPAndroid.ASAP_CHUNK_RECEIVED_ACTION);
 
         // register
         this.registerReceiver(this.asapApplication, filter);

@@ -9,7 +9,7 @@ import android.widget.Toast;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPApplication;
@@ -40,7 +40,7 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         // create broadcast receiver
         ExampleASAPBroadcastReceiver br = new ExampleASAPBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAP.ASAP_CHUNK_RECEIVED_ACTION);
+        filter.addAction(ASAPAndroid.ASAP_CHUNK_RECEIVED_ACTION);
         this.registerReceiver(br, filter);
     }
 

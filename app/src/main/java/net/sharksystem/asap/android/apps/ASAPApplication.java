@@ -17,7 +17,7 @@ import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
@@ -62,8 +62,8 @@ public class ASAPApplication extends BroadcastReceiver {
      *                         create if necessary.
      */
     protected ASAPApplication(Collection<CharSequence> supportedFormats) {
-        this(supportedFormats, ASAP.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
-                ASAP.ONLINE_EXCHANGE_DEFAULT);
+        this(supportedFormats, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
+                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
     }
 
     /**
@@ -72,8 +72,8 @@ public class ASAPApplication extends BroadcastReceiver {
      * already present when starting up.
      */
     protected ASAPApplication() {
-        this(null, ASAP.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
-                ASAP.ONLINE_EXCHANGE_DEFAULT);
+        this(null, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
+                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
     }
 
     private ASAPApplication(Collection<CharSequence> supportedFormats,

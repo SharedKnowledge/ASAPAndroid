@@ -17,7 +17,7 @@ import net.sharksystem.asap.ASAPOnlineMessageSenderEngineSide;
 import net.sharksystem.asap.ASAPOnlinePeersChangedListener;
 import net.sharksystem.asap.MultiASAPEngineFS;
 import net.sharksystem.asap.MultiASAPEngineFS_Impl;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
@@ -29,7 +29,6 @@ import net.sharksystem.asap.util.Helper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -128,9 +127,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         Log.d(LOGSTART, "onStartCommand");
         if(intent == null) {
             Log.d(LOGSTART, "intent is null");
-            this.owner = ASAP.UNKNOWN_USER;
+            this.owner = ASAPAndroid.UNKNOWN_USER;
             this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
-            this.onlineExchange = ASAP.ONLINE_EXCHANGE_DEFAULT;
+            this.onlineExchange = ASAPAndroid.ONLINE_EXCHANGE_DEFAULT;
             this.maxExecutionTime = MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
         } else {
             Log.d(LOGSTART, "service was created with an intent");

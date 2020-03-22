@@ -11,7 +11,7 @@ import android.util.Log;
 
 import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPConnectionLauncher;
-import net.sharksystem.asap.android.ASAP;
+import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
@@ -282,7 +282,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
             if(this.serverChannelCreator == null) {
                 Log.d(getLogStart(), "start server channel maker");
                 this.serverChannelCreator =
-                        TCPChannelMaker.getTCPServerCreator(ASAP.PORT_NUMBER, true);
+                        TCPChannelMaker.getTCPServerCreator(ASAPAndroid.PORT_NUMBER, true);
             } else {
                 Log.d(getLogStart(), "server channel maker already exists");
             }
@@ -295,7 +295,7 @@ public class WifiP2PEngine extends MacLayerEngine implements
 
             Log.d(getLogStart(), " start server channel maker: " + hostAddress);
             // create client connection to group owner
-            channelCreator = TCPChannelMaker.getTCPClientCreator(hostAddress, ASAP.PORT_NUMBER);
+            channelCreator = TCPChannelMaker.getTCPClientCreator(hostAddress, ASAPAndroid.PORT_NUMBER);
         }
 
         // create an ASAPSession with connection parameters

@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * Be sure to have the ASAPEngine in one of your library directories!
  */
-public class ASAP {
+public class ASAPAndroid {
     public static final String UNKNOWN_USER = "anon";
 
     public static final String USER = "user";
