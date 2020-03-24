@@ -22,6 +22,7 @@ import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.apps.ASAPMessages;
+import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -338,7 +339,7 @@ public class ASAPApplication extends BroadcastReceiver {
         Collection<ASAPUriContentChangedListener> uriListeners =
                 this.uriChangedListener.get(uri);
 
-        Log.d(this.getLogStart(), "going to inform message listener about it: "
+        Log.d(this.getLogStart(), "going to inform uri changed listener about it: "
                 + uriListeners);
 
         if(uriListeners != null) {
@@ -347,40 +348,35 @@ public class ASAPApplication extends BroadcastReceiver {
             }
         }
 
-        try {
-            String rootIncomingStorage = foldername + "/" + Utils.url2FileName(format);
-            Log.d(this.getLogStart(), "try getting storage in folder " + rootIncomingStorage);
-            ASAPEngine existingASAPEngineFS =
-                    ASAPEngineFS.getExistingASAPEngineFS(rootIncomingStorage);
-            Log.d(this.getLogStart(), "got existing asap engine");
+        ASAPMessages asapMessages = Helper.getMessageByChunkReceivedInfos(
+                format, sender, uri, foldername, era);
 
-            ASAPChunkStorage chunkStorage = existingASAPEngineFS.getIncomingChunkStorage(sender);
-            Log.d(this.getLogStart(), "got incoming channel of " + sender);
-
-            ASAPMessages asapMessages = chunkStorage.getASAPChunkCache(uri, era, era);
-            Log.d(this.getLogStart(), "got messages uri: " + uri + " / era: " + era);
-
-            Collection<ASAPMessageReceivedListener> messageListeners =
-                    this.messageReceivedListener.get(uri);
-
-            Log.d(this.getLogStart(), "going to inform message listener about it: "
-                    + messageListeners);
-
-            if(messageListeners != null) {
-                for(ASAPMessageReceivedListener messageListener : messageListeners) {
-                    messageListener.asapMessagesReceived(asapMessages);
-                }
-            }
-
-        } catch (IOException | ASAPException e) {
-            Log.e(this.getLogStart(),
-                    "could not access message after be informed about new chunk arrival"
-                    + e.getLocalizedMessage());
+        if(asapMessages == null) {
+            Log.e(this.getLogStart(), "cannot create message - failure - give up");
+            return;
         }
+
+        Collection<ASAPMessageReceivedListener> messageListeners =
+                this.messageReceivedListener.get(uri);
+
+        Log.d(this.getLogStart(), "going to inform message listener about it: "
+                + messageListeners);
+
+        if(messageListeners != null) {
+            for(ASAPMessageReceivedListener messageListener : messageListeners) {
+                messageListener.asapMessagesReceived(asapMessages);
+            }
+        }
+
     }
 
+    /**
+     * Subscribe to get notified about incoming asap message of a given format/application
+     * @param format
+     * @param listener
+     */
     public void addASAPMessageReceivedListener(CharSequence format,
-                                               ASAPMessageReceivedListener listener) {
+                                       ASAPMessageReceivedListener listener) {
         Collection<ASAPMessageReceivedListener> messageListeners =
                 this.messageReceivedListener.get(format);
 

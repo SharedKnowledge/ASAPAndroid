@@ -77,6 +77,11 @@ public class ASAPActivity extends AppCompatActivity implements
     public void sendASAPMessage(CharSequence appName, CharSequence uri,
                     byte[] message, boolean persistent) throws ASAPException {
 
+        Log.d(this.getLogStart(), "ask service to send: "
+                + "format: " + appName
+                + "| uri: " + uri
+                + "| length: " + message.length);
+
         ASAPServiceMessage sendMessage =
                 ASAPServiceMessage.createSendMessage(appName, uri, message, persistent);
 

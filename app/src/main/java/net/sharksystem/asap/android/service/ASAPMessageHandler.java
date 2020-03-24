@@ -87,6 +87,8 @@ class ASAPMessageHandler extends Handler {
     private void handleSendMessage(Message msg) throws ASAPException, IOException {
         ASAPServiceMessage asapMessage = ASAPServiceMessage.createASAPServiceMessage(msg);
 
+        Log.d(this.getLogStart(), "service will send: "+ asapMessage);
+
         MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
 
         if(asapMessage.getPersistent()) {
@@ -115,6 +117,7 @@ class ASAPMessageHandler extends Handler {
                         asapMessage.getEra());
             }
         }
+        Log.d(this.getLogStart(), "done sending");
     }
 
     private void handleCreateClosedChannel(Message msg) throws ASAPException, IOException {

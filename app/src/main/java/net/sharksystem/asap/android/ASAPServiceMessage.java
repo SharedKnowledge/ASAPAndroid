@@ -25,6 +25,24 @@ public class ASAPServiceMessage {
     private String readableName;
     private boolean persistent;
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("format: ");
+        sb.append(this.format);
+        sb.append(" | uri: ");
+        sb.append(this.uri);
+        sb.append(" | length: ");
+        sb.append(this.message.length);
+        sb.append(" | persistent: ");
+        sb.append(this.persistent);
+        sb.append(" | era: ");
+        sb.append(this.era);
+        sb.append(" | recipients: ");
+        sb.append(this.recipients);
+
+        return sb.toString();
+    }
+
     private ASAPServiceMessage(int messageNumber) {
         this.messageNumber = messageNumber;
     }
