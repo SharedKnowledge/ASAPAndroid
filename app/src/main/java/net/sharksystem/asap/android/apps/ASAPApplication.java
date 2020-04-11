@@ -11,9 +11,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import net.sharksystem.Utils;
-import net.sharksystem.asap.ASAPChunkStorage;
-import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
@@ -77,10 +74,10 @@ public class ASAPApplication extends BroadcastReceiver {
                 ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
     }
 
-    private ASAPApplication(Collection<CharSequence> supportedFormats,
-                              CharSequence asapOwner,
-                              CharSequence rootFolder,
-                              boolean onlineExchange) {
+    protected ASAPApplication(Collection<CharSequence> supportedFormats,
+                CharSequence asapOwner,
+                CharSequence rootFolder,
+                boolean onlineExchange) {
 
         this.supportedFormats = supportedFormats;
         this.asapOwner = asapOwner;
@@ -168,6 +165,10 @@ public class ASAPApplication extends BroadcastReceiver {
         return ASAPApplication.singleton;
     }
 
+    protected void setASAPApplication(ASAPApplication asapApplication) {
+        ASAPApplication.singleton = asapApplication;
+    }
+
     public static ASAPApplication getASAPApplication(Collection<CharSequence> supportedFormats) {
         if(ASAPApplication.singleton == null) {
             ASAPApplication.singleton = new ASAPApplication(supportedFormats);
@@ -177,7 +178,6 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     public static ASAPApplication getASAPApplication(CharSequence supportedFormat) {
-
         if(ASAPApplication.singleton == null) {
             Collection<CharSequence> formats = new HashSet<>();
             formats.add(supportedFormat);
@@ -213,10 +213,6 @@ public class ASAPApplication extends BroadcastReceiver {
     void setActivity(ASAPActivity activity) {
         Log.d(this.getLogStart(), "activity set");
         this.activity = activity;
-    }
-
-    private String getLogStart() {
-        return this.getClass().getSimpleName();
     }
 
     private void askForPermissions() {
@@ -377,6 +373,8 @@ public class ASAPApplication extends BroadcastReceiver {
      */
     public void addASAPMessageReceivedListener(CharSequence format,
                                        ASAPMessageReceivedListener listener) {
+
+        Log.d(this.getLogStart(), "going to add asap message receiver for " + format);
         Collection<ASAPMessageReceivedListener> messageListeners =
                 this.messageReceivedListener.get(format);
 
@@ -392,6 +390,8 @@ public class ASAPApplication extends BroadcastReceiver {
                                                ASAPMessageReceivedListener listener) {
         Collection<ASAPMessageReceivedListener> messageListeners =
                 this.messageReceivedListener.get(format);
+
+        Log.d(this.getLogStart(), "going to remove asap message receiver for " + format);
 
         if(messageListeners != null) {
             messageListeners.remove(listener);
@@ -446,5 +446,9 @@ public class ASAPApplication extends BroadcastReceiver {
         }
 
         this.onlinePeerList = peerList;
+    }
+
+    private String getLogStart() {
+        return this.getClass().getSimpleName();
     }
 }

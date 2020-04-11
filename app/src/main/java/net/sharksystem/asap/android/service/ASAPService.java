@@ -39,7 +39,6 @@ import java.util.List;
 public class ASAPService extends Service implements ASAPChunkReceivedListener,
         ASAPOnlinePeersChangedListener {
 
-    private static final String LOGSTART = "ASAPService";
     private String asapEngineRootFolderName;
 
     //private asapMultiEngine asapMultiEngine = null;
@@ -56,9 +55,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     }
 
     public MultiASAPEngineFS getMultiASAPEngine() {
-        Log.d(LOGSTART, "asap multi engine is a singleton.");
+        Log.d(this.getLogStart(), "asap multi engine is a singleton.");
         if(this.asapMultiEngine == null) {
-            Log.d(LOGSTART, "going to set up asapMultiEngine");
+            Log.d(this.getLogStart(), "going to set up asapMultiEngine");
 
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
@@ -66,7 +65,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                     != PackageManager.PERMISSION_GRANTED) {
 
                 // Permission is not granted
-                Log.d(LOGSTART,"no write permission!!");
+                Log.d(this.getLogStart(),"no write permission!!");
                 return null;
             }
 
@@ -76,36 +75,36 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             File rootFolder = new File(this.asapEngineRootFolderName);
             try {
                 if (!rootFolder.exists()) {
-                    Log.d(LOGSTART,"root folder does not exist - create");
+                    Log.d(this.getLogStart(),"root folder does not exist - create");
                     rootFolder.mkdirs();
-                    Log.d(LOGSTART,"done creating root folder");
+                    Log.d(this.getLogStart(),"done creating root folder");
                 }
 
                 this.asapMultiEngine = MultiASAPEngineFS_Impl.createMultiEngine(
                         this.owner, this.asapEngineRootFolderName,
                         this.maxExecutionTime, this.supportedFormats, this);
 
-                Log.d(LOGSTART,"engines created");
+                Log.d(this.getLogStart(),"engines created");
 
                 // listener for radar app
                 this.asapMultiEngine.addOnlinePeersChangedListener(this);
-                Log.d(LOGSTART,"added online peer changed listener");
+                Log.d(this.getLogStart(),"added online peer changed listener");
 
                 // add online feature to each engine
                 this.asapMultiEngine.activateOnlineMessages();
-                Log.d(LOGSTART,"online messages activated for ALL asap engines");
+                Log.d(this.getLogStart(),"online messages activated for ALL asap engines");
 
             } catch (IOException e) {
-                Log.d(LOGSTART,"IOException");
-                Log.d(LOGSTART,e.getLocalizedMessage());
+                Log.d(this.getLogStart(),"IOException");
+                Log.d(this.getLogStart(),e.getLocalizedMessage());
                 e.printStackTrace();
             } catch (ASAPException e) {
-                Log.d(LOGSTART,"ASAPException");
-                Log.d(LOGSTART,e.getLocalizedMessage());
+                Log.d(this.getLogStart(),"ASAPException");
+                Log.d(this.getLogStart(),e.getLocalizedMessage());
                 e.printStackTrace();
             }
         } else {
-            Log.d(LOGSTART, "multi engine was already created");
+            Log.d(this.getLogStart(), "multi engine was already created");
         }
 
         return this.asapMultiEngine;
@@ -118,21 +117,21 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     // comes first
     public void onCreate() {
         super.onCreate();
-        Log.d(LOGSTART,"onCreate");
+        Log.d(this.getLogStart(),"onCreate");
     }
 
     // comes second - do initializing stuff here
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOGSTART, "onStartCommand");
+        Log.d(this.getLogStart(), "onStartCommand");
         if(intent == null) {
-            Log.d(LOGSTART, "intent is null");
+            Log.d(this.getLogStart(), "intent is null");
             this.owner = ASAPAndroid.UNKNOWN_USER;
             this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
             this.onlineExchange = ASAPAndroid.ONLINE_EXCHANGE_DEFAULT;
             this.maxExecutionTime = MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
         } else {
-            Log.d(LOGSTART, "service was created with an intent");
+            Log.d(this.getLogStart(), "service was created with an intent");
 
             ASAPServiceCreationIntent asapServiceCreationIntent =
                     new ASAPServiceCreationIntent(intent);
@@ -145,22 +144,32 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             this.onlineExchange = asapServiceCreationIntent.isOnlineExchange();
             this.maxExecutionTime = asapServiceCreationIntent.getMaxExecutionTime();
             this.supportedFormats = asapServiceCreationIntent.getSupportedFormats();
+
+            // set defaults if null
+            if(this.owner == null || this.owner.length() == 0) {
+                Log.d(this.getLogStart(), "intent did not define owner - set default:");
+                this.owner = ASAPAndroid.UNKNOWN_USER;
+            }
+            if(this.rootFolder == null || this.rootFolder.length() == 0) {
+                Log.d(this.getLogStart(), "intent did not define root folder - set default:");
+                this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
+            }
         }
 
         // get root directory
         File asapRoot = null;
-        Log.d(LOGSTART, "use Util.getASAPRootDirectory()");
+        Log.d(this.getLogStart(), "use Util.getASAPRootDirectory()");
         asapRoot = Util.getASAPRootDirectory(this, this.rootFolder, this.owner);
 
         this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
-        Log.d(LOGSTART,"work with folder: " + this.asapEngineRootFolderName);
+        Log.d(this.getLogStart(),"work with folder: " + this.asapEngineRootFolderName);
 
         return super.onStartCommand(intent, flags, startId);
     }
 
     public void onDestroy() {
         super.onDestroy();
-        Log.d(LOGSTART,"onDestroy");
+        Log.d(this.getLogStart(),"onDestroy");
     }
     /**
      * Target we publish for clients to send messages to IncomingHandler.
@@ -168,7 +177,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private Messenger mMessenger;
 
     public IBinder onBind(Intent intent) {
-        Log.d(LOGSTART,"binding");
+        Log.d(this.getLogStart(),"binding");
 
         // create handler
         this.mMessenger = new Messenger(new ASAPMessageHandler(this));
@@ -269,7 +278,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
     @Override
     public void chunkReceived(String format, String sender, String uri, int era) {
-        Log.d(LOGSTART, "was notified by asap engine that chunk received - broadcast. Uri: "
+        Log.d(this.getLogStart(), "was notified by asap engine that chunk received - broadcast. Uri: "
                 + uri);
         // issue broadcast
         ASAPChunkReceivedBroadcastIntent intent = null;
@@ -282,29 +291,29 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         }
 
         if(this.broadcastOn) {
-            Log.d(LOGSTART, "send broadcast");
+            Log.d(this.getLogStart(), "send broadcast");
             this.sendBroadcast(intent);
         } else {
             // store it
-            Log.d(LOGSTART, "store broadcast in list");
+            Log.d(this.getLogStart(), "store broadcast in list");
             this.chunkReceivedBroadcasts.add(intent);
         }
     }
 
     public void resumeBroadcasts() {
-        Log.d(LOGSTART, "resumeBroadcasts");
+        Log.d(this.getLogStart(), "resumeBroadcasts");
         this.broadcastOn = true;
 
         int index = 0;
         // flag can change while in that method due to calls from other threads
         while(this.broadcastOn &&  this.chunkReceivedBroadcasts.size() > 0) {
-            Log.d(LOGSTART, "send stored broadcast");
+            Log.d(this.getLogStart(), "send stored broadcast");
             this.sendBroadcast(chunkReceivedBroadcasts.remove(0));
         }
     }
 
     public void pauseBroadcasts() {
-        Log.d(LOGSTART, "pauseBroadcasts");
+        Log.d(this.getLogStart(), "pauseBroadcasts");
         this.broadcastOn = false;
     }
 
@@ -327,7 +336,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
     @Override
     public void onlinePeersChanged(MultiASAPEngineFS multiASAPEngineFS) {
-        Log.d(LOGSTART, "onlinePeersChanged");
+        Log.d(this.getLogStart(), "onlinePeersChanged");
 
         // broadcast
         String serializedOnlinePeers = Helper.collection2String(multiASAPEngineFS.getOnlinePeers());

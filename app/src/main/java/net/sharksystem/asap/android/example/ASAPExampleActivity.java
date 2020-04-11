@@ -1,47 +1,26 @@
 package net.sharksystem.asap.android.example;
 
-import android.content.IntentFilter;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.android.ASAPAndroid;
-import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.android.R;
-import net.sharksystem.asap.android.apps.ASAPApplication;
-import net.sharksystem.asap.android.apps.ASAPMessageReceivedListener;
-import net.sharksystem.asap.apps.ASAPMessages;
 
 import java.io.IOException;
+import java.util.List;
 
-public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageReceivedListener {
-    private static final CharSequence TESTURI ="asap://testuri";
-    private static final CharSequence TESTMESSAGE = "Hi there from asap writing activity";
-    //private ASAPOnlineMessageSenderAndroidUserSide asapOnlineSender;
-    private static final String APPNAME = "ASAP_TEST_APP";
-
-    public ASAPExampleActivity() throws IOException, ASAPException {
-//        super(ASAPApplication.getASAPApplication());
-        super(ASAPApplication.getASAPApplication(APPNAME));
-    }
+public class ASAPExampleActivity extends ASAPExampleRootActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        // add as message received listener
-        this.getASAPApplication().addASAPMessageReceivedListener(URI, this);
-
-        // create broadcast receiver
-        ExampleASAPBroadcastReceiver br = new ExampleASAPBroadcastReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ASAPAndroid.ASAP_CHUNK_RECEIVED_ACTION);
-        this.registerReceiver(br, filter);
+        setContentView(R.layout.example_layout);
     }
 
     public void onClick(View view) {
@@ -52,20 +31,21 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
 
         if(view == startWifiButton) {
             Log.d(this.getLogStart(), "start wifi button pressed - send message");
-            this.startWifiP2P();
+            super.startWifiP2P();
         }
         else if(view == stopWifiButton) {
             Log.d(this.getLogStart(), "stop wifi button pressed - send message");
-            this.stopWifiP2P();
+            super.stopWifiP2P();
         }
         else if(view == startBTButton) {
             Log.d(this.getLogStart(), "start bt button pressed - ask service to start bt");
-            this.startBluetooth();
+            super.startBluetooth();
         }
         else if(view == stopBTButton) {
             Log.d(this.getLogStart(), "stop bt button pressed - send message");
-            this.stopBluetooth();
+            super.stopBluetooth();
         }
+        /*
         else if(view == findViewById(R.id.startDiscoverable)) {
             Log.d(this.getLogStart(), "start discoverable button pressed - send message");
             this.startBluetoothDiscoverable();
@@ -74,41 +54,38 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
             Log.d(this.getLogStart(), "start discover button pressed - send message");
             this.startBluetoothDiscovery();
         }
+        */
         else if(view == findViewById(R.id.startDiscoverableAndDiscovery)) {
             Log.d(this.getLogStart(),
                     "start disoverable and discover button pressed - send messages");
-            this.startBluetoothDiscovery();
-            this.startBluetoothDiscoverable();
+            super.startBluetoothDiscovery();
+            super.startBluetoothDiscoverable();
         }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    //                      asap message send/receiver example implementation                //
+    //                         changes in active layer 2 connections                         //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
-    public void asapMessagesReceived(ASAPMessages messages) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("received: | ");
-        sb.append(messages.getFormat());
-        sb.append( "| ");
-        sb.append(messages.getURI());
-        Log.d(this.getLogStart(), "asap message arrived: " + sb.toString());
-        Toast.makeText(this, sb.toString(), Toast.LENGTH_LONG).show();
-    }
+    public void asapNotifyOnlinePeersChanged(List<CharSequence> onlinePeerList) {
+        super.asapNotifyOnlinePeersChanged(onlinePeerList);
 
+        TextView peerListTextView = this.findViewById(R.id.onlinePeersList);
 
-    private void addMessage() throws IOException, ASAPException {
-        // indirect - prefered way - send via ASAPService
-        Log.d(this.getLogStart(), "ask asap service to deliver a message");
-        this.sendASAPMessage(APPNAME, URI, BYTE_MESSAGE, true);
-
-        /*
-        // direct approach - write into local file system
-        this.checkStorage();
-        Log.d(this.getLogStart(), "add message to storage:  " + MESSAGE);
-        this.asapStorage.add(URI, MESSAGE);
-         */
+        if(onlinePeerList == null || onlinePeerList.size() < 1) {
+            peerListTextView.setText("no peers online");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append("peers online:");
+            sb.append("\n");
+            for(CharSequence peerID : onlinePeerList) {
+                sb.append("id: ");
+                sb.append(peerID);
+                sb.append("\n");
+            }
+            peerListTextView.setText(sb.toString());
+        }
+        peerListTextView.refreshDrawableState();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -180,20 +157,12 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         }
     }
 
-    public void onAddASAPMessageClick(View view) {
-        try {
-            this.addMessage();
-        }
-        catch (IOException | ASAPException e) {
-            Log.d(this.getLogStart(), "exception: " + e.getLocalizedMessage());
-        }
-        catch (RuntimeException e) {
-            Log.d(this.getLogStart(), "runtime exception: " + e.getLocalizedMessage());
-        }
+    public void onSwitch2ExchangeActivity(View view) {
+        this.startActivity(new Intent(this, ASAPExampleMessagingActivity.class));
     }
 
     private void setupCleanASAPStorage() throws IOException, ASAPException {
-        String absoluteFolderName = this.getASAPApplication().getApplicationRootFolder(APPNAME);
+        String absoluteFolderName = this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME);
         Log.d(this.getLogStart(), "going to clean folder:  " + absoluteFolderName);
 
         ASAPEngineFS.removeFolder(absoluteFolderName);
@@ -201,15 +170,15 @@ public class ASAPExampleActivity extends ASAPActivity implements ASAPMessageRece
         Log.d(this.getLogStart(), "create asap storage with:  "
                 + this.getASAPApplication().getASAPOwnerID()
                 + " | "
-                + this.getASAPApplication().getApplicationRootFolder(APPNAME)
+                + this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME)
                 + " | "
-                + APPNAME
+                + ASAP_EXAMPLE_APPNAME
         );
 
         this.asapStorage = ASAPEngineFS.getASAPStorage(
                         this.getASAPApplication().getASAPOwnerID().toString(),
-                        this.getASAPApplication().getApplicationRootFolder(APPNAME),
-                        APPNAME);
+                        this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME),
+                        ASAP_EXAMPLE_APPNAME);
     }
 
     public void onAddOnlineSenderClick(View view) {

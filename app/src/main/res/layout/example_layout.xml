@@ -42,6 +42,7 @@
         android:text="stopBT"
         android:layout_gravity="left|top" />
 
+    <!--
     <Button
         android:id="@+id/startDiscoverable"
         android:onClick="onClick"
@@ -53,11 +54,12 @@
         android:onClick="onClick"
         android:text="startDiscovery"
         android:layout_gravity="left|top" />
+-->
 
     <Button
         android:id="@+id/startDiscoverableAndDiscovery"
         android:onClick="onClick"
-        android:text="startBT_D_And_D"
+        android:text="startBT_Paring"
         android:layout_gravity="left|top" />
 
     <Button
@@ -74,10 +76,28 @@
 
     <Button
         android:id="@+id/addASAPMessageButton"
-        android:onClick="onAddASAPMessageClick"
-        android:text="add message"
+        android:onClick="onSwitch2ExchangeActivity"
+        android:text="go2 asap messaging"
         android:layout_gravity="left|top" />
 
+    <TextView
+        android:id="@+id/onlinePeersList"
+        android:text="Online Peers List - not yet set"/>
+        <!--
+        android:layout_width="103dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="133dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="193dp"
+        android:layout_marginBottom="488dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        -->
+
+
+    <!--
     <Button
         android:id="@+id/addOnlineSenderButton"
         android:onClick="onAddOnlineSenderClick"
@@ -89,7 +109,7 @@
         android:onClick="onRemoveAddOnlineSenderClick"
         android:text="remove online msg"
         android:layout_gravity="left|top" />
-
+     -->
 </GridLayout>
 
 <!--

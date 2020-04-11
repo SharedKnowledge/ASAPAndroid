@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.annotation.CallSuper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -180,6 +181,7 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     protected String getLogStart() {
+//        return this.getClass().getSimpleName() +"->ASAPActivity";
         return this.getClass().getSimpleName();
     }
 
@@ -312,7 +314,7 @@ public class ASAPActivity extends AppCompatActivity implements
         this.asapApplication.activityCreated(this, this.initASAPApplication);
     }
 
-    private boolean initASAPApplication;
+    private boolean initASAPApplication = true;
 
     protected void setInitASAPApplication(boolean init) {
         this.initASAPApplication = init;

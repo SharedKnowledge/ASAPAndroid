@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/exampleMessagingUri"
+        android:layout_width="258dp"
+        android:layout_height="26dp"
+        android:text="set by example activity"
+        />
+
+    <EditText
+        android:id="@+id/exampleMessagingMessageText"
+        android:layout_width="258dp"
+        android:layout_height="43dp"
+        android:ems="10"
+        android:inputType="textMultiLine"
+        />
+
+    <TextView
+        android:id="@+id/exampleMessagingReceivedMessages"
+        android:layout_width="258dp"
+        android:layout_height="26dp"
+        android:text="non messages received yet"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onSendClick"
+            android:text="Send"
+            />
+
+        <Button
+            android:id="@+id/abortButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onAbortClick"
+            android:text="Abort"
+            />
+    </LinearLayout>
+</LinearLayout>

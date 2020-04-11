@@ -154,6 +154,8 @@ public class ASAPServiceMessage {
                     setAnything = true;
         }
 
+        bundle.putBoolean(ASAPServiceMethods.PERSISTENT, this.persistent);
+
         if(setAnything) { msg.setData(bundle); }
 
         return  msg;
@@ -243,6 +245,7 @@ public class ASAPServiceMessage {
      */
     private void parseSendMessage(Message msg) throws ASAPException {
         Bundle msgData = this.parseBundle(msg);
+        this.persistent = msgData.getBoolean(ASAPServiceMethods.PERSISTENT);
         this.parseFormatAndUri(msgData, true);
         this.parseASAPMessage(msgData, true);
         this.parseEra(msgData, false);
