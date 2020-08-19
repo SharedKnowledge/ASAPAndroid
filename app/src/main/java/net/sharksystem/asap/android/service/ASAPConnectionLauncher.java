@@ -3,7 +3,7 @@ package net.sharksystem.asap.android.service;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
@@ -13,26 +13,26 @@ import java.io.OutputStream;
 
 public class ASAPConnectionLauncher extends Thread {
     private TCPChannelMaker channelMaker;
-    private final MultiASAPEngineFS asapEngine;
+    private final ASAPPeer asapPeer;
     private InputStream is;
     private OutputStream os;
 
-    public ASAPConnectionLauncher(TCPChannelMaker channelMaker, MultiASAPEngineFS asapEngine) {
-        this(asapEngine);
+    public ASAPConnectionLauncher(TCPChannelMaker channelMaker, ASAPPeer asapPeer) {
+        this(asapPeer);
         this.channelMaker = channelMaker;
         this.is = null;
         this.os = null;
     }
 
-    public ASAPConnectionLauncher(InputStream is, OutputStream os, MultiASAPEngineFS asapEngine) {
-        this(asapEngine);
+    public ASAPConnectionLauncher(InputStream is, OutputStream os, ASAPPeer asapPeer) {
+        this(asapPeer);
         this.is = is;
         this.os = os;
         this.channelMaker = null;
     }
 
-    private ASAPConnectionLauncher(MultiASAPEngineFS asapEngine) {
-        this.asapEngine = asapEngine;
+    private ASAPConnectionLauncher(ASAPPeer asapPeer) {
+        this.asapPeer = asapPeer;
     }
     
     private String getLogStart() {
@@ -64,7 +64,7 @@ public class ASAPConnectionLauncher extends Thread {
             Log.d(this.getLogStart(), "call asapMultiEngine to handle connection");
 //            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
 //            testConnectionHandler.start();
-            this.asapEngine.handleConnection(this.is, this.os);
+            this.asapPeer.handleConnection(this.is, this.os);
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "while laucnhing asap connection: " + e.getLocalizedMessage());
             try {

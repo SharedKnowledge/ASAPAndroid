@@ -15,8 +15,8 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPOnlineMessageSender;
 import net.sharksystem.asap.ASAPOnlineMessageSenderEngineSide;
 import net.sharksystem.asap.ASAPOnlinePeersChangedListener;
-import net.sharksystem.asap.MultiASAPEngineFS;
-import net.sharksystem.asap.MultiASAPEngineFS_Impl;
+import net.sharksystem.asap.ASAPPeer;
+import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
@@ -42,7 +42,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private String asapEngineRootFolderName;
 
     //private asapMultiEngine asapMultiEngine = null;
-    private MultiASAPEngineFS asapMultiEngine;
+    private ASAPPeer asapMultiEngine;
     private ASAPOnlineMessageSender asapOnlineMessageSender;
     private CharSequence owner;
     private CharSequence rootFolder;
@@ -54,7 +54,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         return this.asapEngineRootFolderName;
     }
 
-    public MultiASAPEngineFS getMultiASAPEngine() {
+    public ASAPPeer getASAPPeer() {
         Log.d(this.getLogStart(), "asap multi engine is a singleton.");
         if(this.asapMultiEngine == null) {
             Log.d(this.getLogStart(), "going to set up asapMultiEngine");
@@ -80,7 +80,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                     Log.d(this.getLogStart(),"done creating root folder");
                 }
 
-                this.asapMultiEngine = MultiASAPEngineFS_Impl.createMultiEngine(
+                this.asapMultiEngine = ASAPPeerFS.createASAPPeer(
                         this.owner, this.asapEngineRootFolderName,
                         this.maxExecutionTime, this.supportedFormats, this);
 
@@ -129,7 +129,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             this.owner = ASAPAndroid.UNKNOWN_USER;
             this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
             this.onlineExchange = ASAPAndroid.ONLINE_EXCHANGE_DEFAULT;
-            this.maxExecutionTime = MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME;
+            this.maxExecutionTime = ASAPPeer.DEFAULT_MAX_PROCESSING_TIME;
         } else {
             Log.d(this.getLogStart(), "service was created with an intent");
 
@@ -335,11 +335,11 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     //////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onlinePeersChanged(MultiASAPEngineFS multiASAPEngineFS) {
+    public void onlinePeersChanged(ASAPPeer asapPeer) {
         Log.d(this.getLogStart(), "onlinePeersChanged");
 
         // broadcast
-        String serializedOnlinePeers = Helper.collection2String(multiASAPEngineFS.getOnlinePeers());
+        String serializedOnlinePeers = Helper.collection2String(asapPeer.getOnlinePeers());
         Log.d(this.getLogStart(), "online peers serialized: " + serializedOnlinePeers);
 
         ASAPServiceRequestNotifyIntent intent =

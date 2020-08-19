@@ -130,7 +130,7 @@ public abstract class MacLayerEngine {
 //            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
 //            testConnectionHandler.start();
             this.asapConnections.put(address,
-                this.getAsapService().getMultiASAPEngine().handleConnection(inputStream, outputStream));
+                this.getAsapService().getASAPPeer().handleConnection(inputStream, outputStream));
 
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "while lauching asap connection: " + e.getLocalizedMessage());

@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.service.ASAPService;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class ASAPServiceCreationIntent extends Intent {
             throws ASAPException {
 
         this(activity, owner, rootFolder, onlineExchange, supportedFormats,
-                MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME);
+                ASAPPeer.DEFAULT_MAX_PROCESSING_TIME);
     }
 
     public ASAPServiceCreationIntent(Activity activity, CharSequence owner, CharSequence rootFolder,
@@ -68,7 +68,7 @@ public class ASAPServiceCreationIntent extends Intent {
         this.onlineExchange = intent.getBooleanExtra(ASAPAndroid.ONLINE_EXCHANGE,
                 ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
         this.maxExecutionTime = intent.getLongExtra(ASAPAndroid.MAX_EXECUTION_TIME,
-                MultiASAPEngineFS.DEFAULT_MAX_PROCESSING_TIME);
+                ASAPPeer.DEFAULT_MAX_PROCESSING_TIME);
         this.supportFormatsList = intent.getCharSequenceArrayListExtra(ASAPAndroid.SUPPORTED_FORMATS);
     }
 

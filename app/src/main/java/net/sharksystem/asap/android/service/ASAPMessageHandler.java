@@ -6,7 +6,7 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.MultiASAPEngineFS;
+import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 
@@ -89,11 +89,11 @@ class ASAPMessageHandler extends Handler {
 
         Log.d(this.getLogStart(), "service will send: "+ asapMessage);
 
-        MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
+        ASAPPeer asapPeer = asapService.getASAPPeer();
 
         if(asapMessage.getPersistent()) {
             Log.d(this.getLogStart(), "send persistent message");
-            ASAPEngine asapEngine = multiASAPEngine.getEngineByFormat(asapMessage.getFormat());
+            ASAPEngine asapEngine = asapPeer.getEngineByFormat(asapMessage.getFormat());
 
             Log.d(this.getLogStart(), "don't explicitly create open channel - just add message");
             // asapEngine.createChannel(asapMessage.getURI());
@@ -102,14 +102,14 @@ class ASAPMessageHandler extends Handler {
         } else {
             Log.d(this.getLogStart(), "send transient / online message");
             if(asapMessage.isRecipientsListSet()) {
-                multiASAPEngine.sendOnlineASAPAssimilateMessage(
+                asapPeer.sendOnlineASAPAssimilateMessage(
                         asapMessage.getFormat(),
                         asapMessage.getURI(),
                         asapMessage.getRecipients(),
                         asapMessage.getASAPMessage(),
                         asapMessage.getEra());
             } else {
-                multiASAPEngine.sendOnlineASAPAssimilateMessage(
+                asapPeer.sendOnlineASAPAssimilateMessage(
                         asapMessage.getFormat(),
                         asapMessage.getURI(),
                         null,
@@ -123,8 +123,8 @@ class ASAPMessageHandler extends Handler {
     private void handleCreateClosedChannel(Message msg) throws ASAPException, IOException {
         ASAPServiceMessage asapMessage = ASAPServiceMessage.createASAPServiceMessage(msg);
 
-        MultiASAPEngineFS multiASAPEngine = asapService.getMultiASAPEngine();
-        ASAPEngine asapEngine = multiASAPEngine.getEngineByFormat(asapMessage.getFormat());
+        ASAPPeer asapPeer = asapService.getASAPPeer();
+        ASAPEngine asapEngine = asapPeer.getEngineByFormat(asapMessage.getFormat());
 
         Collection<CharSequence> recipients = asapMessage.getRecipients();
 

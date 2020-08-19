@@ -13,12 +13,12 @@ import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPMessages;
 import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
-import net.sharksystem.asap.apps.ASAPMessages;
 import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
@@ -344,7 +344,7 @@ public class ASAPApplication extends BroadcastReceiver {
             }
         }
 
-        ASAPMessages asapMessages = Helper.getMessageByChunkReceivedInfos(
+        ASAPMessages asapMessages = Helper.getMessagesByChunkReceivedInfos(
                 format, sender, uri, foldername, era);
 
         if(asapMessages == null) {

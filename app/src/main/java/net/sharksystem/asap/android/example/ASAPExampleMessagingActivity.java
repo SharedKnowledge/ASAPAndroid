@@ -10,7 +10,7 @@ import android.widget.TextView;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPMessageReceivedListener;
-import net.sharksystem.asap.apps.ASAPMessages;
+import net.sharksystem.asap.ASAPMessages;
 
 import java.io.IOException;
 import java.util.Iterator;
