@@ -13,12 +13,16 @@ import net.sharksystem.asap.android.apps.ASAPMessageReceivedListener;
 import net.sharksystem.asap.ASAPMessages;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
     private static final CharSequence EXAMPLE_URI ="asap://exampleURI";
     private static final CharSequence EXAMPLE_MESSAGE = "ASAP example message";
     private ASAPMessageReceivedListener receivedListener;
+    private List<String> sentMessages = new ArrayList<>();
+    private List<String> receivedMessages = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,15 +33,19 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         // set URI - your app can or your users can choose any valid uri.
         TextView uriTextView = findViewById(R.id.exampleMessagingUri);
 
-        uriTextView.setText("channel URI: " + EXAMPLE_URI);
+        uriTextView.setText("your owner id: " + this.getASAPApplication().getASAPOwnerID()
+                + "channel URI: " + EXAMPLE_URI);
 
         EditText messageEditView = findViewById(R.id.exampleMessagingMessageText);
         messageEditView.setText(EXAMPLE_MESSAGE);
 
-        TextView receivedMessagesTV = this.findViewById(R.id.exampleMessagingReceivedMessages);
-        receivedMessagesTV.setText(this.getYourAreNotice());
-
-        this.receivedListener = new ExampleMessageReceivedListener();
+        this.receivedListener = new ASAPMessageReceivedListener() {
+            @Override
+            public void asapMessagesReceived(ASAPMessages asapMessages) {
+                Log.d(getLogStart(), "asapMessageReceived");
+                ASAPExampleMessagingActivity.this.doHandleReceivedMessages(asapMessages);
+            }
+        };
 
         // set listener to get informed about newly arrived messages
         this.getASAPApplication().addASAPMessageReceivedListener(
@@ -51,10 +59,6 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         this.getASAPApplication().removeASAPMessageReceivedListener(
                 ASAPExampleActivity.ASAP_EXAMPLE_APPNAME,
                 this.receivedListener);
-    }
-
-    private CharSequence getYourAreNotice() {
-        return "You go by id: " + this.getASAPApplication().getASAPOwnerID() + "\n";
     }
 
     public void onAbortClick(View view) {
@@ -82,6 +86,9 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         } catch (ASAPException e) {
             Log.e(this.getLogStart(), "when sending asap message: " + e.getLocalizedMessage());
         }
+
+        // success - remember sent message
+        this.sentMessages.add(messageText.toString());
     }
 
     // handle incoming messages
@@ -89,28 +96,33 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         Log.d(this.getLogStart(), "going to handle received messages with uri: "
                 + asapMessages.getURI());
 
-        TextView receivedMessagesTV = this.findViewById(R.id.exampleMessagingReceivedMessages);
+        // set up output
         StringBuilder sb = new StringBuilder();
-        sb.append(this.getYourAreNotice());
 
         try {
             Iterator<CharSequence> messagesAsCharSequence = asapMessages.getMessagesAsCharSequence();
             sb.append("new messages:\n");
             while(messagesAsCharSequence.hasNext()) {
-                sb.append(messagesAsCharSequence.next());
+                String receivedMessage = messagesAsCharSequence.next().toString();
+                this.receivedMessages.add(receivedMessage);
+                sb.append(receivedMessage);
             }
-            receivedMessagesTV.setText(sb.toString());
+            sb.append("your messages: \n");
+            for(String msg : this.sentMessages) {
+                sb.append(msg);
+                sb.append("\n");
+            }
+            sb.append("received messages: \n");
+            for(String msg : this.receivedMessages) {
+                sb.append(msg);
+            }
         } catch (IOException e) {
             Log.e(this.getLogStart(), "problems when handling received messages: "
                     + e.getLocalizedMessage());
+            sb.append(e.getLocalizedMessage());
         }
-    }
 
-    private class ExampleMessageReceivedListener implements ASAPMessageReceivedListener {
-        @Override
-        public void asapMessagesReceived(ASAPMessages asapMessages) {
-            Log.d(getLogStart(), "asapMessageReceived");
-            ASAPExampleMessagingActivity.this.doHandleReceivedMessages(asapMessages);
-        }
+        TextView receivedMessagesTV = this.findViewById(R.id.exampleMessagingMessages);
+        receivedMessagesTV.setText(sb.toString());
     }
 }

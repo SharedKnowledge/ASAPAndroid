@@ -344,14 +344,7 @@ public class ASAPApplication extends BroadcastReceiver {
             }
         }
 
-        ASAPMessages asapMessages = Helper.getMessagesByChunkReceivedInfos(
-                format, sender, uri, foldername, era);
-
-        if(asapMessages == null) {
-            Log.e(this.getLogStart(), "cannot create message - failure - give up");
-            return;
-        }
-
+        // inform message listeners - if any
         Collection<ASAPMessageReceivedListener> messageListeners =
                 this.messageReceivedListener.get(uri);
 
@@ -359,11 +352,18 @@ public class ASAPApplication extends BroadcastReceiver {
                 + messageListeners);
 
         if(messageListeners != null) {
+            ASAPMessages asapMessages = Helper.getMessagesByChunkReceivedInfos(
+                    format, sender, uri, foldername, era);
+
+            if(asapMessages == null) {
+                Log.e(this.getLogStart(), "cannot create message - failure - give up");
+                return;
+            }
+
             for(ASAPMessageReceivedListener messageListener : messageListeners) {
                 messageListener.asapMessagesReceived(asapMessages);
             }
         }
-
     }
 
     /**
@@ -371,7 +371,7 @@ public class ASAPApplication extends BroadcastReceiver {
      * @param format
      * @param listener
      */
-    public void addASAPMessageReceivedListener(CharSequence format,
+    public final void addASAPMessageReceivedListener(CharSequence format,
                                        ASAPMessageReceivedListener listener) {
 
         Log.d(this.getLogStart(), "going to add asap message receiver for " + format);
@@ -379,14 +379,14 @@ public class ASAPApplication extends BroadcastReceiver {
                 this.messageReceivedListener.get(format);
 
         if(messageListeners == null) {
-            this.messageReceivedListener.put(format, new HashSet());
-            this.addASAPMessageReceivedListener(format, listener);
-        } else {
-            messageListeners.add(listener);
+            messageListeners = new HashSet();
+            this.messageReceivedListener.put(format, messageListeners);
         }
+
+        messageListeners.add(listener);
     }
 
-    public void removeASAPMessageReceivedListener(CharSequence format,
+    public final void removeASAPMessageReceivedListener(CharSequence format,
                                                ASAPMessageReceivedListener listener) {
         Collection<ASAPMessageReceivedListener> messageListeners =
                 this.messageReceivedListener.get(format);

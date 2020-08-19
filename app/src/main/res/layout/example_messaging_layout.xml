@@ -6,23 +6,16 @@
     <TextView
         android:id="@+id/exampleMessagingUri"
         android:layout_width="258dp"
-        android:layout_height="26dp"
+        android:layout_height="50dp"
         android:text="set by example activity"
         />
 
-    <EditText
-        android:id="@+id/exampleMessagingMessageText"
-        android:layout_width="258dp"
-        android:layout_height="43dp"
-        android:ems="10"
-        android:inputType="textMultiLine"
-        />
 
     <TextView
-        android:id="@+id/exampleMessagingReceivedMessages"
-        android:layout_width="258dp"
-        android:layout_height="26dp"
-        android:text="non messages received yet"
+        android:id="@+id/exampleMessagingMessages"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="no messages received yet"
         />
 
     <LinearLayout
@@ -30,6 +23,12 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
+        <EditText
+            android:id="@+id/exampleMessagingMessageText"
+            android:layout_width="258dp"
+            android:layout_height="43dp"
+            android:ems="10"
+            android:inputType="textMultiLine" />
         <Button
             android:id="@+id/sendButton"
             android:layout_width="wrap_content"
@@ -37,13 +36,6 @@
             android:onClick="onSendClick"
             android:text="Send"
             />
-
-        <Button
-            android:id="@+id/abortButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onAbortClick"
-            android:text="Abort"
-            />
     </LinearLayout>
+
 </LinearLayout>
