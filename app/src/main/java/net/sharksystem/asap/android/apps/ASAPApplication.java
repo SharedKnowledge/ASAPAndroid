@@ -324,29 +324,13 @@ public class ASAPApplication extends BroadcastReceiver {
     private Map<CharSequence, Collection<ASAPMessageReceivedListener>> messageReceivedListener
             = new HashMap<>();
 
-    private Map<CharSequence, Collection<ASAPUriContentChangedListener>> uriChangedListener
-            = new HashMap<>();
-
     public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
         Log.d(this.getLogStart(), "got chunkReceived message: "
                 + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
 
-        // inform uri changed listener
-        Collection<ASAPUriContentChangedListener> uriListeners =
-                this.uriChangedListener.get(uri);
-
-        Log.d(this.getLogStart(), "going to inform uri changed listener about it: "
-                + uriListeners);
-
-        if(uriListeners != null) {
-            for(ASAPUriContentChangedListener uriListener : uriListeners) {
-                uriListener.asapUriContentChanged(uri);
-            }
-        }
-
         // inform message listeners - if any
         Collection<ASAPMessageReceivedListener> messageListeners =
-                this.messageReceivedListener.get(uri);
+                this.messageReceivedListener.get(format);
 
         Log.d(this.getLogStart(), "going to inform message listener about it: "
                 + messageListeners);
@@ -395,30 +379,6 @@ public class ASAPApplication extends BroadcastReceiver {
 
         if(messageListeners != null) {
             messageListeners.remove(listener);
-        }
-    }
-
-    public void addASAPUriContentChangedListener(CharSequence format,
-                                                 ASAPUriContentChangedListener listener) {
-
-        Collection<ASAPUriContentChangedListener> uriListeners =
-                this.uriChangedListener.get(format);
-
-        if(uriListeners == null) {
-            this.uriChangedListener.put(format, new HashSet());
-            this.addASAPUriContentChangedListener(format, listener);
-        } else {
-            uriListeners.add(listener);
-        }
-    }
-
-    public void removeASAPUriContentChangedListener(CharSequence format,
-                                                 ASAPUriContentChangedListener listener) {
-        Collection<ASAPUriContentChangedListener> uriListeners =
-                this.uriChangedListener.get(format);
-
-        if(uriListeners != null) {
-            uriListeners.remove(listener);
         }
     }
 
