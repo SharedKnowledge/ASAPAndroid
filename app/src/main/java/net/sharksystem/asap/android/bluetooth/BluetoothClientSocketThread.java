@@ -34,7 +34,7 @@ class BluetoothClientSocketThread extends Thread {
             btSocket.connect();
 
             Log.d(this.getLogStart(), "connected - going to call handleBTSocket");
-            this.btEngine.handleBTSocket(this.btSocket);
+            this.btEngine.handleBTSocket(this.btSocket, true);
         } catch (IOException e) {
             Log.e(this.getLogStart(), "could not connect: " + e.getLocalizedMessage());
         }

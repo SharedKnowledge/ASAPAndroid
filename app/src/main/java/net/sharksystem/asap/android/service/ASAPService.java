@@ -55,9 +55,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     }
 
     public ASAPPeer getASAPPeer() {
-        Log.d(this.getLogStart(), "asap multi engine is a singleton.");
+        Log.d(this.getLogStart(), "asap peer is a singleton.");
         if(this.asapMultiEngine == null) {
-            Log.d(this.getLogStart(), "going to set up asapMultiEngine");
+            Log.d(this.getLogStart(), "going to set up asapPeer");
 
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
@@ -104,7 +104,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                 e.printStackTrace();
             }
         } else {
-            Log.d(this.getLogStart(), "multi engine was already created");
+            Log.d(this.getLogStart(), "peer was already created");
         }
 
         return this.asapMultiEngine;

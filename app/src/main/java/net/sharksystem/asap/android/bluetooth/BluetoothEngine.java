@@ -296,7 +296,9 @@ public class BluetoothEngine extends MacLayerEngine {
 
         StringBuilder sb = new StringBuilder();
         sb.append("device found: ");
-        sb.append("name: ");
+        sb.append("mac: ");
+        sb.append(macAddress);
+        sb.append("|name: ");
         sb.append(btDevice.getName());
         sb.append("|btClass: ");
         if ((btClass != null)) {
@@ -324,6 +326,9 @@ public class BluetoothEngine extends MacLayerEngine {
         // strongly recommended to stop discovery
         //this.mBluetoothAdapter.cancelDiscovery();
 
+        // already connected?
+        if(this.checkAlreadyConnected(macAddress)) return;
+
         if(this.shouldConnectToMACPeer(macAddress)) {
             Log.d(this.getLogStart(), "create a BT client socket thread");
             new BluetoothClientSocketThread(this, btDevice).start();
@@ -333,35 +338,115 @@ public class BluetoothEngine extends MacLayerEngine {
         }
     }
 
+    private boolean checkAlreadyConnected(String macAddress) {
+        BluetoothSocket bluetoothSocket = this.openSockets.get(macAddress);
+        if(bluetoothSocket != null) {
+            if(bluetoothSocket.isConnected()) {
+                Log.d(this.getLogStart(), "we already have an open and active connection to "
+                        + macAddress);
+                return true;
+            } else {
+                // there is an entry but not connected anymore (?)
+                Log.d(this.getLogStart(), "remove socket - it is not longer (?) connected");
+                this.openSockets.remove(macAddress);
+            }
+        }
+
+        return false;
+    }
+
     private Map<String, BluetoothSocket> openSockets = new HashMap<>();
 
     /**
      * Both client and server sockets
      * @param socket
+     * @param isClient for debugging: who is calling client socket / server socket?
      * @throws IOException
      */
-    synchronized void handleBTSocket(BluetoothSocket socket) throws IOException {
-        String address = socket.getRemoteDevice().getAddress();
-        Log.d(this.getLogStart(), "going to handle new BT connection to " + address);
+    void handleBTSocket(BluetoothSocket socket, boolean isClient) throws IOException {
+        String remoteMacAddress = socket.getRemoteDevice().getAddress();
+
+        String logMessage = isClient ? "Client" : "Server";
+        logMessage += "socket called: handle new BT connection to ";
+
+        Log.d(this.getLogStart(), logMessage + remoteMacAddress);
 
         // already an open connection?
-        BluetoothSocket bluetoothSocket = this.openSockets.get(address);
-        if(bluetoothSocket != null) {
-            // still active
-            if(bluetoothSocket.isConnected()) {
-                // already connected - connection is active
-                Log.d(this.getLogStart(),
-                        "we already have an open and active connection to " + address);
-                socket.close();
-                return;
-            } else {
-                Log.d(this.getLogStart(), "we had a connection but it is gone " + address);
+        if (this.checkAlreadyConnected(remoteMacAddress)) {
+            socket.close();
+            return;
+        }
+
+        /* There is a race condition which is not that obvious:
+        Bot phones A and B are going to initiate a connection. Both also offer a server socket.
+        Assumed, A and B initiate a connection in the same moment. Both would get a connection and
+        launch an ASAP session. If the timing is bad - and that's more likely as I wished -
+        both would be asked from their server sockets to handle a new connection as well.
+
+        Unfortunately, both would realize that there is already an existing communication channel
+        and close the server side socket. If the timing is bad (and it will, see Morphy) both
+        have already started their ASAP session with their client sockets.
+        In that case, both channels are gone.
+
+        Solution: We implement a bias. Let's say. A smaller remote mac address should use a
+        client socket more likely.
+        */
+
+        long myAddress = this.sumOfMacAddress(this.mBluetoothAdapter.getAddress());
+        long remoteAddress = this.sumOfMacAddress(remoteMacAddress);
+
+        try {
+            if(remoteAddress < myAddress) {
+                Log.d(this.getLogStart(), "block my client socket a moment");
+                if(isClient) {
+                    Thread.sleep(500); // let local client socket wait some time
+                    Log.d(this.getLogStart(), "my client socket back in the race");
+                }
+            }
+            else
+                Log.d(this.getLogStart(), "block my server socket a moment");
+                if(!isClient) {
+                    Thread.sleep(500); // opposite
+                    Log.d(this.getLogStart(), "my server socket back in the race");
+                }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        this.handleBTSocket(socket);
+    }
+
+    private long sumOfMacAddress(String macAddress) {
+        String[] split = macAddress.split(":");
+
+        long value = 0;
+        for(String part : split) {
+            try {
+                value += Long.parseLong(part);
+            }
+            catch (NumberFormatException e) {
+                // ignore - we just need a number
             }
         }
 
+        return value;
+    }
+
+    private synchronized void handleBTSocket(BluetoothSocket socket) throws IOException {
+        Log.d(this.getLogStart(), "in synchronized handleSocket()");
+        String address = socket.getRemoteDevice().getAddress();
+
+        // already an open connection?
+        if (this.checkAlreadyConnected(address)) {
+            socket.close();
+            return;
+        }
+
         // remember that new connection
+        Log.d(this.getLogStart(), "remember socket");
         this.openSockets.put(address, socket);
 
+        Log.d(this.getLogStart(), "launch asap session");
         this.launchASAPConnection(address, socket.getInputStream(), socket.getOutputStream());
     }
 
