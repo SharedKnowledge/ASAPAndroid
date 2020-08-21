@@ -286,18 +286,42 @@ public class BluetoothEngine extends MacLayerEngine {
     //                       handle connections and connection attempts                    //
     /////////////////////////////////////////////////////////////////////////////////////////
 
+    public static final int BT_MAJOR_CLASS_PHONE = 0x00000200;
+    public static final int BT_MAJOR_CLASS_COMPUTER = 0x00000100;
+
     void deviceFound(BluetoothDevice btDevice, BluetoothClass btClass) throws ASAPException {
         String macAddress = btDevice.getAddress();// MAC address
 
+        int btClassMajorNumber = btClass.getMajorDeviceClass();
+
         StringBuilder sb = new StringBuilder();
         sb.append("device found: ");
-        sb.append(macAddress);
-        sb.append(" | ");
+        sb.append("name: ");
         sb.append(btDevice.getName());
-        sb.append(" | ");
-        sb.append("my address: ");
-        sb.append(this.getBTAdapter().getAddress());
+        sb.append("|btClass: ");
+        if ((btClass != null)) {
+            sb.append(String.format("0x%08X", btClass.getDeviceClass()));
+            sb.append(" (major: ");
+            sb.append(String.format("0x%08X", btClassMajorNumber));
+            sb.append(") ");
+        } else {
+            sb.append("non ");
+        }
+        sb.append("|btUuids: ");
+        sb.append(btDevice.getUuids());
         Log.d(this.getLogStart(), sb.toString());
+
+        int btClassNumber = btClass.getDeviceClass();
+
+        if( btClassMajorNumber == BT_MAJOR_CLASS_PHONE) {
+            Log.d(this.getLogStart(), "it's a phone");
+        } else if( btClassMajorNumber ==  BT_MAJOR_CLASS_COMPUTER) {
+            Log.d(this.getLogStart(), "it's a computer");
+        } else {
+            Log.d(this.getLogStart(), "THIS VERSION only tries to contact " +
+                    "PHONES or COMPUTER. This device is neither - ignore it.");
+            return;
+        }
 
         // strongly recommended to stop discovery
         //this.mBluetoothAdapter.cancelDiscovery();

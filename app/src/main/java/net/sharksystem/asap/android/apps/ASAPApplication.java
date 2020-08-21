@@ -324,9 +324,25 @@ public class ASAPApplication extends BroadcastReceiver {
     private Map<CharSequence, Collection<ASAPMessageReceivedListener>> messageReceivedListener
             = new HashMap<>();
 
+    private Map<CharSequence, Collection<ASAPUriContentChangedListener>> uriContentChangedListener
+            = new HashMap<>();
+
     public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
         Log.d(this.getLogStart(), "got chunkReceived message: "
                 + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
+
+        // inform uri changed listener - if any
+        Collection<ASAPUriContentChangedListener> uriListeners =
+                this.uriContentChangedListener.get(format);
+
+        Log.d(this.getLogStart(), "going to inform uri changed listener about it: "
+                + uriListeners);
+
+        if(uriListeners != null) {
+            for(ASAPUriContentChangedListener uriListener : uriListeners) {
+                uriListener.asapUriContentChanged(uri);
+            }
+        }
 
         // inform message listeners - if any
         Collection<ASAPMessageReceivedListener> messageListeners =
@@ -350,6 +366,32 @@ public class ASAPApplication extends BroadcastReceiver {
         }
     }
 
+    public final void addASAPUriContentChangedListener(
+            CharSequence format, ASAPUriContentChangedListener listener) {
+        Log.d(this.getLogStart(), "going to add asap uri changed listener for " + format);
+        Collection<ASAPUriContentChangedListener> uriChangedListeners =
+                this.uriContentChangedListener.get(format);
+
+        if(uriChangedListeners == null) {
+            uriChangedListeners = new HashSet();
+            this.uriContentChangedListener.put(format, uriChangedListeners);
+        }
+
+        uriChangedListeners.add(listener);
+    }
+
+    public final void removeASAPUriContentChangedListener(
+            CharSequence format, ASAPUriContentChangedListener listener) {
+        Collection<ASAPUriContentChangedListener> uriChangedListeners =
+                this.uriContentChangedListener.get(format);
+
+        Log.d(this.getLogStart(), "going to remove asap uri changed listener for " + format);
+
+        if(uriChangedListeners != null) {
+            uriChangedListeners.remove(listener);
+        }
+    }
+
     /**
      * Subscribe to get notified about incoming asap message of a given format/application
      * @param format
@@ -357,7 +399,6 @@ public class ASAPApplication extends BroadcastReceiver {
      */
     public final void addASAPMessageReceivedListener(CharSequence format,
                                        ASAPMessageReceivedListener listener) {
-
         Log.d(this.getLogStart(), "going to add asap message receiver for " + format);
         Collection<ASAPMessageReceivedListener> messageListeners =
                 this.messageReceivedListener.get(format);
