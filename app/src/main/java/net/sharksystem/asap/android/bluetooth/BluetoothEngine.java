@@ -397,17 +397,17 @@ public class BluetoothEngine extends MacLayerEngine {
 
         try {
             if(remoteAddress < myAddress) {
-                Log.d(this.getLogStart(), "block my client socket a moment");
                 if(isClient) {
+                    Log.d(this.getLogStart(), "block my client socket a moment: " + socket);
                     Thread.sleep(500); // let local client socket wait some time
-                    Log.d(this.getLogStart(), "my client socket back in the race");
+                    Log.d(this.getLogStart(), "my client socket back in the race: " + socket);
                 }
             }
             else
-                Log.d(this.getLogStart(), "block my server socket a moment");
                 if(!isClient) {
+                    Log.d(this.getLogStart(), "block my server socket a moment: "+ socket);
                     Thread.sleep(500); // opposite
-                    Log.d(this.getLogStart(), "my server socket back in the race");
+                    Log.d(this.getLogStart(), "my server socket back in the race: " + socket);
                 }
         } catch (InterruptedException e) {
             e.printStackTrace();
