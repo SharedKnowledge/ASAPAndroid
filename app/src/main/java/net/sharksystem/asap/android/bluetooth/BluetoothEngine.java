@@ -311,8 +311,6 @@ public class BluetoothEngine extends MacLayerEngine {
         sb.append(btDevice.getUuids());
         Log.d(this.getLogStart(), sb.toString());
 
-        int btClassNumber = btClass.getDeviceClass();
-
         if( btClassMajorNumber == BT_MAJOR_CLASS_PHONE) {
             Log.d(this.getLogStart(), "it's a phone");
         } else if( btClassMajorNumber ==  BT_MAJOR_CLASS_COMPUTER) {
