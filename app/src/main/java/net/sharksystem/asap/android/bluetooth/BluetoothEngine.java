@@ -379,24 +379,27 @@ public class BluetoothEngine extends MacLayerEngine {
 
         /* There is a race condition which is not that obvious:
         Bot phones A and B are going to initiate a connection. Both also offer a server socket.
-        Assumed, A and B initiate a connection in the same moment. Both would get a connection and
-        launch an ASAP session. If the timing is bad - and that's more likely as I wished -
-        both would be asked from their server sockets to handle a new connection as well.
+        Assumed, A and B initiate a connection in the same moment (create a client socket).
+        Both would get a connection and launch an ASAP session. If the timing is bad - and that's
+        more likely as I wished - both would be asked from their server sockets to handle a
+        new connection as well.
 
-        Unfortunately, both would realize that there is already an existing communication channel
-        and close the server side socket. If the timing is bad (and it will, see Morphy) both
-        have already started their ASAP session with their client sockets.
-        In that case, both channels are gone.
+        In principle, that is what we want. With a bad timing that would happen on both sides, though.
+        In that case, both would realize that there is already an existing communication channel
+        (their own TCP client socket) and close the server side socket. Again, that is what we
+        want - but not on both ends.
+
+        Both connections would be killed. We want one TCP channel to be closed. But only one.
 
         Solution: We implement a bias. Let's say. A smaller remote mac address should use a
         client socket more likely.
         */
 
-        long myAddress = this.sumOfMacAddress(this.mBluetoothAdapter.getAddress());
-        long remoteAddress = this.sumOfMacAddress(remoteMacAddress);
+        long myNumber = this.makeANumberFromMyMacAddress(this.mBluetoothAdapter.getAddress());
+        long remoteNumber = this.makeANumberFromMyMacAddress(remoteMacAddress);
 
         try {
-            if(remoteAddress < myAddress) {
+            if(remoteNumber < myNumber) {
                 if(isClient) {
                     Log.d(this.getLogStart(), "block my client socket a moment: " + socket);
                     Thread.sleep(500); // let local client socket wait some time
@@ -416,7 +419,7 @@ public class BluetoothEngine extends MacLayerEngine {
         this.handleBTSocket(socket);
     }
 
-    private long sumOfMacAddress(String macAddress) {
+    private long makeANumberFromMyMacAddress(String macAddress) {
         String[] split = macAddress.split(":");
 
         long value = 0;

@@ -410,7 +410,7 @@ public class ASAPActivity extends AppCompatActivity implements
 
             Log.d(getLogStart(), "asap activity got connected to asap service");
             if(messageStorage != null && messageStorage.size() > 0) {
-                Log.d(getLogStart(), "send stored messages | #msg = " + messageStorage.size());
+                Log.d(getLogStart(), "send stored service messages | #msg = " + messageStorage.size());
                 for(Message msg : messageStorage) {
                     sendMessage2Service(msg);
                 }

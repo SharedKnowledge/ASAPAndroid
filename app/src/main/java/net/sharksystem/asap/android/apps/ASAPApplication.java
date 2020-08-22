@@ -11,6 +11,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.Utils;
 import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPMessages;
@@ -124,9 +125,14 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     public ASAPStorage getASAPStorage(CharSequence appFormat) throws IOException, ASAPException {
+        Log.d(this.getLogStart(), "convention: asap storage are in a folder ownerName/formatName");
+
+        String rootFolder = this.getApplicationRootFolder(appFormat.toString());
+        Log.d(this.getLogStart(), "use rootFolder: " + rootFolder);
+
         return ASAPEngineFS.getASAPStorage(
                 this.asapOwner.toString(),
-                this.getApplicationRootFolder(appFormat.toString()),
+                rootFolder,
                 appFormat.toString());
     }
 
@@ -188,7 +194,12 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     public String getApplicationRootFolder(String appName) {
-        return this.getASAPRootFolder() + "/" + appName;
+        appName = Utils.url2FileName(appName);
+        String absoluteASAPApplicationRootFolder = this.getASAPRootFolder() + "/" + appName;
+        Log.d(this.getLogStart(), "absolute asap app rootfolder: "
+                + absoluteASAPApplicationRootFolder);
+
+        return absoluteASAPApplicationRootFolder;
     }
 
     public void activityCreated(ASAPActivity asapActivity, boolean initASAPApplication) {

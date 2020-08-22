@@ -25,7 +25,7 @@ public class Util {
     static String makeValidFolderName(CharSequence rootFolder, CharSequence ownerName) {
         // substitute special chars
         String folderName = Utils.url2FileName(ownerName.toString());
-        Log.d("Util", "create asap folder for "
+        Log.d("Util", "create folder for "
                 + ownerName + " | use folderName: " + folderName);
 
         return rootFolder + "/" + folderName;
