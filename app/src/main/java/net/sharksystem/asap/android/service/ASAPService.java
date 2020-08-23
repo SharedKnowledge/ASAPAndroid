@@ -32,12 +32,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Service that searches and creates wifi p2p connections
- * to run an ASAP session.
+ * Service that searches for and creates layer 2 point-to-point connections
+ * to run an ASAP session on.
  */
 
 public class ASAPService extends Service implements ASAPChunkReceivedListener,
         ASAPOnlinePeersChangedListener {
+
+    /** time in minutes until a new connection attempt is made to an already paired device is made*/
+    public static final int WAIT_MINUTES_UNTIL_TRY_RECONNECT = 1; // debugging
+    //public static final int WAIT_UNTIL_TRY_RECONNECT = 30; // real life
 
     private String asapEngineRootFolderName;
 
@@ -164,11 +168,16 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
         Log.d(this.getLogStart(),"work with folder: " + this.asapEngineRootFolderName);
 
+        this.startReconnectPairedDevices();
+
         return super.onStartCommand(intent, flags, startId);
     }
 
     public void onDestroy() {
         super.onDestroy();
+
+        this.stopReconnectPairedDevices();
+
         Log.d(this.getLogStart(),"onDestroy");
     }
     /**
@@ -210,7 +219,11 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     void startBluetooth() {
         Log.d("ASAPService", "start bluetooth");
 
-        BluetoothEngine.getASAPBluetoothEngine(this, this).start();
+        BluetoothEngine btEngine = BluetoothEngine.getASAPBluetoothEngine(this, this);
+        btEngine.start();
+
+        Log.d(this.getLogStart(), "start reconnect thread");
+        this.startReconnectPairedDevices();
 
         Log.d("ASAPService", "started bluetooth");
     }
@@ -224,6 +237,9 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         if(asapBluetoothEngine != null) {
             asapBluetoothEngine.stop();
         }
+
+        Log.d(this.getLogStart(), "stop reconnect thread");
+        this.stopReconnectPairedDevices();
 
         Log.d("ASAPService", "stopped bluetooth");
     }
@@ -253,11 +269,6 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         }
     }
 
-    private String getLogStart() {
-        return Util.getLogStart(this);
-    }
-
-
     //////////////////////////////////////////////////////////////////////////////////////
     //                                  status management                               //
     //////////////////////////////////////////////////////////////////////////////////////
@@ -268,6 +279,72 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         // Wifi.propagateStatus();
     }
 
+    private void checkLayer2ConnectionStatus() {
+        // force layer 2 engine to check their connection status
+        BluetoothEngine asapBluetoothEngine =
+                BluetoothEngine.getASAPBluetoothEngine(this, this);
+
+        asapBluetoothEngine.checkConnectionStatus();
+    }
+
+    private ReconnectTrigger reconnectTrigger = null;
+    public void startReconnectPairedDevices() {
+        if(this.reconnectTrigger != null) {
+            this.reconnectTrigger.terminate();
+        }
+
+        this.reconnectTrigger = new ReconnectTrigger();
+        this.reconnectTrigger.start();
+    }
+
+    public void stopReconnectPairedDevices() {
+        if(this.reconnectTrigger != null) {
+            this.reconnectTrigger.terminate();
+            this.reconnectTrigger = null;
+        }
+    }
+
+    private boolean tryReconnect() {
+        Log.d(this.getLogStart(), "try to reconnect with paired devices");
+
+        BluetoothEngine btEngine =
+                BluetoothEngine.getASAPBluetoothEngine(this, this);
+
+        if(btEngine != null) {
+            return btEngine.tryReconnect();
+        }
+
+        return false;
+    }
+
+    private class ReconnectTrigger extends Thread {
+        private boolean terminated = false;
+        public static final int MAX_FAILATTEMPTS = 3;
+
+        void terminate() { this.terminated = true; }
+
+        public void run() {
+            Log.d(ASAPService.this.getLogStart(), "start new ReconnectTriggerThread");
+            int failedAttemptsCounter = 0;
+
+            while (!this.terminated) {
+                if(!ASAPService.this.tryReconnect()) {
+                    failedAttemptsCounter++;
+                    if(failedAttemptsCounter == MAX_FAILATTEMPTS) {
+                        this.terminate();
+                        break;
+                    }
+                }
+
+                try {
+                    Thread.sleep(ASAPService.WAIT_MINUTES_UNTIL_TRY_RECONNECT * 1000 * 60);
+                } catch (InterruptedException e) {
+                    // ignore this and go ahead
+                }
+            }
+            Log.d(ASAPService.this.getLogStart(), "ReconnectTriggerThread terminated");
+        }
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////
     //                          chunk receiving management                              //
@@ -349,5 +426,11 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         intent.putExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1, serializedOnlinePeers);
 
         this.sendBroadcast(intent);
+
+        this.checkLayer2ConnectionStatus();
+    }
+
+    private String getLogStart() {
+        return Util.getLogStart(this);
     }
 }

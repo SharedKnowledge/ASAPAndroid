@@ -154,6 +154,12 @@ public class WifiP2PEngine extends MacLayerEngine implements
         this.shutdown();
     }
 
+    @Override
+    public boolean tryReconnect() {
+        Log.d(this.getLogStart(), "tryReconnect not implemented.");
+        return false;
+    }
+
     /**
      * called to start peer discovery
      */
@@ -254,6 +260,11 @@ public class WifiP2PEngine extends MacLayerEngine implements
     
     private String getLogStart() {
         return "ASAPWifiP2PEngine";
+    }
+
+    @Override
+    public void checkConnectionStatus() {
+        Log.d(this.getLogStart(), "not implemented: checkConnectionStatus");
     }
 
     //////////////////////////////////////////////////////////////////////////////////////

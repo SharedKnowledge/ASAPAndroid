@@ -38,7 +38,7 @@ class FoundBTDevicesBroadcastReceiver extends BroadcastReceiver {
             Log.d(this.getLogStart(), "found BT class: " + btClass.toString());
 
             try {
-                this.bluetoothEngine.deviceFound(device, btClass);
+                this.bluetoothEngine.tryConnect(device, btClass);
             } catch (ASAPException e) {
                 Log.e(this.getLogStart(),
                         "could not handle device found: " + e.getLocalizedMessage());

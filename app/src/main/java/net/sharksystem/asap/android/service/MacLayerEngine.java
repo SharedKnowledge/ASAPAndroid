@@ -47,6 +47,11 @@ public abstract class MacLayerEngine {
     public abstract void start();
     public abstract void stop();
 
+    /** try to reconnect to previously met (paired devices)
+     * @return true if environment was up and running, false.. if in general impossible to reconnect
+     */
+    public abstract boolean tryReconnect();
+
     public void restart() {
         this.stop();
         this.start();
@@ -126,7 +131,7 @@ public abstract class MacLayerEngine {
         Log.d(this.getLogStart(), "going to launch a new asap connection");
 
         try {
-            Log.d(this.getLogStart(), "call asapMultiEngine to handle connection");
+            Log.d(this.getLogStart(), "call asap peer to handle connection");
 //            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
 //            testConnectionHandler.start();
             this.asapConnections.put(address,
@@ -136,4 +141,6 @@ public abstract class MacLayerEngine {
             Log.d(this.getLogStart(), "while lauching asap connection: " + e.getLocalizedMessage());
         }
     }
+
+    public abstract void checkConnectionStatus();
 }

@@ -1,8 +1,5 @@
 package net.sharksystem.asap.android;
 
-import android.os.Bundle;
-import android.os.Message;
-
 public class ASAPServiceMethods {
 
     ///////////// sending asap messages
@@ -22,6 +19,10 @@ public class ASAPServiceMethods {
     public static final int STOP_BLUETOOTH = 103;
     public static final int START_BLUETOOTH_DISCOVERABLE = 104;
     public static final int START_BLUETOOTH_DISCOVERY = 105;
+
+    // check from time if there is a paired device in the neighbourhood
+    public static final int START_RECONNECT_PAIRED_DEVICES = 106;
+    public static final int STOP_RECONNECT_PAIRED_DEVICES = 107;
 
     ///////////// asap engine management
     public static final int START_BROADCASTS = 200;

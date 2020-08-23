@@ -66,8 +66,12 @@ class ASAPMessageHandler extends Handler {
                     this.asapService.startBluetoothDiscovery();
                     break;
 
-                case ASAPServiceMethods.START_BROADCASTS:
-                    this.asapService.resumeBroadcasts();
+                case ASAPServiceMethods.START_RECONNECT_PAIRED_DEVICES:
+                    this.asapService.startReconnectPairedDevices();
+                    break;
+
+                case ASAPServiceMethods.STOP_RECONNECT_PAIRED_DEVICES:
+                    this.asapService.startReconnectPairedDevices();
                     break;
 
                 case ASAPServiceMethods.STOP_BROADCASTS:

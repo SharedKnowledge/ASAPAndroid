@@ -16,8 +16,12 @@ import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED;
 import static android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED;
@@ -56,6 +60,12 @@ public class BluetoothEngine extends MacLayerEngine {
             // Device doesn't support Bluetooth
             Log.i(this.getLogStart(), "device does not support bluetooth - give up");
         }
+
+        // auto start
+        if(this.mBluetoothAdapter.isEnabled()) {
+            Log.i(this.getLogStart(), "Bluetooth is on - activate ASAP bluetooth stuff");
+            this.start();
+        }
     }
 
     private String getLogStart() {
@@ -74,6 +84,10 @@ public class BluetoothEngine extends MacLayerEngine {
         } catch (ASAPException e) {
             Log.e(this.getLogStart(), "could not shutdown bt: " + e.getLocalizedMessage());
         }
+    }
+
+    public boolean started() {
+        return this.btEnvironmentOn;
     }
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -289,8 +303,9 @@ public class BluetoothEngine extends MacLayerEngine {
     public static final int BT_MAJOR_CLASS_PHONE = 0x00000200;
     public static final int BT_MAJOR_CLASS_COMPUTER = 0x00000100;
 
-    void deviceFound(BluetoothDevice btDevice, BluetoothClass btClass) throws ASAPException {
-        String macAddress = btDevice.getAddress();// MAC address
+    void tryConnect(BluetoothDevice btDevice, BluetoothClass btClass) throws ASAPException {
+        btClass = btDevice.getBluetoothClass();
+        String macAddress = btDevice.getAddress(); // MAC address
 
         int btClassMajorNumber = btClass.getMajorDeviceClass();
 
@@ -327,7 +342,7 @@ public class BluetoothEngine extends MacLayerEngine {
         //this.mBluetoothAdapter.cancelDiscovery();
 
         // already connected?
-        if(this.checkAlreadyConnected(macAddress)) return;
+        if(this.checkAlreadyConnectedWithDevice(macAddress)) return;
 
         if(this.shouldConnectToMACPeer(macAddress)) {
             Log.d(this.getLogStart(), "create a BT client socket thread");
@@ -338,7 +353,7 @@ public class BluetoothEngine extends MacLayerEngine {
         }
     }
 
-    private boolean checkAlreadyConnected(String macAddress) {
+    private boolean checkAlreadyConnectedWithDevice(String macAddress) {
         BluetoothSocket bluetoothSocket = this.openSockets.get(macAddress);
         if(bluetoothSocket != null) {
             if(bluetoothSocket.isConnected()) {
@@ -355,7 +370,71 @@ public class BluetoothEngine extends MacLayerEngine {
         return false;
     }
 
+    @Override
+    public boolean tryReconnect() {
+        if(!this.started()) {
+            Log.d(this.getLogStart(), "don't try to reconnect: BT is not running");
+            return false;
+        }
+
+        boolean anySuccess = false;
+
+        // stolen from: https://developer.android.com/guide/topics/connectivity/bluetooth#java
+        Set<BluetoothDevice> pairedDevices = this.mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            // There are paired devices. Get the name and address of each paired device.
+            for (BluetoothDevice btDevice : pairedDevices) {
+                String deviceName = btDevice.getName();
+                String deviceHardwareAddress = btDevice.getAddress(); // MAC address
+
+                try {
+                    this.tryConnect(btDevice, btDevice.getBluetoothClass());
+                    anySuccess = true; // at least no exception
+                } catch (ASAPException e) {
+                    Log.d(this.getLogStart(), "problems reconnecting: "
+                            + e.getLocalizedMessage());
+                }
+            }
+        }
+
+        return anySuccess;
+    }
+
     private Map<String, BluetoothSocket> openSockets = new HashMap<>();
+
+    @Override
+    public void checkConnectionStatus() {
+        Log.d(this.getLogStart(), "check connection status");
+        // some structures are sensitive about changes when their are used
+        List<String> names2remove = new ArrayList<>();
+
+        for(String connectionName : this.openSockets.keySet()) {
+            BluetoothSocket bluetoothSocket = this.openSockets.get(connectionName);
+            StringBuilder sb = new StringBuilder();
+            sb.append("name: ");
+            sb.append(connectionName);
+            sb.append(" | isConnected: ");
+            sb.append(bluetoothSocket.isConnected());
+            Log.d(this.getLogStart(), sb.toString());
+
+            if(!bluetoothSocket.isConnected()) {
+                try {
+                    names2remove.add(connectionName);
+                    bluetoothSocket.close(); // not necessary but better save than sorry
+                    Log.d(this.getLogStart(), "removed closed socket to " + connectionName);
+                } catch (IOException e) {
+                    Log.d(this.getLogStart(),
+                            "checkConnectionStatus - closing an unconnected socket: "
+                                    + e.getLocalizedMessage());
+                }
+            }
+        }
+
+        // remove
+        for(String name : names2remove) {
+            this.openSockets.remove(name);
+        }
+    }
 
     /**
      * Both client and server sockets
@@ -372,7 +451,7 @@ public class BluetoothEngine extends MacLayerEngine {
         Log.d(this.getLogStart(), logMessage + remoteMacAddress);
 
         // already an open connection?
-        if (this.checkAlreadyConnected(remoteMacAddress)) {
+        if (this.checkAlreadyConnectedWithDevice(remoteMacAddress)) {
             socket.close();
             return;
         }
@@ -440,7 +519,7 @@ public class BluetoothEngine extends MacLayerEngine {
         String address = socket.getRemoteDevice().getAddress();
 
         // already an open connection?
-        if (this.checkAlreadyConnected(address)) {
+        if (this.checkAlreadyConnectedWithDevice(address)) {
             socket.close();
             return;
         }
