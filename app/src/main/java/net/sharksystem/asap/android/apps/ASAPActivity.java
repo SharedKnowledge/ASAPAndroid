@@ -219,14 +219,28 @@ public class ASAPActivity extends AppCompatActivity implements
         this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERY);
     }
 
+    /*
+    There is a race condition:
+    ASAPActivity a can launch ASAPActivity b. It happens (quite often actually) that a.onStop()
+    is processed after b.onStart() or b.onResume(). In that case, startASAPBroadcast are called
+    twice in the row (a.onStart() sometimes earlier, than b.onStart()) followed by
+    stopASAPBroadcast issued by a.onStop(). b would not receive any broadcast - ASAP service
+    was told to stop to send broadcasts.
+
+    Solution: We only stop broadcasting if there if the last activity signs off.
+     */
     public void startASAPEngineBroadcasts() {
         Log.d(this.getLogStart(), "send message to service: start ASAP Engine Broadcasts");
         this.sendMessage2Service(ASAPServiceMethods.START_BROADCASTS);
     }
 
     public void stopASAPEngineBroadcasts() {
-        Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
-        this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+        if(this.getASAPApplication().getNumberASAPActivities() == 1) {
+            Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
+            this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
+        } else {
+            Log.d(this.getLogStart(), "don't stop broadcasts there are still listeners");
+        }
     }
 
     public void refreshProtocolStatus() {

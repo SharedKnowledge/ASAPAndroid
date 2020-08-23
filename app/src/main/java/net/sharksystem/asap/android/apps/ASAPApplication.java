@@ -52,7 +52,7 @@ public class ASAPApplication extends BroadcastReceiver {
     private List<String> requiredPermissions;
     private List<String> grantedPermissions = new ArrayList<>();
     private List<String> deniedPermissions = new ArrayList<>();
-    private int activityCount = 0;
+    private int activityASAPActivities = 0;
     private List<CharSequence> onlinePeerList = new ArrayList<>();
 
     /**
@@ -63,6 +63,10 @@ public class ASAPApplication extends BroadcastReceiver {
     protected ASAPApplication(Collection<CharSequence> supportedFormats) {
         this(supportedFormats, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
                 ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
+    }
+
+    int getNumberASAPActivities() {
+        return this.activityASAPActivities;
     }
 
     /**
@@ -206,15 +210,15 @@ public class ASAPApplication extends BroadcastReceiver {
         this.setActivity(asapActivity);
         if(initASAPApplication) this.initialize();
 
-        this.activityCount++;
+        this.activityASAPActivities++;
         Log.d(this.getLogStart(), "activity created. New activity count == "
-                + this.activityCount);
+                + this.activityASAPActivities);
     }
 
     public void activityDestroyed(ASAPActivity asapActivity) {
-        this.activityCount--;
+        this.activityASAPActivities--;
         Log.d(this.getLogStart(), "activity destroyed. New activity count == "
-                + this.activityCount);
+                + this.activityASAPActivities);
     }
 
     public ASAPActivity getActivity() {

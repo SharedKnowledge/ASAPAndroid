@@ -38,6 +38,14 @@ class ASAPMessageHandler extends Handler {
                     this.handleCreateClosedChannel(msg);
                     break;
 
+                case ASAPServiceMethods.START_BROADCASTS:
+                    this.asapService.resumeBroadcasts();
+                    break;
+
+                case ASAPServiceMethods.STOP_BROADCASTS:
+                    this.asapService.pauseBroadcasts();
+                    break;
+
                 case ASAPServiceMethods.START_WIFI_DIRECT:
                     this.asapService.startWifiDirect();
                     break;
@@ -72,10 +80,6 @@ class ASAPMessageHandler extends Handler {
 
                 case ASAPServiceMethods.STOP_RECONNECT_PAIRED_DEVICES:
                     this.asapService.startReconnectPairedDevices();
-                    break;
-
-                case ASAPServiceMethods.STOP_BROADCASTS:
-                    this.asapService.pauseBroadcasts();
                     break;
 
                 default:
