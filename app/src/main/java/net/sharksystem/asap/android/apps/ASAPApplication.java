@@ -465,6 +465,6 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     private String getLogStart() {
-        return this.getClass().getSimpleName();
+        return "ASAPApplication";
     }
 }

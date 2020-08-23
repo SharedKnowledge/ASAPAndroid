@@ -24,6 +24,7 @@ public class ASAPServiceMessage {
     private byte[] message = null;
     private String readableName;
     private boolean persistent;
+    private boolean eraNotSet = false;
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -285,8 +286,12 @@ public class ASAPServiceMessage {
     private void parseEra(Bundle msgData, boolean mandatory) throws ASAPException {
         this.era = msgData.getInt(ASAPServiceMethods.ERA_TAG, ERA_TAG_NOT_SET);
 
-        if(mandatory && this.era == ERA_TAG_NOT_SET) {
-            throw new ASAPException("era must be set");
+        if(this.era == ERA_TAG_NOT_SET) {
+            if(mandatory) throw new ASAPException("era must be set");
+            else {
+                this.eraNotSet = true;
+                this.era = 0;
+            }
         }
     }
 
@@ -334,8 +339,15 @@ public class ASAPServiceMessage {
 
     public CharSequence getURI() { return this.uri; }
 
-    public int getEra() { return this.era; }
-    public boolean isEraSet() { return this.era != ERA_TAG_NOT_SET; }
+    public int getEra() {
+        if(this.era < 0) {
+            Log.d(this.getLogStart(), "era must not be negative - replace with 0: " + this.era);
+            this.eraNotSet = true;
+            this.era = 0;
+        }
+        return this.era;
+    }
+    public boolean isEraSet() { return !this.eraNotSet; }
 
     public byte[] getASAPMessage() { return this.message; }
     public boolean isASAPMessageSet() { return this.message != null && this.message.length > 0;}
