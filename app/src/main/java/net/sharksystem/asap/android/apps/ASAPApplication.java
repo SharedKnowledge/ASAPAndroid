@@ -465,6 +465,8 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     private String getLogStart() {
+//        int objectID = this.hashCode();
+//        return "ASAPApplication(" + objectID + ")";
         return "ASAPApplication";
     }
 }
