@@ -15,6 +15,8 @@ import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -358,11 +360,12 @@ public class BluetoothEngine extends MacLayerEngine {
         if(bluetoothSocket != null) {
             if(bluetoothSocket.isConnected()) {
                 Log.d(this.getLogStart(), "we already have an open and active connection to "
-                        + macAddress);
+                        + macAddress + " | " + bluetoothSocket);
                 return true;
             } else {
                 // there is an entry but not connected anymore (?)
-                Log.d(this.getLogStart(), "remove socket - it is not longer (?) connected");
+                Log.d(this.getLogStart(), "remove socket - it is not longer (?) connected "
+                        + bluetoothSocket);
                 this.openSockets.remove(macAddress);
             }
         }
@@ -415,6 +418,9 @@ public class BluetoothEngine extends MacLayerEngine {
             sb.append(connectionName);
             sb.append(" | isConnected: ");
             sb.append(bluetoothSocket.isConnected());
+            sb.append(" | socket: ");
+            sb.append(bluetoothSocket);
+
             Log.d(this.getLogStart(), sb.toString());
 
             if(!bluetoothSocket.isConnected()) {
@@ -446,7 +452,7 @@ public class BluetoothEngine extends MacLayerEngine {
         String remoteMacAddress = socket.getRemoteDevice().getAddress();
 
         String logMessage = isClient ? "Client" : "Server";
-        logMessage += "socket called: handle new BT connection to ";
+        logMessage += "socket called: handle new BT connection" + socket;
 
         Log.d(this.getLogStart(), logMessage + remoteMacAddress);
 
@@ -456,80 +462,26 @@ public class BluetoothEngine extends MacLayerEngine {
             return;
         }
 
-        /* There is a race condition which is not that obvious:
-        Bot phones A and B are going to initiate a connection. Both also offer a server socket.
-        Assumed, A and B initiate a connection in the same moment (create a client socket).
-        Both would get a connection and launch an ASAP session. If the timing is bad - and that's
-        more likely as I wished - both would be asked from their server sockets to handle a
-        new connection as well.
+        // avoid the nasty race condition
+        boolean waited = this.waitBeforeASAPSessionLaunch(
+                socket.getInputStream(),
+                socket.getOutputStream(),
+                isClient, 500);
 
-        In principle, that is what we want. With a bad timing that would happen on both sides, though.
-        In that case, both would realize that there is already an existing communication channel
-        (their own TCP client socket) and close the server side socket. Again, that is what we
-        want - but not on both ends.
-
-        Both connections would be killed. We want one TCP channel to be closed. But only one.
-
-        Solution: We implement a bias. Let's say. A smaller remote mac address should use a
-        client socket more likely.
-        */
-
-        long myNumber = this.makeANumberFromMyMacAddress(this.mBluetoothAdapter.getAddress());
-        long remoteNumber = this.makeANumberFromMyMacAddress(remoteMacAddress);
-
-        try {
-            if(remoteNumber < myNumber) {
-                if(isClient) {
-                    Log.d(this.getLogStart(), "block my client socket a moment: " + socket);
-                    Thread.sleep(500); // let local client socket wait some time
-                    Log.d(this.getLogStart(), "my client socket back in the race: " + socket);
-                }
+        // ask again?
+        if(waited) {
+            if (this.checkAlreadyConnectedWithDevice(remoteMacAddress)) {
+                socket.close();
+                return;
             }
-            else
-                if(!isClient) {
-                    Log.d(this.getLogStart(), "block my server socket a moment: "+ socket);
-                    Thread.sleep(500); // opposite
-                    Log.d(this.getLogStart(), "my server socket back in the race: " + socket);
-                }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        this.handleBTSocket(socket);
-    }
-
-    private long makeANumberFromMyMacAddress(String macAddress) {
-        String[] split = macAddress.split(":");
-
-        long value = 0;
-        for(String part : split) {
-            try {
-                value += Long.parseLong(part);
-            }
-            catch (NumberFormatException e) {
-                // ignore - we just need a number
-            }
-        }
-
-        return value;
-    }
-
-    private synchronized void handleBTSocket(BluetoothSocket socket) throws IOException {
-        Log.d(this.getLogStart(), "in synchronized handleSocket()");
-        String address = socket.getRemoteDevice().getAddress();
-
-        // already an open connection?
-        if (this.checkAlreadyConnectedWithDevice(address)) {
-            socket.close();
-            return;
         }
 
         // remember that new connection
-        Log.d(this.getLogStart(), "remember socket");
-        this.openSockets.put(address, socket);
+        Log.d(this.getLogStart(), "remember socket: " + socket);
+        this.openSockets.put(remoteMacAddress, socket);
 
         Log.d(this.getLogStart(), "launch asap session");
-        this.launchASAPConnection(address, socket.getInputStream(), socket.getOutputStream());
+        this.launchASAPConnection(remoteMacAddress, socket.getInputStream(), socket.getOutputStream());
     }
 
     public void propagateStatus(Context ctx) throws ASAPException {
