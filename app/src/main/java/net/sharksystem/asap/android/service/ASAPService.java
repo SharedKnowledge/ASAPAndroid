@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Service that searches for and creates layer 2 point-to-point connections
@@ -46,7 +47,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private String asapEngineRootFolderName;
 
     //private asapMultiEngine asapMultiEngine = null;
-    private ASAPPeer asapMultiEngine;
+    private ASAPPeer asapPeer;
     private ASAPOnlineMessageSender asapOnlineMessageSender;
     private CharSequence owner;
     private CharSequence rootFolder;
@@ -60,7 +61,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
     public ASAPPeer getASAPPeer() {
         Log.d(this.getLogStart(), "asap peer is a singleton.");
-        if(this.asapMultiEngine == null) {
+        if(this.asapPeer == null) {
             Log.d(this.getLogStart(), "going to set up asapPeer");
 
             // check write permissions
@@ -84,18 +85,18 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                     Log.d(this.getLogStart(),"done creating root folder");
                 }
 
-                this.asapMultiEngine = ASAPPeerFS.createASAPPeer(
+                this.asapPeer = ASAPPeerFS.createASAPPeer(
                         this.owner, this.asapEngineRootFolderName,
                         this.maxExecutionTime, this.supportedFormats, this);
 
                 Log.d(this.getLogStart(),"engines created");
 
                 // listener for radar app
-                this.asapMultiEngine.addOnlinePeersChangedListener(this);
+                this.asapPeer.addOnlinePeersChangedListener(this);
                 Log.d(this.getLogStart(),"added online peer changed listener");
 
                 // add online feature to each engine
-                this.asapMultiEngine.activateOnlineMessages();
+                this.asapPeer.activateOnlineMessages();
                 Log.d(this.getLogStart(),"online messages activated for ALL asap engines");
 
             } catch (IOException e) {
@@ -111,7 +112,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             Log.d(this.getLogStart(), "peer was already created");
         }
 
-        return this.asapMultiEngine;
+        return this.asapPeer;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -396,12 +397,12 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
 
     public ASAPOnlineMessageSender getASAPOnlineMessageSender() throws ASAPException {
         if(this.asapOnlineMessageSender == null) {
-            if(this.asapMultiEngine == null) {
+            if(this.asapPeer == null) {
                 throw new ASAPException("asap engine not initialized");
             }
 
             this.asapOnlineMessageSender =
-                    new ASAPOnlineMessageSenderEngineSide(this.asapMultiEngine);
+                    new ASAPOnlineMessageSenderEngineSide(this.asapPeer);
         }
 
         return this.asapOnlineMessageSender;
@@ -410,6 +411,8 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     //////////////////////////////////////////////////////////////////////////////////
     //                           ASAPOnlinePeersChangedListener                     //
     //////////////////////////////////////////////////////////////////////////////////
+
+    private int numberOnlinePeers = 0;
 
     @Override
     public void onlinePeersChanged(ASAPPeer asapPeer) {
@@ -428,6 +431,20 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         this.sendBroadcast(intent);
 
         this.checkLayer2ConnectionStatus();
+
+        // force reconnection - to re-establish a accidentally broken connection
+        int onlinePeerPreviously = this.numberOnlinePeers;
+        Log.d(this.getLogStart(), "formed number of online peers: " + onlinePeerPreviously);
+        Set<CharSequence> onlinePeers = this.asapPeer.getOnlinePeers();
+        if(onlinePeers != null) {
+            this.numberOnlinePeers = onlinePeers.size();
+            Log.d(this.getLogStart(), "current number of online peers: "
+                    + this.numberOnlinePeers);
+
+            if(this.numberOnlinePeers < onlinePeerPreviously) {
+                this.startReconnectPairedDevices();
+            }
+        }
     }
 
     private String getLogStart() {
