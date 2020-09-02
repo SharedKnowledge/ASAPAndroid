@@ -36,13 +36,18 @@ public class ASAPServiceCreationIntent extends Intent {
         if(owner == null || rootFolder == null)
             throw new ASAPException("parameters must no be null");
 
+        this.owner = owner;
+        this.rootFolder = rootFolder;
+        this.onlineExchange = onlineExchange;
+        this.maxExecutionTime = maxExecutionTime;
+
         this.putExtra(ASAPAndroid.USER, owner);
         this.putExtra(ASAPAndroid.FOLDER, rootFolder);
         this.putExtra(ASAPAndroid.ONLINE_EXCHANGE, onlineExchange);
         this.putExtra(ASAPAndroid.MAX_EXECUTION_TIME, maxExecutionTime);
 
         if(supportedFormats != null) {
-            ArrayList<CharSequence> supportFormatsList = new ArrayList<>();
+            this.supportFormatsList = new ArrayList<>();
             for (CharSequence supportedFormat : supportedFormats) {
                 supportFormatsList.add(supportedFormat);
             }
@@ -50,13 +55,6 @@ public class ASAPServiceCreationIntent extends Intent {
         } else {
             Log.d(this.getLogStart(), "no format set - FAILURE?");
         }
-
-
-        this.owner = owner;
-        this.rootFolder = rootFolder;
-        this.onlineExchange = onlineExchange;
-        this.maxExecutionTime = maxExecutionTime;
-        this.supportFormatsList = supportFormatsList;
     }
 
     public ASAPServiceCreationIntent(Intent intent) {

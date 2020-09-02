@@ -15,8 +15,9 @@ import net.sharksystem.asap.android.R;
 import java.io.IOException;
 import java.util.List;
 
-public class ASAPExampleActivity extends ASAPExampleRootActivity {
+import static net.sharksystem.asap.android.example.ASAPExampleApplication.ASAP_EXAMPLE_APPNAME;
 
+public class ASAPExampleActivity extends ASAPExampleRootActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -168,7 +169,7 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
         ASAPEngineFS.removeFolder(absoluteFolderName);
 
         Log.d(this.getLogStart(), "create asap storage with:  "
-                + this.getASAPApplication().getASAPOwnerID()
+                + this.getASAPApplication().getOwnerID()
                 + " | "
                 + this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME)
                 + " | "
@@ -176,7 +177,7 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
         );
 
         this.asapStorage = ASAPEngineFS.getASAPStorage(
-                        this.getASAPApplication().getASAPOwnerID().toString(),
+                        this.getASAPApplication().getOwnerID().toString(),
                         this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME),
                         ASAP_EXAMPLE_APPNAME);
     }

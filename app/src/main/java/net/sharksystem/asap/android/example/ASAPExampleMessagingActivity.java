@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static net.sharksystem.asap.android.example.ASAPExampleApplication.ASAP_EXAMPLE_APPNAME;
+
 public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
     private static final CharSequence EXAMPLE_URI ="asap://exampleURI";
     private static final CharSequence EXAMPLE_MESSAGE = "ASAP example message";
@@ -33,7 +35,7 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         // set URI - your app can or your users can choose any valid uri.
         TextView uriTextView = findViewById(R.id.exampleMessagingUri);
 
-        uriTextView.setText("your owner id: " + this.getASAPApplication().getASAPOwnerID()
+        uriTextView.setText("your owner id: " + this.getASAPApplication().getOwnerID()
                 + "channel URI: " + EXAMPLE_URI);
 
         EditText messageEditView = findViewById(R.id.exampleMessagingMessageText);
@@ -49,7 +51,7 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
 
         // set listener to get informed about newly arrived messages
         this.getASAPApplication().addASAPMessageReceivedListener(
-                ASAPExampleActivity.ASAP_EXAMPLE_APPNAME, // listen to this app
+                ASAP_EXAMPLE_APPNAME, // listen to this app
                 this.receivedListener);
     }
 
@@ -57,7 +59,7 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
     protected void onDestroy() {
         super.onDestroy();
         this.getASAPApplication().removeASAPMessageReceivedListener(
-                ASAPExampleActivity.ASAP_EXAMPLE_APPNAME,
+                ASAP_EXAMPLE_APPNAME,
                 this.receivedListener);
     }
 
@@ -79,7 +81,7 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
 
         try {
             this.sendASAPMessage(
-                    ASAPExampleActivity.ASAP_EXAMPLE_APPNAME,
+                    ASAP_EXAMPLE_APPNAME,
                     EXAMPLE_URI,
                     byteContent,
                     true);

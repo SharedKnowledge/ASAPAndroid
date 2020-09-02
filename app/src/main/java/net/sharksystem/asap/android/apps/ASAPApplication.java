@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.support.annotation.CallSuper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -37,8 +38,8 @@ import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 public class ASAPApplication extends BroadcastReceiver {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
     private static ASAPApplication singleton;
-    private final Collection<CharSequence> supportedFormats;
-    private CharSequence asapOwner;
+    private Collection<CharSequence> supportedFormats;
+    private CharSequence asapOwner = null;
     private CharSequence rootFolder;
     private boolean onlineExchange;
     private boolean initialized = false;
@@ -47,7 +48,7 @@ public class ASAPApplication extends BroadcastReceiver {
     private boolean btDisoveryOn = false;
     private boolean btEnvironmentOn = false;
 
-    private ASAPActivity activity;
+    private Activity activity;
 
     private List<String> requiredPermissions;
     private List<String> grantedPermissions = new ArrayList<>();
@@ -60,9 +61,9 @@ public class ASAPApplication extends BroadcastReceiver {
      * @param supportedFormats ensure that asap engines using that formats are present -
      *                         create if necessary.
      */
-    protected ASAPApplication(Collection<CharSequence> supportedFormats) {
+    protected ASAPApplication(Collection<CharSequence> supportedFormats, Activity initialActivity) {
         this(supportedFormats, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
-                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
+                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT, initialActivity);
     }
 
     int getNumberASAPActivities() {
@@ -73,43 +74,62 @@ public class ASAPApplication extends BroadcastReceiver {
      * setup application without parameter. Use default for owner, root folder for asap storage
      * and online exchange behaviour. Don't setup any asap engine - take engines which are
      * already present when starting up.
-     */
-    protected ASAPApplication() {
+    protected ASAPApplication(Activity initialActivity) {
         this(null, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
                 ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
     }
+     */
 
     protected ASAPApplication(Collection<CharSequence> supportedFormats,
                 CharSequence asapOwner,
                 CharSequence rootFolder,
-                boolean onlineExchange) {
+                boolean onlineExchange,
+                Activity initialActivity) {
 
         this.supportedFormats = supportedFormats;
         this.asapOwner = asapOwner;
         this.rootFolder = rootFolder;
         this.onlineExchange = onlineExchange;
+
+        // set context
+        this.setActivity(initialActivity);
+
+        Log.d(this.getLogStart(), "initialize ASAP Application user side");
+        // required permissions
+        this.requiredPermissions = new ArrayList<>();
+        this.requiredPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        this.requiredPermissions.add(Manifest.permission.ACCESS_WIFI_STATE);
+        this.requiredPermissions.add(Manifest.permission.CHANGE_WIFI_STATE);
+        this.requiredPermissions.add(Manifest.permission.CHANGE_NETWORK_STATE);
+        this.requiredPermissions.add(Manifest.permission.INTERNET);
+        this.requiredPermissions.add(Manifest.permission.BLUETOOTH);
+        this.requiredPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
+        this.requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        // check for write permissions
+        Log.d(this.getLogStart(), "ask for required permissions");
+        this.askForPermissions();
     }
 
-    private void initialize() {
+    @CallSuper
+    public void startASAPApplication() {
         if(!this.initialized) {
-            Log.d(this.getLogStart(), "initialize ASAP Application user side");
+            Log.d(this.getLogStart(), "initialize and launch ASAP Service");
+            // collect parameters
+            if(this.asapOwner == null || this.asapOwner.equals(ASAPAndroid.UNKNOWN_USER)) {
+                Log.d(this.getLogStart(), "asapOwnerID not set at all or set to default - call getASAPOwnerID");
+                this.asapOwner = this.getOwnerID();
+            } else {
+                Log.d(this.getLogStart(), "owner already set");
+            }
 
-            // required permissions
-            this.requiredPermissions = new ArrayList<>();
-            this.requiredPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            this.requiredPermissions.add(Manifest.permission.ACCESS_WIFI_STATE);
-            this.requiredPermissions.add(Manifest.permission.CHANGE_WIFI_STATE);
-            this.requiredPermissions.add(Manifest.permission.CHANGE_NETWORK_STATE);
-            this.requiredPermissions.add(Manifest.permission.INTERNET);
-            this.requiredPermissions.add(Manifest.permission.BLUETOOTH);
-            this.requiredPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
-            this.requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+            if(this.supportedFormats == null || this.supportedFormats.size() < 1) {
+                Log.d(this.getLogStart(), "supportedFormats null or empty - call getSupportedFormats()");
+                this.supportedFormats = this.getSupportFormats();
+            } else {
+                Log.d(this.getLogStart(), "supportedFormats already set");
+            }
 
-            // check for write permissions
-            this.askForPermissions();
-
-            // get owner when initializing
-            this.asapOwner = this.getASAPOwnerID();
             //this.rootFolder = this.getASAPRootFolder(); // service creates absolute path
             this.onlineExchange = this.getASAPOnlineExchange();
 
@@ -125,6 +145,8 @@ public class ASAPApplication extends BroadcastReceiver {
             } catch (ASAPException e) {
                 Log.e(this.getLogStart(), "could not start ASAP Service - fatal");
             }
+        } else {
+            Log.e(this.getLogStart(), "try to re-start application - not allowed. Ignored");
         }
     }
 
@@ -153,14 +175,22 @@ public class ASAPApplication extends BroadcastReceiver {
 
     public CharSequence getASAPRootFolder() {
         return Util.getASAPRootDirectory(
-                this.getActivity(), this.rootFolder, this.asapOwner).getAbsolutePath();
+                this.getActivity(), this.rootFolder, this.getOwnerID()).getAbsolutePath();
+    }
+
+    public CharSequence getASAPComponentFolder(CharSequence format) {
+        return this.getASAPRootFolder() +"/" + format;
     }
 
     /**
      * could be overwritten
      */
-    public CharSequence getASAPOwnerID() {
+    public CharSequence getOwnerID() {
         return this.asapOwner;
+    }
+
+    public CharSequence getOwnerName() {
+        return ASAPEngineFS.ANONYMOUS_OWNER;
     }
 
     public Collection<CharSequence> getSupportFormats() {
@@ -169,32 +199,28 @@ public class ASAPApplication extends BroadcastReceiver {
 
     public static ASAPApplication getASAPApplication() {
         if(ASAPApplication.singleton == null) {
-            ASAPApplication.singleton = new ASAPApplication();
+            throw new ASAPComponentNotYetInitializedException("ASAP Application not yet initialized");
         }
 
         return ASAPApplication.singleton;
     }
 
-    protected void setASAPApplication(ASAPApplication asapApplication) {
-        ASAPApplication.singleton = asapApplication;
-    }
-
-    public static ASAPApplication getASAPApplication(Collection<CharSequence> supportedFormats) {
+    public static ASAPApplication initializeASAPApplication(
+            Collection<CharSequence> supportedFormats, Activity initialActivity) {
         if(ASAPApplication.singleton == null) {
-            ASAPApplication.singleton = new ASAPApplication(supportedFormats);
+            ASAPApplication.singleton = new ASAPApplication(supportedFormats, initialActivity);
+        } else {
+            Log.e(ASAPApplication.class.getSimpleName(),
+                    "tried to initialized already initialized application - ignored.");
         }
 
         return ASAPApplication.singleton;
     }
 
-    public static ASAPApplication getASAPApplication(CharSequence supportedFormat) {
-        if(ASAPApplication.singleton == null) {
-            Collection<CharSequence> formats = new HashSet<>();
-            formats.add(supportedFormat);
-            ASAPApplication.singleton = new ASAPApplication(formats);
-        }
-
-        return ASAPApplication.singleton;
+    public static ASAPApplication initializeASAPApplication(
+            CharSequence supportedFormat, Activity initialActivity) {
+        Collection<CharSequence> formats = new HashSet<>();
+        return ASAPApplication.initializeASAPApplication(formats, initialActivity);
     }
 
     public String getApplicationRootFolder(String appName) {
@@ -206,26 +232,30 @@ public class ASAPApplication extends BroadcastReceiver {
         return absoluteASAPApplicationRootFolder;
     }
 
-    public void activityCreated(ASAPActivity asapActivity, boolean initASAPApplication) {
+    @CallSuper
+    public void activityCreated(ASAPActivity asapActivity) {
         this.setActivity(asapActivity);
-        if(initASAPApplication) this.initialize();
+        /* was to tricky barely understandable
+        if(initASAPApplication) this.startASAPApplication();
+         */
 
         this.activityASAPActivities++;
         Log.d(this.getLogStart(), "activity created. New activity count == "
                 + this.activityASAPActivities);
     }
 
+    @CallSuper
     public void activityDestroyed(ASAPActivity asapActivity) {
         this.activityASAPActivities--;
         Log.d(this.getLogStart(), "activity destroyed. New activity count == "
                 + this.activityASAPActivities);
     }
 
-    public ASAPActivity getActivity() {
+    public Activity getActivity() {
         return this.activity;
     }
 
-    void setActivity(ASAPActivity activity) {
+    void setActivity(Activity activity) {
         Log.d(this.getLogStart(), "activity set");
         this.activity = activity;
     }
@@ -239,7 +269,7 @@ public class ASAPApplication extends BroadcastReceiver {
         String wantedPermission = requiredPermissions.remove(0);
         Log.d(this.getLogStart(), "handle permission " + wantedPermission);
 
-        if (ContextCompat.checkSelfPermission(this.activity, wantedPermission)
+        if (ContextCompat.checkSelfPermission(this.getActivity(), wantedPermission)
                 == PackageManager.PERMISSION_GRANTED) {
             // already granted
             Log.d(this.getLogStart(), wantedPermission + " already granted");
@@ -462,6 +492,10 @@ public class ASAPApplication extends BroadcastReceiver {
         }
 
         this.onlinePeerList = peerList;
+    }
+
+    public void setupDrawerLayout(Activity activity) {
+        Log.d(this.getLogStart(), "setupDrawerLayout dummy called: could be overwritten if needed. Don't do anything here");
     }
 
     private String getLogStart() {
