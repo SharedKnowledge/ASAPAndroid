@@ -41,6 +41,11 @@ public class ASAPActivity extends AppCompatActivity implements
 
     private ASAPApplication asapApplication;
 
+    /**
+     * Create a new activity object. Make sure your application object is fully
+     * instantiated
+     * @param asapApplication
+     */
     public ASAPActivity(ASAPApplication asapApplication) {
         this.asapApplication = asapApplication;
     }
@@ -51,13 +56,17 @@ public class ASAPActivity extends AppCompatActivity implements
 
     /**
      * Create a closed asap channel. Ensure to call this method before ever sending a message into
-     * that channel.
-     * @param appName
-     * @param uri
-     * @param recipients
+     * that channel. Any prior message would create an open channel with unrestricted recipient list.
+     * (It sound worse than it is, though. Have a look at the concept description of ASAP.)
+     * @param appName format / appName of your application and its ASAPEngine
+     * @param uri describes content within your application
+     * @param recipients list of recipients. Only peers on that list will even get this message.
+     *                   This is more than setting access rights. It like a registered letter.
+     *                   Peers which are not on the list will not even be aware of the existence
+     *                   of this channel and it messages.
      * @throws ASAPException
      */
-    public void createClosedASAPChannel(CharSequence appName, CharSequence uri,
+    public final void createClosedASAPChannel(CharSequence appName, CharSequence uri,
                     Collection<CharSequence> recipients) throws ASAPException {
 
         ASAPServiceMessage createClosedChannelMessage =
@@ -69,13 +78,13 @@ public class ASAPActivity extends AppCompatActivity implements
     /**
      * Send asap message. If that channel does not exist: it will be created as open channel
      * (unrestricted recipient list). Closed channels must be created before
-     * @param appName
-     * @param uri
-     * @param message
+     * @param appName format / appName of your application and its ASAPEngine
+     * @param uri describes content within your application
+     * @param message application specific message as bytes.
      * @param persistent keep in an asap store and resent in following asap sessions
      * @throws ASAPException
      */
-    public void sendASAPMessage(CharSequence appName, CharSequence uri,
+    public final void sendASAPMessage(CharSequence appName, CharSequence uri,
                     byte[] message, boolean persistent) throws ASAPException {
 
         Log.d(this.getLogStart(), "ask service to send: "
@@ -93,7 +102,13 @@ public class ASAPActivity extends AppCompatActivity implements
     //                                 asap service requests                             //
     ///////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Application developer should neither call nor overwrite this message. It is called
+     * as result of a start bluetooth request. We will hide it behind an interface in later
+     * version. Until than: Please, do not call this method.
+     */
     @Override
+    @CallSuper
     public void asapSrcRq_enableBluetooth() {
         // check if bt is enabled
         // get default bt adapter - there could be proprietary adapters
@@ -121,7 +136,13 @@ public class ASAPActivity extends AppCompatActivity implements
 
     private int visibilityTime = 1;
 
+    /**
+     * Application developer should neither call nor overwrite this message. It is called
+     * as result of a start bluetooth request. We will hide it behind an interface in later
+     * version. Until than: Please, do not call this method.
+     */
     @Override
+    @CallSuper
     public void asapSrcRq_startBTDiscoverable(int time) {
         this.visibilityTime = time;
         Log.d(this.getLogStart(), "going to make device bt visibile for seconds: "
@@ -135,6 +156,13 @@ public class ASAPActivity extends AppCompatActivity implements
         this.startActivityForResult(discoverableIntent, MY_REQUEST_SET_BT_DISCOVERABLE);
     }
 
+    /**
+     * Application developer should neither call nor overwrite this message. It is the callback
+     * method that is called if a broadcast is received. We will hide it behind an
+     * interface in later
+     * version. Until than: Please, do not call this method.
+     */
+    @CallSuper
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(this.getLogStart(),
                 ".onActivityResult(): requestCode == " + requestCode +
@@ -189,31 +217,62 @@ public class ASAPActivity extends AppCompatActivity implements
     //                                 mac protocol stuff                              //
     /////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Call this message to start Bluetooth.
+     * asapNotifyBTEnvironmentStarted() is called later if BT could be started.
+     */
     public void startBluetooth() {
         Log.d(this.getLogStart(), "send message to service: start BT");
         this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH);
     }
 
+    /**
+     * Call this message to stop Bluetooth.
+     * asapNotifyBTEnvironmentStopped() is called later if BT could be stopped
+     */
     public void stopBluetooth() {
         Log.d(this.getLogStart(), "send message to service: stop BT");
         this.sendMessage2Service(ASAPServiceMethods.STOP_BLUETOOTH);
     }
 
+    /**
+     * Call this message to start Wifi direct.
+     * Note: Wifi is not yet fully supported. Do not use this method yet.
+     */
     public void startWifiP2P() {
         Log.d(this.getLogStart(), "send message to service: start Wifi P2P");
         this.sendMessage2Service(ASAPServiceMethods.START_WIFI_DIRECT);
     }
 
+    /**
+     * Call this message to stop Wifi direct.
+     * Note: Wifi is not yet fully supported. Do not use this method yet.
+     */
     public void stopWifiP2P() {
         Log.d(this.getLogStart(), "send message to service: stop Wifi P2P");
         this.sendMessage2Service(ASAPServiceMethods.STOP_WIFI_DIRECT);
     }
 
+    /**
+     * Call this message to make this device discoverable with Bluetooth.
+     * asapNotifyBTDiscoverableStarted() is called later.
+     * There is not matching stop method. Bluetooth discoverability is stopped after some time
+     * from Android. asapNotifyBTDiscoverableStopped() is called in this case.
+     *
+     */
     public void startBluetoothDiscoverable() {
         Log.d(this.getLogStart(), "send message to service: start BT Discoverable");
         this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERABLE);
     }
 
+    /**
+     * Call this message to start Bluetooth discovery. This device will look for discoverable
+     * Bluetooth devices.
+     * asapNotifyBTDiscoveryStarted() is called later.
+     * There is not matching stop method. Bluetooth discovery is stopped after some time
+     * from Android. asapNotifyBTDiscoveryStopped() is called in this case.
+     *
+     */
     public void startBluetoothDiscovery() {
         Log.d(this.getLogStart(), "send message to service: start BT Discovery");
         this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERY);
@@ -229,12 +288,12 @@ public class ASAPActivity extends AppCompatActivity implements
 
     Solution: We only stop broadcasting if there if the last activity signs off.
      */
-    public void startASAPEngineBroadcasts() {
+    private void startASAPEngineBroadcasts() {
         Log.d(this.getLogStart(), "send message to service: start ASAP Engine Broadcasts");
         this.sendMessage2Service(ASAPServiceMethods.START_BROADCASTS);
     }
 
-    public void stopASAPEngineBroadcasts() {
+    private void stopASAPEngineBroadcasts() {
         if(this.getASAPApplication().getNumberASAPActivities() == 1) {
             Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
             this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
@@ -322,6 +381,7 @@ public class ASAPActivity extends AppCompatActivity implements
      */
 
     /** currently, we have only two stats: on and off */
+    @CallSuper
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(this.getLogStart(), "onCreate");
@@ -435,37 +495,101 @@ public class ASAPActivity extends AppCompatActivity implements
         }
     };
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method informs that this device is now a discoverable Bluetooth device
+     */
     @Override
+    @CallSuper
     public void asapNotifyBTDiscoverableStarted() {
         this.asapApplication.setBTDiscoverable(true);
     }
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method informs that this device is no longer a discoverable Bluetooth device
+     */
     @Override
+    @CallSuper
     public void asapNotifyBTDiscoverableStopped() {
         this.asapApplication.setBTDiscoverable(false);
     }
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method informs that bluetooth is enabled now.
+     */
     @Override
+    @CallSuper
     public void asapNotifyBTEnvironmentStarted() {
         this.asapApplication.setBTEnvironmentRunning(true);
     }
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method informs that bluetooth is disabled now.
+     */
     @Override
+    @CallSuper
     public void asapNotifyBTEnvironmentStopped() {
         this.asapApplication.setBTEnvironmentRunning(false);
     }
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method called whenever list of connected peers changed. This happens when
+     *  a connection is created or broken. The current list of peers comes as parameter.
+     */
     @Override
+    @CallSuper
     public void asapNotifyOnlinePeersChanged(List<CharSequence> peerList) {
         this.asapApplication.setOnlinePeersList(peerList);
     }
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method informs that bluetooth discovery started.
+     */
     @Override
+    @CallSuper
     public void asapNotifyBTDiscoveryStarted() {
         this.asapApplication.setBTDiscovery(true);
     }
 
+    /**
+     * Application developers can use this method like life-cycle methods in Android
+     * (onStart() etc.). Overwrite this method to get informed about changes in environment.
+     * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     *
+     *  <br/><br/>
+     *  This method informs that bluetooth discovery stopped.
+     */
     @Override
+    @CallSuper
     public void asapNotifyBTDiscoveryStopped() {
         this.asapApplication.setBTDiscovery(false);
     }
@@ -474,14 +598,23 @@ public class ASAPActivity extends AppCompatActivity implements
     //                                status methods                              //
     ////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @return true if bluetooth environment is one.
+     */
     public boolean isBluetoothEnvironmentOn() {
         return this.asapApplication.getBTEnvironmentRunning();
     }
 
+    /**
+     * @return true if this device is discoverable now.
+     */
     public boolean isBluetoothDiscoverable() {
         return this.asapApplication.getBTDiscoverable();
     }
 
+    /**
+     * @return true if this device looking for other Bluetooth devices.
+     */
     public boolean isBluetoothDiscovery() {
         return this.asapApplication.getBTDiscovery();
     }
