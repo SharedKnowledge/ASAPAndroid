@@ -111,6 +111,12 @@ public class ASAPApplication extends BroadcastReceiver {
         this.askForPermissions();
     }
 
+    /**
+     * This method must be called launch the ASAP application. The ASAP service is started that
+     * deals with all supported layer 2 protocol and initiates ASAP session. Objects of
+     * ASAPApplications (and derived classes) are in most cases proxies of this service.
+     * <b>Never forget to launch your application.</b>
+     */
     @CallSuper
     public void startASAPApplication() {
         if(!this.initialized) {
@@ -150,6 +156,18 @@ public class ASAPApplication extends BroadcastReceiver {
         }
     }
 
+    /**
+     * ASAP application and service run separately. Nevertheless, ASAP application knows the
+     * location where each ASAP storage is kept. This method provides an object reference. Handle
+     * this method with great care. You would work on a storage in parallel with the ASAP service.
+     * There can be race conditions and most probably synchronization issues. It be also a
+     * performance booster. You should really know what you are doing.
+     *
+     * @param appFormat
+     * @return
+     * @throws IOException
+     * @throws ASAPException
+     */
     public ASAPStorage getASAPStorage(CharSequence appFormat) throws IOException, ASAPException {
         Log.d(this.getLogStart(), "convention: asap storage are in a folder ownerName/formatName");
 
@@ -162,6 +180,12 @@ public class ASAPApplication extends BroadcastReceiver {
                 appFormat.toString());
     }
 
+    /**
+     * ASAP engines exchange message during an ASAP session which are already kept in their storage.
+     * <i>online exchange</i> denotes the feature that message are sent which are produced during
+     * a running asap session. That's most useful for any kind of chat application.
+     * @return status of online exchange.
+     */
     public boolean getASAPOnlineExchange() {
         return this.onlineExchange;
     }
@@ -173,6 +197,11 @@ public class ASAPApplication extends BroadcastReceiver {
         return this.rootFolder;
     }
 
+    /**
+     *
+     * @return root folder of all information stored by the asap service. Handle this information
+     * with great care.
+     */
     public CharSequence getASAPRootFolder() {
         return Util.getASAPRootDirectory(
                 this.getActivity(), this.rootFolder, this.getOwnerID()).getAbsolutePath();
@@ -183,16 +212,24 @@ public class ASAPApplication extends BroadcastReceiver {
     }
 
     /**
-     * could be overwritten
+     * @return asap owner id - if set
      */
     public CharSequence getOwnerID() {
         return this.asapOwner;
     }
 
+    /**
+     * @return asap owner name - if set
+     */
     public CharSequence getOwnerName() {
         return ASAPEngineFS.ANONYMOUS_OWNER;
     }
 
+    /**
+     *
+     * @return list of supported formats supported by this asap peer / service. You have defined
+     * those formats during object initialization.
+     */
     public Collection<CharSequence> getSupportFormats() {
         return this.supportedFormats;
     }
@@ -205,6 +242,13 @@ public class ASAPApplication extends BroadcastReceiver {
         return ASAPApplication.singleton;
     }
 
+    /**
+     * Factory method: Setup an asap application. See documentation in the wiki. Don't forget
+     * to launch you application by calling startApplication afterwards.
+     * @param supportedFormats
+     * @param initialActivity
+     * @return
+     */
     public static ASAPApplication initializeASAPApplication(
             Collection<CharSequence> supportedFormats, Activity initialActivity) {
         if(ASAPApplication.singleton == null) {
@@ -217,12 +261,25 @@ public class ASAPApplication extends BroadcastReceiver {
         return ASAPApplication.singleton;
     }
 
+    /**
+     * Factory method: Setup an asap application. See documentation in the wiki. Don't forget
+     * to launch you application by calling startApplication afterwards.
+     * @param one supported format
+     * @param initialActivity
+     * @return
+     */
     public static ASAPApplication initializeASAPApplication(
             CharSequence supportedFormat, Activity initialActivity) {
         Collection<CharSequence> formats = new HashSet<>();
         return ASAPApplication.initializeASAPApplication(formats, initialActivity);
     }
 
+    /**
+     *
+     * @param appName
+     * @return root folder of information kept by an asap engine. Better not change those
+     * information.
+     */
     public String getApplicationRootFolder(String appName) {
         appName = Utils.url2FileName(appName);
         String absoluteASAPApplicationRootFolder = this.getASAPRootFolder() + "/" + appName;
