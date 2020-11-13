@@ -264,7 +264,7 @@ public class ASAPApplication extends BroadcastReceiver {
     /**
      * Factory method: Setup an asap application. See documentation in the wiki. Don't forget
      * to launch you application by calling startApplication afterwards.
-     * @param one supported format
+     * @param supportedFormat supported format
      * @param initialActivity
      * @return
      */
