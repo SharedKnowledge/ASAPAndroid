@@ -1,6 +1,6 @@
 package net.sharksystem.asap.android.service2AppMessaging;
 
-import java.util.List;
+import java.util.Set;
 
 public interface ASAPServiceNotificationListener {
     void asapNotifyBTDiscoverableStopped();
@@ -15,5 +15,5 @@ public interface ASAPServiceNotificationListener {
 
     void asapNotifyBTEnvironmentStopped();
 
-    void asapNotifyOnlinePeersChanged(List<CharSequence> peerList);
+    void asapNotifyOnlinePeersChanged(Set<CharSequence> peerList);
 }

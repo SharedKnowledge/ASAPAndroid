@@ -9,6 +9,7 @@ import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.util.Helper;
 
 import java.util.List;
+import java.util.Set;
 
 public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver {
     private final ASAPServiceRequestListener requestListener;
@@ -84,8 +85,8 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
                 Log.d(this.getLogStart(), "notified online peers changed");
                 String peers = intent.getStringExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1);
                 Log.d(this.getLogStart(), "new peers: " + peers);
-                List<CharSequence> peersList = Helper.string2CharSequenceList(peers);
-                this.notificationListener.asapNotifyOnlinePeersChanged(peersList);
+                Set<CharSequence> peersSet = Helper.string2CharSequenceSet(peers);
+                this.notificationListener.asapNotifyOnlinePeersChanged(peersSet);
                 break;
 
             default:

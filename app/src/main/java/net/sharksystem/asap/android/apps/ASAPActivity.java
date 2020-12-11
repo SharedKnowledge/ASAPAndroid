@@ -25,11 +25,11 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotification
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
-import net.sharksystem.asap.sharknet.SNMessage;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class ASAPActivity extends AppCompatActivity implements
         ASAPServiceRequestListener, ASAPServiceNotificationListener {
@@ -560,10 +560,11 @@ public class ASAPActivity extends AppCompatActivity implements
      *  <br/><br/>
      *  This method called whenever list of connected peers changed. This happens when
      *  a connection is created or broken. The current list of peers comes as parameter.
+     * @param peerList
      */
     @Override
     @CallSuper
-    public void asapNotifyOnlinePeersChanged(List<CharSequence> peerList) {
+    public void asapNotifyOnlinePeersChanged(Set<CharSequence> peerList) {
         this.asapApplication.setOnlinePeersList(peerList);
     }
 

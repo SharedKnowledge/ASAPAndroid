@@ -21,6 +21,10 @@ import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
+import net.sharksystem.asap.apps.ASAPEnvironmentChangesListener;
+import net.sharksystem.asap.apps.ASAPMessageReceivedListener;
+import net.sharksystem.asap.apps.ASAPSimplePeer;
+import net.sharksystem.asap.listenermanager.ASAPEnvironmentChangesListenerManager;
 import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
@@ -30,12 +34,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
 import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 
-public class ASAPApplication extends BroadcastReceiver {
+// TODO inherit from ASAPBasicAbstractPeer
+public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
     private static ASAPApplication singleton;
     private Collection<CharSequence> supportedFormats;
@@ -54,7 +60,7 @@ public class ASAPApplication extends BroadcastReceiver {
     private List<String> grantedPermissions = new ArrayList<>();
     private List<String> deniedPermissions = new ArrayList<>();
     private int activityASAPActivities = 0;
-    private List<CharSequence> onlinePeerList = new ArrayList<>();
+    private Set<CharSequence> onlinePeerList = new HashSet<>();
 
     /**
      * Setup application using default setting
@@ -463,7 +469,12 @@ public class ASAPApplication extends BroadcastReceiver {
             }
 
             for(ASAPMessageReceivedListener messageListener : messageListeners) {
-                messageListener.asapMessagesReceived(asapMessages);
+                try {
+                    messageListener.asapMessagesReceived(asapMessages);
+                } catch (IOException e) {
+                    Log.e(this.getLogStart(), "calling messageReceivedListener: "
+                            + e.getLocalizedMessage());
+                }
             }
         }
     }
@@ -499,6 +510,7 @@ public class ASAPApplication extends BroadcastReceiver {
      * @param format
      * @param listener
      */
+    @Override
     public final void addASAPMessageReceivedListener(CharSequence format,
                                        ASAPMessageReceivedListener listener) {
         Log.d(this.getLogStart(), "going to add asap message receiver for " + format);
@@ -513,6 +525,7 @@ public class ASAPApplication extends BroadcastReceiver {
         messageListeners.add(listener);
     }
 
+    @Override
     public final void removeASAPMessageReceivedListener(CharSequence format,
                                                ASAPMessageReceivedListener listener) {
         Collection<ASAPMessageReceivedListener> messageListeners =
@@ -525,11 +538,11 @@ public class ASAPApplication extends BroadcastReceiver {
         }
     }
 
-    public List<CharSequence> getOnlinePeerList() {
+    public Set<CharSequence> getOnlinePeerList() {
         return this.onlinePeerList;
     }
 
-    public void setOnlinePeersList(List<CharSequence> peerList) {
+    public void setOnlinePeersList(Set<CharSequence> peerList) {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getLogStart());
         sb.append("#online peers: ");
@@ -549,6 +562,9 @@ public class ASAPApplication extends BroadcastReceiver {
         }
 
         this.onlinePeerList = peerList;
+
+        // notify listeners
+        this.environmentChangesListenerManager.notifyListeners(this.onlinePeerList);
     }
 
     public void setupDrawerLayout(Activity activity) {
@@ -559,5 +575,46 @@ public class ASAPApplication extends BroadcastReceiver {
 //        int objectID = this.hashCode();
 //        return "ASAPApplication(" + objectID + ")";
         return "ASAPApplication";
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                                        ASAPSimplePeer                                     //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public CharSequence getPeerName() {
+        return this.asapOwner;
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                               ASAPEnvironmentChangesListener                              //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private ASAPEnvironmentChangesListenerManager environmentChangesListenerManager =
+            new ASAPEnvironmentChangesListenerManager();
+
+    @Override
+    public void addASAPEnvironmentChangesListener(ASAPEnvironmentChangesListener listener) {
+        this.environmentChangesListenerManager.addASAPEnvironmentChangesListener(listener);
+    }
+
+    @Override
+    public void removeASAPEnvironmentChangesListener(ASAPEnvironmentChangesListener listener) {
+        this.environmentChangesListenerManager.removeASAPEnvironmentChangesListener(listener);
+    }
+
+    @Override
+    public void sendASAPMessage(CharSequence format, CharSequence uri, byte[] message)
+            throws ASAPException {
+
+        Activity activity = this.getActivity();
+        if(activity == null) throw new ASAPException("no active activity");
+
+        if(! (activity instanceof ASAPActivity))
+            throw new ASAPException("current activity not derived from ASAPActivity");
+
+        ASAPActivity asapActivity = (ASAPActivity)activity;
+        asapActivity.sendASAPMessage(format, uri, message, true);
     }
 }

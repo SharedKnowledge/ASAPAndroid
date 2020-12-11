@@ -13,7 +13,7 @@ import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.R;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import static net.sharksystem.asap.android.example.ASAPExampleApplication.ASAP_EXAMPLE_APPNAME;
 
@@ -68,7 +68,7 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
     //                         changes in active layer 2 connections                         //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
-    public void asapNotifyOnlinePeersChanged(List<CharSequence> onlinePeerList) {
+    public void asapNotifyOnlinePeersChanged(Set<CharSequence> onlinePeerList) {
         super.asapNotifyOnlinePeersChanged(onlinePeerList);
 
         TextView peerListTextView = this.findViewById(R.id.onlinePeersList);
