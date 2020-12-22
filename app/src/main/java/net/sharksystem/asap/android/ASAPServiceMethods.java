@@ -24,6 +24,9 @@ public class ASAPServiceMethods {
     public static final int START_RECONNECT_PAIRED_DEVICES = 106;
     public static final int STOP_RECONNECT_PAIRED_DEVICES = 107;
 
+    public static final int START_LORA = 108;
+    public static final int STOP_LORA = 109;
+
     ///////////// asap engine management
     public static final int START_BROADCASTS = 200;
     public static final int STOP_BROADCASTS = 201;

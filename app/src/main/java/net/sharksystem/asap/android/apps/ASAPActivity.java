@@ -255,6 +255,22 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     /**
+     * Call this message to start LoRa.
+     */
+    public void startLoRa() {
+        Log.d(this.getLogStart(), "send message to service: start LoRa");
+        this.sendMessage2Service(ASAPServiceMethods.START_LORA);
+    }
+
+    /**
+     * Call this message to stop LoRa.
+     */
+    public void stopLoRa() {
+        Log.d(this.getLogStart(), "send message to service: stop LoRa");
+        this.sendMessage2Service(ASAPServiceMethods.STOP_LORA);
+    }
+
+    /**
      * Call this message to make this device discoverable with Bluetooth.
      * asapNotifyBTDiscoverableStarted() is called later.
      * There is not matching stop method. Bluetooth discoverability is stopped after some time

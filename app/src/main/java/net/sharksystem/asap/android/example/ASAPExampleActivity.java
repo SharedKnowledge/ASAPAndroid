@@ -29,6 +29,8 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
         View stopWifiButton = findViewById(R.id.stopWifiDirect);
         View startBTButton = findViewById(R.id.startBT);
         View stopBTButton = findViewById(R.id.stopBT);
+        View startLoRaButton = findViewById(R.id.startLoRa);
+        View stopLoRaButton = findViewById(R.id.stopLoRa);
 
         if(view == startWifiButton) {
             Log.d(this.getLogStart(), "start wifi button pressed - send message");
@@ -61,6 +63,14 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
                     "start disoverable and discover button pressed - send messages");
             super.startBluetoothDiscovery();
             super.startBluetoothDiscoverable();
+        }
+        else if(view == startLoRaButton) {
+            Log.d(this.getLogStart(), "start LoRa button pressed - send message");
+            super.startLoRa();
+        }
+        else if(view == stopLoRaButton) {
+            Log.d(this.getLogStart(), "stop LoRa button pressed - send message");
+            super.stopLoRa();
         }
     }
 

@@ -32,9 +32,9 @@
 
     <Button
         android:id="@+id/startBT"
+        android:layout_gravity="left|top"
         android:onClick="onClick"
-        android:text="startBT"
-        android:layout_gravity="left|top" />
+        android:text="startBT" />
 
     <Button
         android:id="@+id/stopBT"
@@ -66,6 +66,18 @@
         android:id="@+id/nothing"
         android:onClick="onClick"
         android:text="nothing"
+        android:layout_gravity="left|top" />
+
+    <Button
+        android:id="@+id/startLoRa"
+        android:onClick="onClick"
+        android:text="StartLoRa"
+        android:layout_gravity="left|top" />
+
+    <Button
+        android:id="@+id/stopLoRa"
+        android:onClick="onClick"
+        android:text="StopLoRa"
         android:layout_gravity="left|top" />
 
     <Button

@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import net.sharksystem.asap.ASAP;
 import net.sharksystem.asap.android.apps.ASAPApplication;
+import net.sharksystem.asap.android.apps.ASAPComponentNotYetInitializedException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,14 @@ public class ASAPExampleApplication extends ASAPApplication {
     public static final String ASAP_EXAMPLE_APPNAME = "ASAP_EXAMPLE_APP";
     private CharSequence id;
     static ASAPExampleApplication instance = null;
+
+    public static ASAPExampleApplication getASAPApplication() {
+        if(ASAPExampleApplication.instance == null) {
+            throw new ASAPComponentNotYetInitializedException("ASAP Example Application not yet initialized");
+        }
+
+        return ASAPExampleApplication.instance;
+    }
 
     static ASAPExampleApplication initializeASAPExampleApplication(Activity initialActivity) {
         if(ASAPExampleApplication.instance == null) {

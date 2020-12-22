@@ -22,6 +22,7 @@ import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
+import net.sharksystem.asap.android.lora.LoRaEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 import net.sharksystem.asap.util.Helper;
@@ -267,6 +268,23 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             Log.d(this.getLogStart(), "started bluetooth discovery");
         } else {
             Log.d(this.getLogStart(), "starting bluetooth discovery failed");
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                  LoRa via BT                                     //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    void startLoRa() {
+        Log.d(this.getLogStart(), "start LoRa");
+        LoRaEngine.getASAPLoRaEngine(this, this).start();
+    }
+
+    void stopLoRa() {
+        Log.d(this.getLogStart(), "start LoRa");
+        LoRaEngine ASAPLoRaEngine = LoRaEngine.getASAPLoRaEngine();
+        if(ASAPLoRaEngine != null) {
+            ASAPLoRaEngine.stop();
         }
     }
 

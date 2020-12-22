@@ -82,6 +82,14 @@ class ASAPMessageHandler extends Handler {
                     this.asapService.startReconnectPairedDevices();
                     break;
 
+                case ASAPServiceMethods.START_LORA:
+                    this.asapService.startLoRa();
+                    break;
+
+                case ASAPServiceMethods.STOP_LORA:
+                    this.asapService.stopLoRa();
+                    break;
+
                 default:
                     super.handleMessage(msg);
             }

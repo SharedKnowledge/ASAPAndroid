@@ -1,0 +1,10 @@
+package net.sharksystem.asap.android.lora;
+
+import net.sharksystem.asap.ASAPException;
+
+public class ASAPLoRaException extends ASAPException {
+
+    public ASAPLoRaException(String message) {
+        super(message);
+    }
+}
