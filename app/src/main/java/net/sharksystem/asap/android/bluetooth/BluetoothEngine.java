@@ -280,7 +280,7 @@ public class BluetoothEngine extends MacLayerEngine {
 
         // stop BT adapter
         this.getBTAdapter().cancelDiscovery();
-        this.getBTAdapter().disable();
+        //this.getBTAdapter().disable();
 
         this.btEnvironmentOn = false;
 

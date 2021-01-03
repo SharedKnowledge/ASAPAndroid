@@ -10,11 +10,10 @@ import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DeviceDiscoveredASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DiscoverASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.ErrorASAPLoRaMessage;
-import net.sharksystem.asap.android.lora.messages.RawASAPLoRaMessage;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.UUID;
 
 public class LoRaCommunicationManager extends Thread {
@@ -57,29 +56,39 @@ public class LoRaCommunicationManager extends Thread {
         }
     }
 
+    public OutputStream getASAPOutputStream(String mac) {
+        return this.ioStream.getASAPOutputStream(mac);
+    }
+
+    public InputStream getASAPInputStream(String mac) {
+        return this.ioStream.getASAPInputStream(mac);
+    }
+
     @Override
     public void run() {
         super.run();
 
         try {
             //this.ioStream.getOutputStream().write(new RawASAPLoRaMessage("AT"));
-            //this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage());
-            this.ioStream.getOutputStream().write(new ASAPLoRaMessage("A2FF", "Hi there!"));
+            this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage()); //TODO, do this periodically?
+            //this.ioStream.getOutputStream().write(new ASAPLoRaMessage("A2FF", "Hi there!"));
 
             while (!this.isInterrupted()) {
                 if (this.ioStream.getInputStream().available() > 0) {
                     AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
 
                     //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
-                    if(asapLoRaMessage instanceof ASAPLoRaMessage){
-                        //New Message inbound, write to corresponding inputstream of ASAPPeer
+                    if (asapLoRaMessage instanceof ASAPLoRaMessage) {
+                        //New Message inbound, write to corresponding stream of ASAPPeer
                         Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString());
-                    } else if(asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage){
+                        this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
+                    } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
                         //New Device in Range found
                         Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString());
-                    } else if(asapLoRaMessage instanceof ErrorASAPLoRaMessage){
+                        LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
+                    } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
                         //LoRa Error occured
-                        Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString());
+                        Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString()); //TODO
                     }
                 }
             }

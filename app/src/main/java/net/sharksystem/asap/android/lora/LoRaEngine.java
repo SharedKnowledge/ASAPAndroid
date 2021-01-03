@@ -6,6 +6,7 @@ import android.util.Log;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 
+
 public class LoRaEngine extends MacLayerEngine {
 
     private static final String CLASS_LOG_TAG = "ASAPLoRaEngine";
@@ -51,7 +52,7 @@ public class LoRaEngine extends MacLayerEngine {
     @Override
     public void stop() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.stop() called");
-        if(loRaCommunicationManager != null){
+        if (loRaCommunicationManager != null) {
             loRaCommunicationManager.interrupt();
         }
     }
@@ -66,5 +67,14 @@ public class LoRaEngine extends MacLayerEngine {
     public void checkConnectionStatus() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.checkConnectionStatus() called");
 
+    }
+
+    void tryConnect(String macAddress) {
+        if (this.shouldConnectToMACPeer(macAddress)) {
+            this.launchASAPConnection(macAddress, this.loRaCommunicationManager.getASAPInputStream(macAddress), this.loRaCommunicationManager.getASAPOutputStream(macAddress));
+        } else {
+            Log.d(this.CLASS_LOG_TAG, "Connection to "
+                    + macAddress + " not needed.");
+        }
     }
 }
