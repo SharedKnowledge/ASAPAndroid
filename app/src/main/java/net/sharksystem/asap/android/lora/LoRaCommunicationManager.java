@@ -31,6 +31,8 @@ public class LoRaCommunicationManager extends Thread {
     public LoRaCommunicationManager() throws ASAPLoRaException {
 
         BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        btAdapter.enable();
         btAdapter.cancelDiscovery();
 
         //TODO - move to Parameter / initialize Selection-Dialog
