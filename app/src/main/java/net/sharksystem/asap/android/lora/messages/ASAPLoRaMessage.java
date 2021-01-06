@@ -8,7 +8,7 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
     //Constructor for Jackson
     public ASAPLoRaMessage(){
         this.address = "";
-        this.message = new byte[0];
+        this.message =  new byte[0];
     }
     public ASAPLoRaMessage(String address, byte[] message){
         this.address = address;
@@ -17,6 +17,6 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
 
     @Override
     public String toString() {
-        return this.address + ": " + this.message;
+        return "ASAPLoRaMessage (" + this.address + "): " + this.message;
     }
 }

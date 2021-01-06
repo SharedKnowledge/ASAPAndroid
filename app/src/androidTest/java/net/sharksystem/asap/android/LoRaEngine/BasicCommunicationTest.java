@@ -84,7 +84,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = sb.toString().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("{\"COMMAND\":\".DeviceDiscoveredASAPLoRaMessage\",\"address\":\"0000\"}", deviceResponse);
+                assertEquals("{\"COMMAND\":\".DeviceDiscoveredASAPLoRaMessage\",\"address\":\"1000\"}", deviceResponse);
                 break;
             }
         }
@@ -99,7 +99,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = sb.toString().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("{\"COMMAND\":\".DeviceDiscoveredASAPLoRaMessage\",\"address\":\"0001\"}", deviceResponse);
+                assertEquals("{\"COMMAND\":\".DeviceDiscoveredASAPLoRaMessage\",\"address\":\"1001\"}", deviceResponse);
                 break;
             }
         }
@@ -107,7 +107,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout=10000)
     public void simpleAliceToBobMessageTest() throws IOException {
-        this.AliceSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"0001\",\"message\":\"Hello World!\"}".getBytes());
+        this.AliceSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1001\",\"message\":\"Hello World!\"}".getBytes());
 
         while(true){
             if(this.BobSocket.getInputStream().available() > 0) {
@@ -119,7 +119,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = sb.toString().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"0000\",\"message\":\"Hello World!\"}", deviceResponse);
+                assertEquals("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1000\",\"message\":\"Hello World!\"}", deviceResponse);
                 break;
             }
         }
@@ -127,7 +127,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout=10000)
     public void simpleBobToAliceMessageTest() throws IOException {
-        this.BobSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"0000\",\"message\":\"Hello World!\"}".getBytes());
+        this.BobSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1000\",\"message\":\"Hello World!\"}".getBytes());
 
         while(true){
             if(this.AliceSocket.getInputStream().available() > 0) {
@@ -139,7 +139,48 @@ public class BasicCommunicationTest {
                 String deviceResponse = sb.toString().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"0001\",\"message\":\"Hello World!\"}", deviceResponse);
+                assertEquals("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1001\",\"message\":\"Hello World!\"}", deviceResponse);
+                break;
+            }
+        }
+    }
+
+    @Test(timeout=20000)
+    public void simultaneousMessageTest() throws IOException {
+        this.BobSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1000\",\"message\":\"Hello World!\"}".getBytes());
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.AliceSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1001\",\"message\":\"Hello World!\"}".getBytes());
+
+        while(true){
+            if(this.BobSocket.getInputStream().available() > 0) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(this.BobSocket.getInputStream()));
+                StringBuilder sb = new StringBuilder(this.BobSocket.getInputStream().available());
+                do {
+                    sb.append(br.readLine()).append("\n");
+                } while(br.ready());
+                String deviceResponse = sb.toString().trim();
+                System.out.print("ASAP LoRaEngine Test Device Response: ");
+                System.out.println(deviceResponse);
+                assertEquals("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1000\",\"message\":\"Hello World!\"}", deviceResponse);
+                break;
+            }
+        }
+
+        while(true){
+            if(this.AliceSocket.getInputStream().available() > 0) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(this.AliceSocket.getInputStream()));
+                StringBuilder sb = new StringBuilder(this.AliceSocket.getInputStream().available());
+                do {
+                    sb.append(br.readLine()).append("\n");
+                } while(br.ready());
+                String deviceResponse = sb.toString().trim();
+                System.out.print("ASAP LoRaEngine Test Device Response: ");
+                System.out.println(deviceResponse);
+                assertEquals("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1001\",\"message\":\"Hello World!\"}", deviceResponse);
                 break;
             }
         }

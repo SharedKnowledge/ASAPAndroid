@@ -3,6 +3,7 @@ package net.sharksystem.asap.android.lora;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.Build;
 import android.util.Log;
 
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
@@ -14,6 +15,7 @@ import net.sharksystem.asap.android.lora.messages.ErrorASAPLoRaMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Base64;
 import java.util.UUID;
 
 public class LoRaCommunicationManager extends Thread {
@@ -78,21 +80,24 @@ public class LoRaCommunicationManager extends Thread {
             while (!this.isInterrupted()) {
                 if (this.ioStream.getInputStream().available() > 0) {
                     AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
-
+                    Log.i(this.CLASS_LOG_TAG, "Message recieved: " + asapLoRaMessage.toString());
                     //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
                     if (asapLoRaMessage instanceof ASAPLoRaMessage) {
                         //New Message inbound, write to corresponding stream of ASAPPeer
-                        Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString());
                         this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
                     } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
                         //New Device in Range found
-                        Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString());
                         LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
                     } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
                         //LoRa Error occured
-                        Log.i(this.CLASS_LOG_TAG, asapLoRaMessage.toString()); //TODO
+                        // TODO
                     }
                 }
+
+                //Periodically flush Write Buffers
+                this.ioStream.flushASAPOutputStreams();
+                //LoRa is slow, we really don't need to run at full steam all the time
+                try { Thread.sleep(250); } catch (InterruptedException e) {}
             }
         } catch (IOException e) {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());
