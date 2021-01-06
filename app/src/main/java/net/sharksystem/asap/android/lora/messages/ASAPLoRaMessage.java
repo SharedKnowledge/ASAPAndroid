@@ -6,13 +6,19 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
     public byte[] message;
 
     //Constructor for Jackson
-    public ASAPLoRaMessage(){
+    public ASAPLoRaMessage() {
         this.address = "";
-        this.message =  new byte[0];
+        this.message = new byte[0];
     }
-    public ASAPLoRaMessage(String address, byte[] message){
+
+    public ASAPLoRaMessage(String address, byte[] message) {
         this.address = address;
         this.message = message;
+    }
+
+    @Override
+    public String getPayload() {
+        return "MSSGE@" + this.address + ":" + this.message; //TODO Base64 the message?
     }
 
     @Override

@@ -9,6 +9,11 @@ public class RawASAPLoRaMessage extends AbstractASAPLoRaMessage {
     }
 
     @Override
+    public String getPayload() {
+        return this.rawMessage;
+    }
+
+    @Override
     public String toString() {
         return this.rawMessage;
     }

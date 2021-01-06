@@ -99,7 +99,7 @@ public class LoRaCommunicationManager extends Thread {
                 //LoRa is slow, we really don't need to run at full steam all the time
                 try { Thread.sleep(250); } catch (InterruptedException e) {}
             }
-        } catch (IOException e) {
+        } catch (IOException | ASAPLoRaException e) {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());
             //throw new ASAPLoRaException(e);
         } finally {

@@ -5,7 +5,6 @@ import android.util.Log;
 
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
-import net.sharksystem.asap.android.lora.messages.RawASAPLoRaMessage;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -30,20 +29,16 @@ public class LoRaBTInputOutputStream {
      * Syntax (erstidee): "ADDR:datadatadatadata"
      */
     private static final String CLASS_LOG_TAG = "ASAPLoRaBTIOStream";
-    //TODO private final ObjectMapper objectMapper = new ObjectMapper();
-    private BluetoothSocket btSocket;
-    private LoRaBTInputStream is;
-    private LoRaBTOutputStream os;
-    private HashMap<String, LoRaASAPInputStream> loRaASAPInputStreams = new HashMap<>();
-    private HashMap<String, BufferedOutputStream> loRaASAPOutputStreams = new HashMap<String, BufferedOutputStream>();
+    private final BluetoothSocket btSocket;
+    private final LoRaBTInputStream is;
+    private final LoRaBTOutputStream os;
+    private final HashMap<String, LoRaASAPInputStream> loRaASAPInputStreams = new HashMap<>();
+    private final HashMap<String, BufferedOutputStream> loRaASAPOutputStreams = new HashMap<>();
 
     LoRaBTInputOutputStream(BluetoothSocket btSocket) throws IOException {
         this.btSocket = btSocket;
         this.is = new LoRaBTInputStream(btSocket.getInputStream());
         this.os = new LoRaBTOutputStream(btSocket.getOutputStream());
-
-        //Use Polymorphic Type Detection for JSON Object Mapping
-        //TODO objectMapper.activateDefaultTyping(BasicPolymorphicTypeValidator.builder().build(), ObjectMapper.DefaultTyping.NON_FINAL);
     }
 
     public void close() {
@@ -51,7 +46,7 @@ public class LoRaBTInputOutputStream {
             if (this.btSocket != null)
                 btSocket.close();
         } catch (IOException e) {
-            Log.e(this.CLASS_LOG_TAG, e.getMessage());
+            Log.e(CLASS_LOG_TAG, e.getMessage());
         }
     }
 
@@ -59,7 +54,7 @@ public class LoRaBTInputOutputStream {
         if (this.loRaASAPOutputStreams.containsKey(mac))
             return this.loRaASAPOutputStreams.get(mac);
 
-        this.loRaASAPOutputStreams.put(mac, new BufferedOutputStream(new LoRaASAPOutputStream(mac),20)); //TODO increase buffer size
+        this.loRaASAPOutputStreams.put(mac, new BufferedOutputStream(new LoRaASAPOutputStream(mac), 20)); //TODO increase buffer size
         return this.getASAPOutputStream(mac); //TODO rewrite to make sure to never have endless loop?
     }
 
@@ -80,13 +75,13 @@ public class LoRaBTInputOutputStream {
     }
 
     public void flushASAPOutputStreams() throws IOException {
-        for(BufferedOutputStream bufferedOutputStream : this.loRaASAPOutputStreams.values())
+        for (BufferedOutputStream bufferedOutputStream : this.loRaASAPOutputStreams.values())
             bufferedOutputStream.flush();
     }
 
-    class LoRaBTInputStream extends FilterInputStream {
+    static class LoRaBTInputStream extends FilterInputStream {
 
-        public AbstractASAPLoRaMessage readASAPLoRaMessage() throws IOException {
+        public AbstractASAPLoRaMessage readASAPLoRaMessage(){
             BufferedReader br = new BufferedReader(new InputStreamReader(this));
             return null;//TODO objectMapper.readValue(br.readLine(), AbstractASAPLoRaMessage.class);
         }
@@ -96,26 +91,22 @@ public class LoRaBTInputOutputStream {
         }
     }
 
-    class LoRaBTOutputStream extends FilterOutputStream {
+    static class LoRaBTOutputStream extends FilterOutputStream {
         private static final String CLASS_LOG_TAG = "ASAPLoRaBTOutputStream";
 
         public LoRaBTOutputStream(OutputStream out) {
             super(out);
         }
 
-        public void write(AbstractASAPLoRaMessage msg) throws IOException {
-            if (msg instanceof RawASAPLoRaMessage)
-                this.write(msg.toString().getBytes());
-            else {
-                String msgString = ""; //TODO objectMapper.writeValueAsString(msg);
-                Log.i(this.CLASS_LOG_TAG, "Writing Message to BT Board: "+msgString);
-                this.write(msgString.getBytes());
-            }
+        public void write(AbstractASAPLoRaMessage msg) throws IOException, ASAPLoRaException {
+            String msgString = msg.getPayload();
+            Log.i(CLASS_LOG_TAG, "Writing Message to BT Board: " + msgString);
+            this.write(msgString.getBytes());
             this.write('\n');
         }
     }
 
-    class LoRaASAPInputStream extends InputStream {
+    static class LoRaASAPInputStream extends InputStream {
         private final String LoRaAddress;
 
         private SequenceInputStream sis;
@@ -132,7 +123,7 @@ public class LoRaBTInputOutputStream {
 
         @Override
         public synchronized int read() throws IOException {
-            while(sis.available() <= 0) { //TODO Timeout
+            while (sis.available() <= 0) { //TODO Timeout
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -156,7 +147,7 @@ public class LoRaBTInputOutputStream {
             //TODO...? Ist das sinnig?
             try {
                 LoRaBTInputOutputStream.this.getOutputStream().write(new ASAPLoRaMessage(this.LoRaAddress, b));
-            } catch (IOException e) {
+            } catch (IOException | ASAPLoRaException e) {
                 e.printStackTrace(); //TODO...
             }
         }
