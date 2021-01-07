@@ -12,6 +12,8 @@ import java.util.Collection;
 public class ASAPExampleApplication extends ASAPApplication {
     public static final String ASAP_EXAMPLE_APPNAME = "ASAP_EXAMPLE_APP";
     private CharSequence id;
+
+    /*
     static ASAPExampleApplication instance = null;
 
     public static ASAPExampleApplication getASAPApplication() {
@@ -21,22 +23,25 @@ public class ASAPExampleApplication extends ASAPApplication {
 
         return ASAPExampleApplication.instance;
     }
+     */
 
     static ASAPExampleApplication initializeASAPExampleApplication(Activity initialActivity) {
-        if(ASAPExampleApplication.instance == null) {
+//        if(ASAPExampleApplication.instance == null) {
+        if(!ASAPApplication.asapApplicationInitialized()) {
             Collection<CharSequence> formats = new ArrayList<>();
             formats.add(ASAP_EXAMPLE_APPNAME);
 
             // create
-            ASAPExampleApplication.instance = new ASAPExampleApplication(formats, initialActivity);
+            new ASAPExampleApplication(formats, initialActivity);
 
             // there could be some other steps. Setting up sub components. But there are non here.
 
             // launch
-            ASAPExampleApplication.instance.startASAPApplication();
+            ASAPApplication.getASAPApplication().startASAPApplication();
+//            ASAPExampleApplication.instance.startASAPApplication();
         } // else - already initialized - nothing happens.
 
-        return ASAPExampleApplication.instance;
+        return (ASAPExampleApplication) ASAPApplication.getASAPApplication();
     }
 
     private ASAPExampleApplication(Collection<CharSequence> formats, Activity initialActivity) {

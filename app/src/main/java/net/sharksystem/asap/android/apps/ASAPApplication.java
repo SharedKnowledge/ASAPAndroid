@@ -97,6 +97,9 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         this.rootFolder = rootFolder;
         this.onlineExchange = onlineExchange;
 
+        // remember me
+        ASAPApplication.singleton = this;
+
         // set context
         this.setActivity(initialActivity);
 
@@ -246,6 +249,10 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         }
 
         return ASAPApplication.singleton;
+    }
+
+    public static boolean asapApplicationInitialized() {
+        return ASAPApplication.singleton != null;
     }
 
     /**
