@@ -60,7 +60,7 @@ public class BasicCommunicationTest {
         BasicCommunicationTest.AliceSocket.connect();
         BasicCommunicationTest.BobSocket.connect();
 
-        Thread.sleep(5000); //Give the BT Modules some time to stabilize
+        Thread.sleep(1000); //Give the BT Modules some time to stabilize
     }
 
     @Test
@@ -72,7 +72,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout=20000)
     public void deviceDiscoveryTest() throws IOException {
-        this.AliceSocket.getOutputStream().write("{\"COMMAND\":\".DiscoverASAPLoRaMessage\"}".getBytes());
+        this.AliceSocket.getOutputStream().write("DSCVR\n".getBytes());
 
         while(true){
             if(this.BobSocket.getInputStream().available() > 0) {
@@ -84,7 +84,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = sb.toString().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("{\"COMMAND\":\".DeviceDiscoveredASAPLoRaMessage\",\"address\":\"1000\"}", deviceResponse);
+                assertEquals("DVDCR:1000", deviceResponse);
                 break;
             }
         }
@@ -99,7 +99,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = sb.toString().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("{\"COMMAND\":\".DeviceDiscoveredASAPLoRaMessage\",\"address\":\"1001\"}", deviceResponse);
+                assertEquals("DVDCR:1001", deviceResponse);
                 break;
             }
         }
@@ -107,7 +107,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout=10000)
     public void simpleAliceToBobMessageTest() throws IOException {
-        this.AliceSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1001\",\"message\":\"Hello World!\"}".getBytes());
+        this.AliceSocket.getOutputStream().write("MSSGE@1001:Hello World!\n".getBytes());
 
         while(true){
             if(this.BobSocket.getInputStream().available() > 0) {
@@ -127,7 +127,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout=10000)
     public void simpleBobToAliceMessageTest() throws IOException {
-        this.BobSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1000\",\"message\":\"Hello World!\"}".getBytes());
+        this.BobSocket.getOutputStream().write("MSSGE@1000:Hello World!".getBytes());
 
         while(true){
             if(this.AliceSocket.getInputStream().available() > 0) {
@@ -147,13 +147,13 @@ public class BasicCommunicationTest {
 
     @Test(timeout=20000)
     public void simultaneousMessageTest() throws IOException {
-        this.BobSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1000\",\"message\":\"Hello World!\"}".getBytes());
+        this.BobSocket.getOutputStream().write("MSSGE@1000:Hello World!\n".getBytes());
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        this.AliceSocket.getOutputStream().write("{\"COMMAND\":\".ASAPLoRaMessage\",\"address\":\"1001\",\"message\":\"Hello World!\"}".getBytes());
+        this.AliceSocket.getOutputStream().write("MSSGE@1001:Hello World!\n".getBytes());
 
         while(true){
             if(this.BobSocket.getInputStream().available() > 0) {
