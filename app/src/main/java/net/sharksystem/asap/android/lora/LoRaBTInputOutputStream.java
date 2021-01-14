@@ -43,6 +43,8 @@ public class LoRaBTInputOutputStream {
 
     public void close() {
         try {
+            //TODO Cleanup all loRaASAPOutputStreams
+            //TODO Cleanup all loRaASAPInputStreams
             if (this.btSocket != null)
                 btSocket.close();
         } catch (IOException e) {
@@ -81,9 +83,12 @@ public class LoRaBTInputOutputStream {
 
     static class LoRaBTInputStream extends FilterInputStream {
 
-        public AbstractASAPLoRaMessage readASAPLoRaMessage(){
+        public AbstractASAPLoRaMessage readASAPLoRaMessage() throws IOException, ASAPLoRaException {
             BufferedReader br = new BufferedReader(new InputStreamReader(this));
-            return null;//TODO objectMapper.readValue(br.readLine(), AbstractASAPLoRaMessage.class);
+            String rawASAPLoRaMessage = br.readLine();
+            Log.i(CLASS_LOG_TAG, "Reading Message from BT Board: " + rawASAPLoRaMessage);
+            //TODO do not use empty line
+            return AbstractASAPLoRaMessage.createASAPLoRaMessage(rawASAPLoRaMessage);
         }
 
         public LoRaBTInputStream(InputStream in) {

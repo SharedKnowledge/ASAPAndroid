@@ -27,6 +27,7 @@ public class LoRaCommunicationManager extends Thread {
      * - Discovery neuer Peers und Benachrichtigung der @{@link LoRaEngine}
      */
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
+    private static final long FLUSH_BUFFER_TIMEOUT = 250;
     private static LoRaBTInputOutputStream ioStream = null;
     private BluetoothDevice btDevice = null;
 
@@ -76,29 +77,31 @@ public class LoRaCommunicationManager extends Thread {
             //this.ioStream.getOutputStream().write(new RawASAPLoRaMessage("AT"));
             this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage()); //TODO, do this periodically?
             //this.ioStream.getOutputStream().write(new ASAPLoRaMessage("A2FF", "Hi there!"));
-
+            long lastBufferFlush = System.currentTimeMillis();
             while (!this.isInterrupted()) {
-                if (this.ioStream.getInputStream().available() > 0) {
-                    AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
-                    Log.i(this.CLASS_LOG_TAG, "Message recieved: " + asapLoRaMessage.toString());
-                    //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
-                    if (asapLoRaMessage instanceof ASAPLoRaMessage) {
-                        //New Message inbound, write to corresponding stream of ASAPPeer
-                        this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
-                    } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
-                        //New Device in Range found
-                        LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
-                    } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
-                        //LoRa Error occured
-                        // TODO
+                //Periodically flush Buffers
+                if ((System.currentTimeMillis() - lastBufferFlush) > this.FLUSH_BUFFER_TIMEOUT) {
+                    if (this.ioStream.getInputStream().available() > 0) {
+                        AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
+                        Log.i(this.CLASS_LOG_TAG, "Message recieved: " + asapLoRaMessage.toString());
+                        //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
+                        if (asapLoRaMessage instanceof ASAPLoRaMessage) {
+                            //New Message inbound, write to corresponding stream of ASAPPeer
+                            this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
+                        } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
+                            //New Device in Range found
+                            LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
+                        } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
+                            //LoRa Error occured
+                            // TODO
+                        }
                     }
-                }
 
-                //Periodically flush Write Buffers
-                this.ioStream.flushASAPOutputStreams();
-                //LoRa is slow, we really don't need to run at full steam all the time
-                try { Thread.sleep(250); } catch (InterruptedException e) {}
+                    this.ioStream.flushASAPOutputStreams();
+                    lastBufferFlush = System.currentTimeMillis();
+                }
             }
+            Log.i(CLASS_LOG_TAG, "Thread was interrupted, shutting down.");
         } catch (IOException | ASAPLoRaException e) {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());
             //throw new ASAPLoRaException(e);
