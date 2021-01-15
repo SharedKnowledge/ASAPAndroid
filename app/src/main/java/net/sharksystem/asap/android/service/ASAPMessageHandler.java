@@ -4,14 +4,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import net.sharksystem.asap.ASAPEngine;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPPeer;
+import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
 
 import java.io.IOException;
-import java.util.Collection;
 
 /**
  * Class handles messages on service side.
@@ -105,40 +103,22 @@ class ASAPMessageHandler extends Handler {
 
         Log.d(this.getLogStart(), "service will send: "+ asapMessage);
 
-        ASAPPeer asapPeer = asapService.getASAPPeer();
+        ASAPPeerFS asapPeer = this.asapService.getASAPPeer();
 
-        if(asapMessage.getPersistent()) {
-            Log.d(this.getLogStart(), "send persistent message");
-            ASAPEngine asapEngine = asapPeer.getEngineByFormat(asapMessage.getFormat());
+        asapPeer.sendASAPMessage(
+                asapMessage.getFormat(),
+                asapMessage.getURI(),
+                asapMessage.getASAPMessage()
+        );
 
-            Log.d(this.getLogStart(), "don't explicitly create open channel - just add message");
-            // asapEngine.createChannel(asapMessage.getURI());
-
-            asapEngine.add(asapMessage.getURI().toString(), asapMessage.getASAPMessage());
-        } else {
-            Log.d(this.getLogStart(), "send transient / online message");
-            if(asapMessage.isRecipientsListSet()) {
-                asapPeer.sendOnlineASAPAssimilateMessage(
-                        asapMessage.getFormat(),
-                        asapMessage.getURI(),
-                        asapMessage.getRecipients(),
-                        asapMessage.getASAPMessage(),
-                        asapMessage.getEra());
-            } else {
-                asapPeer.sendOnlineASAPAssimilateMessage(
-                        asapMessage.getFormat(),
-                        asapMessage.getURI(),
-                        null,
-                        asapMessage.getASAPMessage(),
-                        asapMessage.getEra());
-            }
-        }
         Log.d(this.getLogStart(), "done sending");
     }
 
     private void handleCreateClosedChannel(Message msg) throws ASAPException, IOException {
         ASAPServiceMessage asapMessage = ASAPServiceMessage.createASAPServiceMessage(msg);
-
+        Log.e(this.getLogStart(), "closed channels are currently not supported");
+        throw new ASAPException("closed channels are currently not supported");
+/*
         ASAPPeer asapPeer = asapService.getASAPPeer();
         ASAPEngine asapEngine = asapPeer.getEngineByFormat(asapMessage.getFormat());
 
@@ -147,6 +127,7 @@ class ASAPMessageHandler extends Handler {
         Log.d(this.getLogStart(), "create closed channel: "
             + asapMessage.getURI() + " | " + asapMessage.getRecipients());
         asapEngine.createChannel(asapMessage.getURI(), recipients);
+ */
     }
 
     private String getLogStart() {

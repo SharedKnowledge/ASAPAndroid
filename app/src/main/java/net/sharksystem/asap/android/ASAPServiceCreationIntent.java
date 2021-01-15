@@ -6,6 +6,7 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPPeer;
+import net.sharksystem.asap.ASAPPeerService;
 import net.sharksystem.asap.android.service.ASAPService;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class ASAPServiceCreationIntent extends Intent {
             throws ASAPException {
 
         this(activity, owner, rootFolder, onlineExchange, supportedFormats,
-                ASAPPeer.DEFAULT_MAX_PROCESSING_TIME);
+                ASAPPeerService.DEFAULT_MAX_PROCESSING_TIME);
     }
 
     public ASAPServiceCreationIntent(Activity activity, CharSequence owner, CharSequence rootFolder,
@@ -43,15 +44,15 @@ public class ASAPServiceCreationIntent extends Intent {
 
         this.putExtra(ASAPAndroid.USER, owner);
         this.putExtra(ASAPAndroid.FOLDER, rootFolder);
-        this.putExtra(ASAPAndroid.ONLINE_EXCHANGE, onlineExchange);
-        this.putExtra(ASAPAndroid.MAX_EXECUTION_TIME, maxExecutionTime);
+        this.putExtra(ASAPAndroid.ONLINE_EXCHANGE_PARAMETER_NAME, onlineExchange);
+        this.putExtra(ASAPAndroid.MAX_EXECUTION_TIME_PARAMETER_NAME, maxExecutionTime);
 
         if(supportedFormats != null) {
             this.supportFormatsList = new ArrayList<>();
             for (CharSequence supportedFormat : supportedFormats) {
                 supportFormatsList.add(supportedFormat);
             }
-            this.putCharSequenceArrayListExtra(ASAPAndroid.SUPPORTED_FORMATS, supportFormatsList);
+            this.putCharSequenceArrayListExtra(ASAPAndroid.SUPPORTED_FORMATS_PARAMETER_NAME, supportFormatsList);
         } else {
             Log.d(this.getLogStart(), "no format set - FAILURE?");
         }
@@ -63,11 +64,11 @@ public class ASAPServiceCreationIntent extends Intent {
         // just parse extras
         this.owner = intent.getStringExtra(ASAPAndroid.USER);
         this.rootFolder = intent.getStringExtra(ASAPAndroid.FOLDER);
-        this.onlineExchange = intent.getBooleanExtra(ASAPAndroid.ONLINE_EXCHANGE,
-                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
-        this.maxExecutionTime = intent.getLongExtra(ASAPAndroid.MAX_EXECUTION_TIME,
-                ASAPPeer.DEFAULT_MAX_PROCESSING_TIME);
-        this.supportFormatsList = intent.getCharSequenceArrayListExtra(ASAPAndroid.SUPPORTED_FORMATS);
+        this.onlineExchange = intent.getBooleanExtra(ASAPAndroid.ONLINE_EXCHANGE_PARAMETER_NAME,
+                ASAPPeer.ONLINE_EXCHANGE_DEFAULT);
+        this.maxExecutionTime = intent.getLongExtra(ASAPAndroid.MAX_EXECUTION_TIME_PARAMETER_NAME,
+                ASAPPeerService.DEFAULT_MAX_PROCESSING_TIME);
+        this.supportFormatsList = intent.getCharSequenceArrayListExtra(ASAPAndroid.SUPPORTED_FORMATS_PARAMETER_NAME);
     }
 
     public CharSequence getOwner() {

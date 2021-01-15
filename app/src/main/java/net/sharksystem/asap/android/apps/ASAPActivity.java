@@ -17,6 +17,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
@@ -40,19 +41,30 @@ public class ASAPActivity extends AppCompatActivity implements
     private Messenger mService;
     private boolean mBound;
 
-    private ASAPApplication asapApplication;
+    private ASAPAndroidPeer asapAndroidPeer;
 
     /**
      * Create a new activity object. Make sure your application object is fully
      * instantiated
-     * @param asapApplication
+     * @param asapAndroidPeer
      */
-    public ASAPActivity(ASAPApplication asapApplication) {
-        this.asapApplication = asapApplication;
+    ASAPActivity(ASAPAndroidPeer asapAndroidPeer) {
+        this.asapAndroidPeer = asapAndroidPeer;
     }
 
-    protected ASAPApplication getASAPApplication() {
-        return this.asapApplication;
+    /**
+     * @throws ASAPComponentNotYetInitializedException if ASAPAndroidPeer was not initialized
+     */
+    public ASAPActivity() {
+        this(ASAPAndroidPeer.getASAPAndroidPeer());
+    }
+
+    protected ASAPAndroidPeer getASAPAndroidPeer() {
+        return this.asapAndroidPeer;
+    }
+
+    protected ASAPPeer getASAPPeer() {
+        return this.asapAndroidPeer;
     }
 
     /**
@@ -87,7 +99,6 @@ public class ASAPActivity extends AppCompatActivity implements
      */
     public final void sendASAPMessage(CharSequence appName, CharSequence uri,
                     byte[] message, boolean persistent) throws ASAPException {
-
         Log.d(this.getLogStart(), "ask service to send: "
                 + "format: " + appName
                 + "| uri: " + uri
@@ -311,7 +322,7 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     private void stopASAPEngineBroadcasts() {
-        if(this.getASAPApplication().getNumberASAPActivities() == 1) {
+        if(this.getASAPAndroidPeer().getNumberASAPActivities() == 1) {
             Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
             this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
         } else {
@@ -370,13 +381,13 @@ public class ASAPActivity extends AppCompatActivity implements
         filter.addAction(ASAPAndroid.ASAP_CHUNK_RECEIVED_ACTION);
 
         // register
-        this.registerReceiver(this.asapApplication, filter);
+        this.registerReceiver(this.asapAndroidPeer, filter);
     }
 
     private void shutdownASAPChunkReceivedBroadcastReceiver() {
         Log.d(this.getLogStart(), "shutdown asap received bc receiver");
         try {
-            this.unregisterReceiver(this.asapApplication);
+            this.unregisterReceiver(this.asapAndroidPeer);
         }
         catch(RuntimeException re) {
             Log.d(this.getLogStart(), "problems when unregister asap received bcr - ignore"
@@ -402,14 +413,14 @@ public class ASAPActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(this.getLogStart(), "onCreate");
-        this.asapApplication.activityCreated(this);
+        this.asapAndroidPeer.activityCreated(this);
     }
 
     protected void onStart() {
         // Bind to the service
         super.onStart();
         Log.d(this.getLogStart(), "onStart");
-        this.asapApplication.setActivity(this);
+        this.asapAndroidPeer.setActivity(this);
         this.setupASAPServiceNotificationBroadcastReceiver();
         this.setupASAPChunkReceivedBroadcastReceiver();
         this.bindServices();
@@ -420,7 +431,7 @@ public class ASAPActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         Log.d(this.getLogStart(), "onResume");
-        this.asapApplication.setActivity(this);
+        this.asapAndroidPeer.setActivity(this);
         this.startASAPEngineBroadcasts();
     }
 
@@ -448,7 +459,7 @@ public class ASAPActivity extends AppCompatActivity implements
         Log.d(this.getLogStart(), "onDestroy");
         this.shutdownASAPServiceNotificationBroadcastReceiver();
         this.unbindServices();
-        this.asapApplication.activityDestroyed(this);
+        this.asapAndroidPeer.activityDestroyed(this);
 
         // forget stored messages
         this.messageStorage = null;
@@ -523,7 +534,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoverableStarted() {
-        this.asapApplication.setBTDiscoverable(true);
+        this.asapAndroidPeer.notifyBTDiscoverable(true);
     }
 
     /**
@@ -537,7 +548,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoverableStopped() {
-        this.asapApplication.setBTDiscoverable(false);
+        this.asapAndroidPeer.notifyBTDiscoverable(false);
     }
 
     /**
@@ -551,7 +562,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTEnvironmentStarted() {
-        this.asapApplication.setBTEnvironmentRunning(true);
+        this.asapAndroidPeer.notifyBTEnvironmentRunning(true);
     }
 
     /**
@@ -565,7 +576,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTEnvironmentStopped() {
-        this.asapApplication.setBTEnvironmentRunning(false);
+        this.asapAndroidPeer.notifyBTEnvironmentRunning(false);
     }
 
     /**
@@ -581,7 +592,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyOnlinePeersChanged(Set<CharSequence> peerList) {
-        this.asapApplication.setOnlinePeersList(peerList);
+        this.asapAndroidPeer.notifyOnlinePeersChanged(peerList);
     }
 
     /**
@@ -595,7 +606,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoveryStarted() {
-        this.asapApplication.setBTDiscovery(true);
+        this.asapAndroidPeer.notifyBTDiscovery(true);
     }
 
     /**
@@ -609,7 +620,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoveryStopped() {
-        this.asapApplication.setBTDiscovery(false);
+        this.asapAndroidPeer.notifyBTDiscovery(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -620,20 +631,20 @@ public class ASAPActivity extends AppCompatActivity implements
      * @return true if bluetooth environment is one.
      */
     public boolean isBluetoothEnvironmentOn() {
-        return this.asapApplication.getBTEnvironmentRunning();
+        return this.asapAndroidPeer.getBTEnvironmentRunning();
     }
 
     /**
      * @return true if this device is discoverable now.
      */
     public boolean isBluetoothDiscoverable() {
-        return this.asapApplication.getBTDiscoverable();
+        return this.asapAndroidPeer.getBTDiscoverable();
     }
 
     /**
      * @return true if this device looking for other Bluetooth devices.
      */
     public boolean isBluetoothDiscovery() {
-        return this.asapApplication.getBTDiscovery();
+        return this.asapAndroidPeer.getBTDiscovery();
     }
 }

@@ -5,26 +5,26 @@ import android.content.Context;
 import net.sharksystem.asap.ASAPException;
 
 public class ASAPApplicationComponentHelper {
-    private ASAPApplication asapApplication;
+    private ASAPAndroidPeer asapAndroidPeer;
 
     /**
      * set asap application which can be used from component e.g. to add listeners etc.
-     * @param asapApplication
+     * @param asapAndroidPeer
      */
-    public void setASAPApplication(ASAPApplication asapApplication) {
-        this.asapApplication = asapApplication;
+    public void setASAPApplication(ASAPAndroidPeer asapAndroidPeer) {
+        this.asapAndroidPeer = asapAndroidPeer;
     }
 
-    public ASAPApplication getASAPApplication() {
-        return this.asapApplication;
+    public ASAPAndroidPeer getASAPApplication() {
+        return this.asapAndroidPeer;
     }
 
     public Context getContext() throws ASAPException {
-        if(this.asapApplication == null) {
+        if(this.asapAndroidPeer == null) {
             throw new ASAPException("ASAPApplication not yet set, fatal");
         }
 
-        return this.asapApplication.getActivity();
+        return this.asapAndroidPeer.getActivity();
     }
 
     private String getLogStart() {

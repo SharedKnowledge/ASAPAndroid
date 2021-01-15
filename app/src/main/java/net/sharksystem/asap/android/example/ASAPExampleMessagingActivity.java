@@ -8,18 +8,17 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPMessageReceivedListener;
 import net.sharksystem.asap.android.R;
-import net.sharksystem.asap.ASAPMessages;
-import net.sharksystem.asap.apps.ASAPMessageReceivedListener;
+import net.sharksystem.asap.android.apps.ASAPActivity;
+import net.sharksystem.asap.internals.ASAPMessages;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static net.sharksystem.asap.android.example.ASAPExampleApplication.ASAP_EXAMPLE_APPNAME;
-
-public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
+public class ASAPExampleMessagingActivity extends ASAPActivity {
     private static final CharSequence EXAMPLE_URI ="asap://exampleURI";
     private static final CharSequence EXAMPLE_MESSAGE = "ASAP example message";
     private ASAPMessageReceivedListener receivedListener;
@@ -35,7 +34,7 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         // set URI - your app can or your users can choose any valid uri.
         TextView uriTextView = findViewById(R.id.exampleMessagingUri);
 
-        uriTextView.setText("your owner id: " + this.getASAPApplication().getOwnerID()
+        uriTextView.setText("your owner id: " + this.getASAPAndroidPeer().getOwnerID()
                 + "channel URI: " + EXAMPLE_URI);
 
         EditText messageEditView = findViewById(R.id.exampleMessagingMessageText);
@@ -50,16 +49,16 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         };
 
         // set listener to get informed about newly arrived messages
-        this.getASAPApplication().addASAPMessageReceivedListener(
-                ASAP_EXAMPLE_APPNAME, // listen to this app
+        this.getASAPAndroidPeer().addASAPMessageReceivedListener(
+                ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME, // listen to this app
                 this.receivedListener);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        this.getASAPApplication().removeASAPMessageReceivedListener(
-                ASAP_EXAMPLE_APPNAME,
+        this.getASAPAndroidPeer().removeASAPMessageReceivedListener(
+                ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME,
                 this.receivedListener);
     }
 
@@ -67,7 +66,7 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         this.finish();
     }
 
-    // send ASAP message
+    // send message with ASAP peer
     public void onSendClick(View view) {
         EditText messageEditView = findViewById(R.id.exampleMessagingMessageText);
         Editable messageText = messageEditView.getText();
@@ -80,11 +79,11 @@ public class ASAPExampleMessagingActivity extends ASAPExampleRootActivity {
         Log.d(this.getLogStart(), "going to send messageBytes: " + byteContent);
 
         try {
-            this.sendASAPMessage(
-                    ASAP_EXAMPLE_APPNAME,
+            // use ASAPPeer interface which is well-known from core lib ASAPJava
+            this.getASAPPeer().sendASAPMessage(
+                    ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME,
                     EXAMPLE_URI,
-                    byteContent,
-                    true);
+                    byteContent);
         } catch (ASAPException e) {
             Log.e(this.getLogStart(), "when sending asap message: " + e.getLocalizedMessage());
         }

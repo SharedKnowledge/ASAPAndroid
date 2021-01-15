@@ -4,6 +4,7 @@ import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPPeer;
+import net.sharksystem.asap.ASAPPeerService;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.util.tcp.TCPChannelMaker;
 
@@ -13,25 +14,25 @@ import java.io.OutputStream;
 
 public class ASAPConnectionLauncher extends Thread {
     private TCPChannelMaker channelMaker;
-    private final ASAPPeer asapPeer;
+    private final ASAPPeerService asapPeer;
     private InputStream is;
     private OutputStream os;
 
-    public ASAPConnectionLauncher(TCPChannelMaker channelMaker, ASAPPeer asapPeer) {
+    public ASAPConnectionLauncher(TCPChannelMaker channelMaker, ASAPPeerService asapPeer) {
         this(asapPeer);
         this.channelMaker = channelMaker;
         this.is = null;
         this.os = null;
     }
 
-    public ASAPConnectionLauncher(InputStream is, OutputStream os, ASAPPeer asapPeer) {
+    public ASAPConnectionLauncher(InputStream is, OutputStream os, ASAPPeerService asapPeer) {
         this(asapPeer);
         this.is = is;
         this.os = os;
         this.channelMaker = null;
     }
 
-    private ASAPConnectionLauncher(ASAPPeer asapPeer) {
+    private ASAPConnectionLauncher(ASAPPeerService asapPeer) {
         this.asapPeer = asapPeer;
     }
     

@@ -13,19 +13,14 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.Utils;
-import net.sharksystem.asap.ASAPEngineFS;
+import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPMessages;
-import net.sharksystem.asap.ASAPStorage;
-import net.sharksystem.asap.android.ASAPAndroid;
+import net.sharksystem.asap.ASAPMessageReceivedListener;
+import net.sharksystem.asap.ASAPPeer;
+import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
-import net.sharksystem.asap.apps.ASAPEnvironmentChangesListener;
-import net.sharksystem.asap.apps.ASAPMessageReceivedListener;
-import net.sharksystem.asap.apps.ASAPSimplePeer;
-import net.sharksystem.asap.listenermanager.ASAPEnvironmentChangesListenerManager;
-import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,17 +33,16 @@ import java.util.Set;
 
 import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
-import static net.sharksystem.asap.ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
 
-// TODO inherit from ASAPBasicAbstractPeer
-public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer {
+public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
-    private static ASAPApplication singleton;
+    private static ASAPAndroidPeer singleton;
+    private ASAPPeerFS asapPeerApplicationSide = null;
     private Collection<CharSequence> supportedFormats;
     private CharSequence asapOwner = null;
     private CharSequence rootFolder;
     private boolean onlineExchange;
-    private boolean initialized = false;
+    private boolean started = false;
 
     private boolean btDisoverableOn = false;
     private boolean btDisoveryOn = false;
@@ -60,50 +54,93 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
     private List<String> grantedPermissions = new ArrayList<>();
     private List<String> deniedPermissions = new ArrayList<>();
     private int activityASAPActivities = 0;
-    private Set<CharSequence> onlinePeerList = new HashSet<>();
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    //                                     construction                                         //
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    static ASAPAndroidPeer getASAPAndroidPeer() {
+        if(ASAPAndroidPeer.singleton == null) {
+            throw new ASAPComponentNotYetInitializedException(
+                    "ASAPAndroidPeer not yet initialized");
+        }
+
+        return ASAPAndroidPeer.singleton;
+    }
+
+    public static boolean peerInitialized() {
+        return ASAPAndroidPeer.singleton != null;
+    }
 
     /**
-     * Setup application using default setting
-     * @param supportedFormats ensure that asap engines using that formats are present -
-     *                         create if necessary.
+     * Initialize the ASAP Peer (application) side. Do not forget to *start* this peer to launch
+     * the ASAP service and set anything in motion.
+     * @return
      */
-    protected ASAPApplication(Collection<CharSequence> supportedFormats, Activity initialActivity) {
-        this(supportedFormats, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
-                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT, initialActivity);
+    public static void initializePeer(
+            Collection<CharSequence> supportedFormats, Activity initialActivity)
+            throws IOException, ASAPException {
+
+        new ASAPAndroidPeer(supportedFormats, ASAPPeer.UNKNOWN_USER,
+                ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME,
+                ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
+
     }
 
-    int getNumberASAPActivities() {
-        return this.activityASAPActivities;
+    public static void initializePeer(CharSequence asapOwner,
+                                      Collection<CharSequence> supportedFormats,
+                                      Activity initialActivity)
+            throws IOException, ASAPException {
+
+        new ASAPAndroidPeer(supportedFormats, asapOwner,
+                ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME,
+                ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
+    }
+
+    public static void initializePeer(CharSequence asapOwner,
+                                      Collection<CharSequence> supportedFormats,
+                                      CharSequence rootFolder,
+                                      Activity initialActivity)
+            throws IOException, ASAPException {
+
+        new ASAPAndroidPeer(supportedFormats, asapOwner, rootFolder,
+                ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
     }
 
     /**
-     * setup application without parameter. Use default for owner, root folder for asap storage
-     * and online exchange behaviour. Don't setup any asap engine - take engines which are
-     * already present when starting up.
-    protected ASAPApplication(Activity initialActivity) {
-        this(null, ASAPAndroid.UNKNOWN_USER, DEFAULT_ROOT_FOLDER_NAME,
-                ASAPAndroid.ONLINE_EXCHANGE_DEFAULT);
-    }
+     * Do not forget to call start() to actually launch peer, especially the service
+     * @param supportedFormats
+     * @param asapOwner
+     * @param rootFolder
+     * @param onlineExchange
+     * @param initialActivity
      */
-
-    protected ASAPApplication(Collection<CharSequence> supportedFormats,
-                CharSequence asapOwner,
-                CharSequence rootFolder,
-                boolean onlineExchange,
-                Activity initialActivity) {
+    private ASAPAndroidPeer(Collection<CharSequence> supportedFormats,
+                              CharSequence asapOwner,
+                              CharSequence rootFolder,
+                              boolean onlineExchange,
+                              Activity initialActivity) throws IOException, ASAPException {
 
         this.supportedFormats = supportedFormats;
         this.asapOwner = asapOwner;
         this.rootFolder = rootFolder;
         this.onlineExchange = onlineExchange;
 
+        if(ASAPAndroidPeer.peerInitialized()) {
+            throw new ASAPException("ASAPAndroidPeer already initialized - singleton already created");
+        }
+
         // remember me
-        ASAPApplication.singleton = this;
+        ASAPAndroidPeer.singleton = this;
+
+        // create proxy
+        this.asapPeerApplicationSide =
+                new ASAPPeerFS(asapOwner, this.getASAPRootFolder(), supportedFormats);
 
         // set context
         this.setActivity(initialActivity);
 
-        Log.d(this.getLogStart(), "initialize ASAP Application user side");
+        Log.d(this.getLogStart(), "initialize ASAP Peer application side");
         // required permissions
         this.requiredPermissions = new ArrayList<>();
         this.requiredPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -121,25 +158,38 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
     }
 
     /**
+     * Start initialized ASAPAndroidPeer
+     */
+    public static void startPeer() {
+        ASAPAndroidPeer.getASAPAndroidPeer().start();
+    }
+
+    public static boolean peerStarted() {
+        return ASAPAndroidPeer.getASAPAndroidPeer().started;
+    }
+
+    /**
      * This method must be called launch the ASAP application. The ASAP service is started that
      * deals with all supported layer 2 protocol and initiates ASAP session. Objects of
      * ASAPApplications (and derived classes) are in most cases proxies of this service.
      * <b>Never forget to launch your application.</b>
      */
     @CallSuper
-    public void startASAPApplication() {
-        if(!this.initialized) {
+    public void start() {
+        if(!this.started) {
             Log.d(this.getLogStart(), "initialize and launch ASAP Service");
             // collect parameters
-            if(this.asapOwner == null || this.asapOwner.equals(ASAPAndroid.UNKNOWN_USER)) {
-                Log.d(this.getLogStart(), "asapOwnerID not set at all or set to default - call getASAPOwnerID");
+            if(this.asapOwner == null || this.asapOwner.equals(ASAPPeer.UNKNOWN_USER)) {
+                Log.d(this.getLogStart(),
+                        "asapOwnerID not set at all or set to default - call getASAPOwnerID");
                 this.asapOwner = this.getOwnerID();
             } else {
                 Log.d(this.getLogStart(), "owner already set");
             }
 
             if(this.supportedFormats == null || this.supportedFormats.size() < 1) {
-                Log.d(this.getLogStart(), "supportedFormats null or empty - call getSupportedFormats()");
+                Log.d(this.getLogStart(),
+                        "supportedFormats null or empty - call getSupportedFormats()");
                 this.supportedFormats = this.getSupportFormats();
             } else {
                 Log.d(this.getLogStart(), "supportedFormats already set");
@@ -156,178 +206,13 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
                         + asapServiceCreationIntent.toString());
 
                 this.activity.startService(asapServiceCreationIntent);
-                this.initialized = true;
+                this.started = true;
             } catch (ASAPException e) {
                 Log.e(this.getLogStart(), "could not start ASAP Service - fatal");
             }
         } else {
             Log.e(this.getLogStart(), "try to re-start application - not allowed. Ignored");
         }
-    }
-
-    /**
-     * ASAP application and service run separately. Nevertheless, ASAP application knows the
-     * location where each ASAP storage is kept. This method provides an object reference. Handle
-     * this method with great care. You would work on a storage in parallel with the ASAP service.
-     * There can be race conditions and most probably synchronization issues. It be also a
-     * performance booster. You should really know what you are doing.
-     *
-     * @param appFormat
-     * @return
-     * @throws IOException
-     * @throws ASAPException
-     */
-    public ASAPStorage getASAPStorage(CharSequence appFormat) throws IOException, ASAPException {
-        Log.d(this.getLogStart(), "convention: asap storage are in a folder ownerName/formatName");
-
-        String rootFolder = this.getApplicationRootFolder(appFormat.toString());
-        Log.d(this.getLogStart(), "use rootFolder: " + rootFolder);
-
-        return ASAPEngineFS.getASAPStorage(
-                this.asapOwner.toString(),
-                rootFolder,
-                appFormat.toString());
-    }
-
-    /**
-     * ASAP engines exchange message during an ASAP session which are already kept in their storage.
-     * <i>online exchange</i> denotes the feature that message are sent which are produced during
-     * a running asap session. That's most useful for any kind of chat application.
-     * @return status of online exchange.
-     */
-    public boolean getASAPOnlineExchange() {
-        return this.onlineExchange;
-    }
-
-    /**
-     * could be overwritten
-     */
-    protected CharSequence getASAPRootFolder(Activity activity) {
-        return this.rootFolder;
-    }
-
-    /**
-     *
-     * @return root folder of all information stored by the asap service. Handle this information
-     * with great care.
-     */
-    public CharSequence getASAPRootFolder() {
-        return Util.getASAPRootDirectory(
-                this.getActivity(), this.rootFolder, this.getOwnerID()).getAbsolutePath();
-    }
-
-    public CharSequence getASAPComponentFolder(CharSequence format) {
-        return this.getASAPRootFolder() +"/" + format;
-    }
-
-    /**
-     * @return asap owner id - if set
-     */
-    public CharSequence getOwnerID() {
-        return this.asapOwner;
-    }
-
-    /**
-     * @return asap owner name - if set
-     */
-    public CharSequence getOwnerName() {
-        return ASAPEngineFS.ANONYMOUS_OWNER;
-    }
-
-    /**
-     *
-     * @return list of supported formats supported by this asap peer / service. You have defined
-     * those formats during object initialization.
-     */
-    public Collection<CharSequence> getSupportFormats() {
-        return this.supportedFormats;
-    }
-
-    public static ASAPApplication getASAPApplication() {
-        if(ASAPApplication.singleton == null) {
-            throw new ASAPComponentNotYetInitializedException("ASAP Application not yet initialized");
-        }
-
-        return ASAPApplication.singleton;
-    }
-
-    public static boolean asapApplicationInitialized() {
-        return ASAPApplication.singleton != null;
-    }
-
-    /**
-     * Factory method: Setup an asap application. See documentation in the wiki. Don't forget
-     * to launch you application by calling startApplication afterwards.
-     * @param supportedFormats
-     * @param initialActivity
-     * @return
-     */
-    public static ASAPApplication initializeASAPApplication(
-            Collection<CharSequence> supportedFormats, Activity initialActivity) {
-        if(ASAPApplication.singleton == null) {
-            ASAPApplication.singleton = new ASAPApplication(supportedFormats, initialActivity);
-        } else {
-            Log.e(ASAPApplication.class.getSimpleName(),
-                    "tried to initialized already initialized application - ignored.");
-        }
-
-        return ASAPApplication.singleton;
-    }
-
-    /**
-     * Factory method: Setup an asap application. See documentation in the wiki. Don't forget
-     * to launch you application by calling startApplication afterwards.
-     * @param supportedFormat supported format
-     * @param initialActivity
-     * @return
-     */
-    public static ASAPApplication initializeASAPApplication(
-            CharSequence supportedFormat, Activity initialActivity) {
-        Collection<CharSequence> formats = new HashSet<>();
-        return ASAPApplication.initializeASAPApplication(formats, initialActivity);
-    }
-
-    /**
-     *
-     * @param appName
-     * @return root folder of information kept by an asap engine. Better not change those
-     * information.
-     */
-    public String getApplicationRootFolder(String appName) {
-        appName = Utils.url2FileName(appName);
-        String absoluteASAPApplicationRootFolder = this.getASAPRootFolder() + "/" + appName;
-        Log.d(this.getLogStart(), "absolute asap app rootfolder: "
-                + absoluteASAPApplicationRootFolder);
-
-        return absoluteASAPApplicationRootFolder;
-    }
-
-    @CallSuper
-    public void activityCreated(ASAPActivity asapActivity) {
-        this.setActivity(asapActivity);
-        /* was to tricky barely understandable
-        if(initASAPApplication) this.startASAPApplication();
-         */
-
-        this.activityASAPActivities++;
-        Log.d(this.getLogStart(), "activity created. New activity count == "
-                + this.activityASAPActivities);
-    }
-
-    @CallSuper
-    public void activityDestroyed(ASAPActivity asapActivity) {
-        this.activityASAPActivities--;
-        Log.d(this.getLogStart(), "activity destroyed. New activity count == "
-                + this.activityASAPActivities);
-    }
-
-    public Activity getActivity() {
-        return this.activity;
-    }
-
-    void setActivity(Activity activity) {
-        Log.d(this.getLogStart(), "activity set");
-        this.activity = activity;
     }
 
     private void askForPermissions() {
@@ -385,16 +270,154 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         this.askForPermissions();
     }
 
-    public void setBTDiscoverable(boolean on) {
+    private ASAPPeerFS getASAPPeerApplicationSide() {
+        if(this.asapPeerApplicationSide == null) {
+            // create application side proxy
+            throw new ASAPComponentNotYetInitializedException("peer app side not initialized - that's a bug. Check peer constructor on application side");
+        }
+
+        return this.asapPeerApplicationSide;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                                        getter                                             //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    int getNumberASAPActivities() {
+        return this.activityASAPActivities;
+    }
+
+    /**
+     *
+     * @return list of supported formats supported by this asap peer / service. You have defined
+     * those formats during object initialization.
+     */
+    public Collection<CharSequence> getSupportFormats() {
+        return this.supportedFormats;
+    }
+
+    /**
+     * ASAP application and service run separately. Nevertheless, ASAP application knows the
+     * location where each ASAP storage is kept. This method provides an object reference. Handle
+     * this method with great care. You would work on a storage in parallel with the ASAP service.
+     * There can be race conditions and most probably synchronization issues. It be also a
+     * performance booster. You should really know what you are doing.
+     *
+     * @param appFormat
+     * @return
+     * @throws IOException
+     * @throws ASAPException
+    public ASAPStorage getASAPStorage(CharSequence appFormat) throws IOException, ASAPException {
+        Log.d(this.getLogStart(), "convention: asap storage are in a folder ownerName/formatName");
+
+        String rootFolder = this.getApplicationRootFolder(appFormat.toString());
+        Log.d(this.getLogStart(), "use rootFolder: " + rootFolder);
+
+        return ASAPEngineFS.getASAPStorage(
+                this.asapOwner.toString(),
+                rootFolder,
+                appFormat.toString());
+    }
+     */
+
+    /**
+     * ASAP engines exchange message during an ASAP session which are already kept in their storage.
+     * <i>online exchange</i> denotes the feature that message are sent which are produced during
+     * a running asap session. That's most useful for any kind of chat application.
+     * @return status of online exchange.
+     */
+    public boolean getASAPOnlineExchange() {
+        return this.onlineExchange;
+    }
+
+    /**
+     * could be overwritten
+    protected CharSequence getASAPRootFolder(Activity activity) {
+        return this.rootFolder;
+    }
+     */
+
+    /**
+     *
+     * @return root folder of all information stored by the asap service. Handle this information
+     * with great care.
+     */
+    public CharSequence getASAPRootFolder() {
+        return Util.getASAPRootDirectory(
+                this.getActivity(), this.rootFolder, this.getOwnerID()).getAbsolutePath();
+    }
+
+    public CharSequence getASAPComponentFolder(CharSequence format) {
+        return this.getASAPRootFolder() +"/" + format;
+    }
+
+    /**
+     * @return asap owner id - if set
+     */
+    public CharSequence getOwnerID() {
+        return this.asapOwner;
+    }
+
+    /**
+     * @return asap owner name - if set
+    public CharSequence getOwnerName() {
+        return ASAPEngineFS.ANONYMOUS_OWNER;
+    }
+     */
+
+    /**
+     *
+     * @param appName
+     * @return root folder of information kept by an asap engine. Better not change those
+     * information.
+     */
+    public String getApplicationRootFolder(String appName) {
+        appName = Utils.url2FileName(appName);
+        String absoluteASAPApplicationRootFolder = this.getASAPRootFolder() + "/" + appName;
+        Log.d(this.getLogStart(), "absolute asap app rootfolder: "
+                + absoluteASAPApplicationRootFolder);
+
+        return absoluteASAPApplicationRootFolder;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                              activity / status observation                                //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    @CallSuper
+    public void activityCreated(ASAPActivity asapActivity) {
+        this.setActivity(asapActivity);
+        this.activityASAPActivities++;
+        Log.d(this.getLogStart(), "activity created. New activity count == "
+                + this.activityASAPActivities);
+    }
+
+    @CallSuper
+    public void activityDestroyed(ASAPActivity asapActivity) {
+        this.activityASAPActivities--;
+        Log.d(this.getLogStart(), "activity destroyed. New activity count == "
+                + this.activityASAPActivities);
+    }
+
+    public Activity getActivity() {
+        return this.activity;
+    }
+
+    void setActivity(Activity activity) {
+        Log.d(this.getLogStart(), "activity set");
+        this.activity = activity;
+    }
+
+    public void notifyBTDiscoverable(boolean on) {
         this.btDisoverableOn = on;
     }
 
-    public void setBTEnvironmentRunning(boolean on) {
+    public void notifyBTEnvironmentRunning(boolean on) {
         this.btEnvironmentOn = on;
 
     }
 
-    public void setBTDiscovery(boolean on) {
+    public void notifyBTDiscovery(boolean on) {
         this.btDisoveryOn = on;
     }
 
@@ -410,8 +433,26 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         return this.btDisoveryOn;
     }
 
+    public void notifyOnlinePeersChanged(Set<CharSequence> newPeerList) {
+        this.getASAPPeerApplicationSide().notifyOnlinePeersChanged(newPeerList);
+
+        if(onlinePeerList.size() < newPeerList.size()) {
+            Toast.makeText(this.getActivity(),
+                    "new online connections", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this.getActivity(),
+                    "online connections changed", Toast.LENGTH_SHORT).show();
+        }
+
+        this.onlinePeerList = newPeerList;
+
+        // notify listeners - delegate
+        this.getASAPPeerApplicationSide().notifyOnlinePeersChanged(newPeerList);
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     //                        asap received broadcast management                       //
+    //                           is registered by ASAPActivity                         //
     /////////////////////////////////////////////////////////////////////////////////////
 
     @Override
@@ -422,26 +463,38 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
             ASAPChunkReceivedBroadcastIntent asapReceivedIntent
                     = new ASAPChunkReceivedBroadcastIntent(intent);
 
-            // call listener - that's me in that case
-            this.chunkReceived(
+            // delegate to local peer proxy
+            this.getASAPPeerApplicationSide().chunkReceived(
                     asapReceivedIntent.getFormat().toString(),
                     asapReceivedIntent.getUser().toString(),
                     asapReceivedIntent.getUri().toString(),
-                    asapReceivedIntent.getFoldername().toString(),
                     asapReceivedIntent.getEra());
-
-        } catch (ASAPException e) {
-            Log.w(this.getLogStart(), "could not handle intent: " + e.getLocalizedMessage());
-
+        } catch (ASAPException | IOException e) {
+            Log.w(this.getLogStart(), "could call chunk received in local peer proxy: "
+                    + e.getLocalizedMessage());
         }
     }
 
-    private Map<CharSequence, Collection<ASAPMessageReceivedListener>> messageReceivedListener
-            = new HashMap<>();
+    /////// message received is triggered when chunks received
+    @Override
+    public void addASAPMessageReceivedListener(
+            CharSequence format, ASAPMessageReceivedListener listener) {
 
-    private Map<CharSequence, Collection<ASAPUriContentChangedListener>> uriContentChangedListener
-            = new HashMap<>();
+        this.getASAPPeerApplicationSide().addASAPMessageReceivedListener(format, listener);
+    }
 
+    @Override
+    public void removeASAPMessageReceivedListener(
+            CharSequence format, ASAPMessageReceivedListener listener) {
+
+        this.getASAPPeerApplicationSide().removeASAPMessageReceivedListener(format, listener);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                         other listeners beside chunk received                             //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /*
     public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
         Log.d(this.getLogStart(), "got chunkReceived message: "
                 + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
@@ -485,9 +538,16 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
             }
         }
     }
+     */
+
+    /////// uri changed listener - under construction - not yet support with ASAPPeer and not yet documented in web page
+
+    private Map<CharSequence, Collection<ASAPUriContentChangedListener>> uriContentChangedListener
+            = new HashMap<>();
 
     public final void addASAPUriContentChangedListener(
             CharSequence format, ASAPUriContentChangedListener listener) {
+        Log.e(this.getLogStart(), "URI Content Changed currently under construction - will most probably fail");
         Log.d(this.getLogStart(), "going to add asap uri changed listener for " + format);
         Collection<ASAPUriContentChangedListener> uriChangedListeners =
                 this.uriContentChangedListener.get(format);
@@ -505,6 +565,7 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         Collection<ASAPUriContentChangedListener> uriChangedListeners =
                 this.uriContentChangedListener.get(format);
 
+        Log.e(this.getLogStart(), "URI Content Changed currently under construction - will most probably fail");
         Log.d(this.getLogStart(), "going to remove asap uri changed listener for " + format);
 
         if(uriChangedListeners != null) {
@@ -512,76 +573,29 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         }
     }
 
-    /**
-     * Subscribe to get notified about incoming asap message of a given format/application
-     * @param format
-     * @param listener
-     */
-    @Override
-    public final void addASAPMessageReceivedListener(CharSequence format,
-                                       ASAPMessageReceivedListener listener) {
-        Log.d(this.getLogStart(), "going to add asap message receiver for " + format);
-        Collection<ASAPMessageReceivedListener> messageListeners =
-                this.messageReceivedListener.get(format);
-
-        if(messageListeners == null) {
-            messageListeners = new HashSet();
-            this.messageReceivedListener.put(format, messageListeners);
-        }
-
-        messageListeners.add(listener);
-    }
-
-    @Override
-    public final void removeASAPMessageReceivedListener(CharSequence format,
-                                               ASAPMessageReceivedListener listener) {
-        Collection<ASAPMessageReceivedListener> messageListeners =
-                this.messageReceivedListener.get(format);
-
-        Log.d(this.getLogStart(), "going to remove asap message receiver for " + format);
-
-        if(messageListeners != null) {
-            messageListeners.remove(listener);
-        }
-    }
+    /////// online peers list and change notifications
+    private Set<CharSequence> onlinePeerList = new HashSet<>();
 
     public Set<CharSequence> getOnlinePeerList() {
         return this.onlinePeerList;
     }
 
-    public void setOnlinePeersList(Set<CharSequence> peerList) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.getLogStart());
-        sb.append("#online peers: ");
-        sb.append(peerList.size());
-        for(CharSequence peerName : peerList) {
-            sb.append(" | ");
-            sb.append(peerName);
-        }
-
-        Log.d(this.getLogStart(), sb.toString());
-        if(onlinePeerList.size() < peerList.size()) {
-            Toast.makeText(this.getActivity(),
-                    "new online connections", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this.getActivity(),
-                    "online connections changed", Toast.LENGTH_SHORT).show();
-        }
-
-        this.onlinePeerList = peerList;
-
-        // notify listeners
-        this.environmentChangesListenerManager.notifyListeners(this.onlinePeerList);
+    @Override
+    public void addASAPEnvironmentChangesListener(ASAPEnvironmentChangesListener listener) {
+        this.getASAPPeerApplicationSide().addASAPEnvironmentChangesListener(listener);
     }
+
+    @Override
+    public void removeASAPEnvironmentChangesListener(ASAPEnvironmentChangesListener listener) {
+        this.getASAPPeerApplicationSide().removeASAPEnvironmentChangesListener(listener);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                                     component support                                     //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public void setupDrawerLayout(Activity activity) {
         Log.d(this.getLogStart(), "setupDrawerLayout dummy called: could be overwritten if needed. Don't do anything here");
-    }
-
-    private String getLogStart() {
-//        int objectID = this.hashCode();
-//        return "ASAPApplication(" + objectID + ")";
-        return "ASAPApplication";
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -593,23 +607,9 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
         return this.asapOwner;
     }
 
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    //                               ASAPEnvironmentChangesListener                              //
+    //                          ASAP messages are sent with the service                          //
     ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    private ASAPEnvironmentChangesListenerManager environmentChangesListenerManager =
-            new ASAPEnvironmentChangesListenerManager();
-
-    @Override
-    public void addASAPEnvironmentChangesListener(ASAPEnvironmentChangesListener listener) {
-        this.environmentChangesListenerManager.addASAPEnvironmentChangesListener(listener);
-    }
-
-    @Override
-    public void removeASAPEnvironmentChangesListener(ASAPEnvironmentChangesListener listener) {
-        this.environmentChangesListenerManager.removeASAPEnvironmentChangesListener(listener);
-    }
 
     @Override
     public void sendASAPMessage(CharSequence format, CharSequence uri, byte[] message)
@@ -623,5 +623,11 @@ public class ASAPApplication extends BroadcastReceiver implements ASAPSimplePeer
 
         ASAPActivity asapActivity = (ASAPActivity)activity;
         asapActivity.sendASAPMessage(format, uri, message, true);
+    }
+
+    private String getLogStart() {
+//        int objectID = this.hashCode();
+//        return "ASAPApplication(" + objectID + ")";
+        return Util.getLogStart(this);
     }
 }

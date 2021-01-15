@@ -7,17 +7,17 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.sharksystem.asap.ASAPEngineFS;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.R;
+// TODO do not work with internal classes in any example!!
+import net.sharksystem.asap.android.apps.ASAPActivity;
+import net.sharksystem.asap.internals.ASAPEngineFS;
+import net.sharksystem.asap.internals.ASAPStorage;
 
 import java.io.IOException;
 import java.util.Set;
 
-import static net.sharksystem.asap.android.example.ASAPExampleApplication.ASAP_EXAMPLE_APPNAME;
-
-public class ASAPExampleActivity extends ASAPExampleRootActivity {
+public class ASAPExampleActivity extends ASAPActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,6 +150,7 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
     //                              asap store test scenario(s)                              //
     ///////////////////////////////////////////////////////////////////////////////////////////
 
+    // TODO change that code - avoid internals interfaces!!
     private final String URI = "sn://chat";
     private final String MESSAGE = "Hi, that's a message";
     private final byte[] BYTE_MESSAGE = MESSAGE.getBytes();
@@ -173,23 +174,24 @@ public class ASAPExampleActivity extends ASAPExampleRootActivity {
     }
 
     private void setupCleanASAPStorage() throws IOException, ASAPException {
-        String absoluteFolderName = this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME);
+        String absoluteFolderName = this.getASAPAndroidPeer().
+                getApplicationRootFolder(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME);
         Log.d(this.getLogStart(), "going to clean folder:  " + absoluteFolderName);
 
         ASAPEngineFS.removeFolder(absoluteFolderName);
 
         Log.d(this.getLogStart(), "create asap storage with:  "
-                + this.getASAPApplication().getOwnerID()
+                + this.getASAPAndroidPeer().getOwnerID()
                 + " | "
-                + this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME)
+                + this.getASAPAndroidPeer().getApplicationRootFolder(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME)
                 + " | "
-                + ASAP_EXAMPLE_APPNAME
+                + ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME
         );
 
         this.asapStorage = ASAPEngineFS.getASAPStorage(
-                        this.getASAPApplication().getOwnerID().toString(),
-                        this.getASAPApplication().getApplicationRootFolder(ASAP_EXAMPLE_APPNAME),
-                        ASAP_EXAMPLE_APPNAME);
+                        this.getASAPAndroidPeer().getOwnerID().toString(),
+                        this.getASAPAndroidPeer().getApplicationRootFolder(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME),
+                ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME);
     }
 
     public void onAddOnlineSenderClick(View view) {

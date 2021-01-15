@@ -6,5 +6,5 @@ import net.sharksystem.asap.ASAPException;
 
 public interface ASAPApplicationComponent {
     Context getContext() throws ASAPException;
-    ASAPApplication getASAPApplication();
+    ASAPAndroidPeer getASAPApplication();
 }

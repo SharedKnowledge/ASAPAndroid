@@ -9,15 +9,11 @@ import android.os.Messenger;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import net.sharksystem.asap.ASAPChunkReceivedListener;
-import net.sharksystem.asap.ASAPEngineFS;
+import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPOnlineMessageSender;
-import net.sharksystem.asap.ASAPOnlineMessageSenderEngineSide;
-import net.sharksystem.asap.ASAPOnlinePeersChangedListener;
 import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.ASAPPeerFS;
-import net.sharksystem.asap.android.ASAPAndroid;
+import net.sharksystem.asap.ASAPPeerService;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
@@ -25,6 +21,7 @@ import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.lora.LoRaEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
+import net.sharksystem.asap.internals.ASAPChunkReceivedListener;
 import net.sharksystem.asap.util.Helper;
 
 import java.io.File;
@@ -38,8 +35,8 @@ import java.util.Set;
  * to run an ASAP session on.
  */
 
-public class ASAPService extends Service implements ASAPChunkReceivedListener,
-        ASAPOnlinePeersChangedListener {
+public class ASAPService extends Service
+        implements ASAPChunkReceivedListener, ASAPEnvironmentChangesListener {
 
     /** time in minutes until a new connection attempt is made to an already paired device is made*/
     public static final int WAIT_MINUTES_UNTIL_TRY_RECONNECT = 1; // debugging
@@ -48,8 +45,7 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private String asapEngineRootFolderName;
 
     //private asapMultiEngine asapMultiEngine = null;
-    private ASAPPeer asapPeer;
-    private ASAPOnlineMessageSender asapOnlineMessageSender;
+    private ASAPPeerFS asapPeer;
     private CharSequence owner;
     private CharSequence rootFolder;
     private boolean onlineExchange;
@@ -60,7 +56,11 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         return this.asapEngineRootFolderName;
     }
 
-    public ASAPPeer getASAPPeer() {
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                 construction                                     //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    public ASAPPeerFS getASAPPeer() {
         Log.d(this.getLogStart(), "asap peer is a singleton.");
         if(this.asapPeer == null) {
             Log.d(this.getLogStart(), "going to set up asapPeer");
@@ -86,19 +86,18 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
                     Log.d(this.getLogStart(),"done creating root folder");
                 }
 
-                this.asapPeer = ASAPPeerFS.createASAPPeer(
-                        this.owner, this.asapEngineRootFolderName,
-                        this.maxExecutionTime, this.supportedFormats, this);
+                this.asapPeer = new ASAPPeerFS(this.owner, this.asapEngineRootFolderName,
+                        this.supportedFormats);
 
-                Log.d(this.getLogStart(),"engines created");
+                // overwrite chunk received listener
+                this.asapPeer.overwriteChuckReceivedListener(this);
+
+                Log.d(this.getLogStart(),"peer service side created");
 
                 // listener for radar app
-                this.asapPeer.addOnlinePeersChangedListener(this);
-                Log.d(this.getLogStart(),"added online peer changed listener");
-
-                // add online feature to each engine
-                this.asapPeer.activateOnlineMessages();
-                Log.d(this.getLogStart(),"online messages activated for ALL asap engines");
+                this.asapPeer.addASAPEnvironmentChangesListener(this);
+                //this.asapPeer.addOnlinePeersChangedListener(this);
+                Log.d(this.getLogStart(),"added environment changes listener");
 
             } catch (IOException e) {
                 Log.d(this.getLogStart(),"IOException");
@@ -127,15 +126,23 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     }
 
     // comes second - do initializing stuff here
+
+    /**
+     * Set parameters and prepare environment to create an ASAPPeer on service side
+     * @param intent
+     * @param flags
+     * @param startId
+     * @return
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(this.getLogStart(), "onStartCommand");
         if(intent == null) {
             Log.d(this.getLogStart(), "intent is null");
-            this.owner = ASAPAndroid.UNKNOWN_USER;
-            this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
-            this.onlineExchange = ASAPAndroid.ONLINE_EXCHANGE_DEFAULT;
-            this.maxExecutionTime = ASAPPeer.DEFAULT_MAX_PROCESSING_TIME;
+            this.owner = ASAPPeer.UNKNOWN_USER;
+            this.rootFolder = ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME;
+            this.onlineExchange = ASAPPeer.ONLINE_EXCHANGE_DEFAULT;
+            this.maxExecutionTime = ASAPPeerService.DEFAULT_MAX_PROCESSING_TIME;
         } else {
             Log.d(this.getLogStart(), "service was created with an intent");
 
@@ -154,11 +161,11 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
             // set defaults if null
             if(this.owner == null || this.owner.length() == 0) {
                 Log.d(this.getLogStart(), "intent did not define owner - set default:");
-                this.owner = ASAPAndroid.UNKNOWN_USER;
+                this.owner = ASAPPeer.UNKNOWN_USER;
             }
             if(this.rootFolder == null || this.rootFolder.length() == 0) {
                 Log.d(this.getLogStart(), "intent did not define root folder - set default:");
-                this.rootFolder = ASAPEngineFS.DEFAULT_ROOT_FOLDER_NAME;
+                this.rootFolder = ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME;
             }
         }
 
@@ -413,19 +420,6 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         this.broadcastOn = false;
     }
 
-    public ASAPOnlineMessageSender getASAPOnlineMessageSender() throws ASAPException {
-        if(this.asapOnlineMessageSender == null) {
-            if(this.asapPeer == null) {
-                throw new ASAPException("asap engine not initialized");
-            }
-
-            this.asapOnlineMessageSender =
-                    new ASAPOnlineMessageSenderEngineSide(this.asapPeer);
-        }
-
-        return this.asapOnlineMessageSender;
-    }
-
     //////////////////////////////////////////////////////////////////////////////////
     //                           ASAPOnlinePeersChangedListener                     //
     //////////////////////////////////////////////////////////////////////////////////
@@ -433,11 +427,11 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
     private int numberOnlinePeers = 0;
 
     @Override
-    public void onlinePeersChanged(ASAPPeer asapPeer) {
+    public void onlinePeersChanged(Set<CharSequence> onlinePeers) {
         Log.d(this.getLogStart(), "onlinePeersChanged");
 
         // broadcast
-        String serializedOnlinePeers = Helper.collection2String(asapPeer.getOnlinePeers());
+        String serializedOnlinePeers = Helper.collection2String(onlinePeers);
         Log.d(this.getLogStart(), "online peers serialized: " + serializedOnlinePeers);
 
         ASAPServiceRequestNotifyIntent intent =
@@ -453,7 +447,6 @@ public class ASAPService extends Service implements ASAPChunkReceivedListener,
         // force reconnection - to re-establish a accidentally broken connection
         int onlinePeerPreviously = this.numberOnlinePeers;
         Log.d(this.getLogStart(), "formed number of online peers: " + onlinePeerPreviously);
-        Set<CharSequence> onlinePeers = this.asapPeer.getOnlinePeers();
         if(onlinePeers != null) {
             this.numberOnlinePeers = onlinePeers.size();
             Log.d(this.getLogStart(), "current number of online peers: "
