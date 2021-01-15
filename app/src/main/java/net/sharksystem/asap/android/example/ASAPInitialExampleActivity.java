@@ -2,9 +2,10 @@ package net.sharksystem.asap.android.example;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Toast;
 
+import net.sharksystem.asap.ASAP;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.apps.ASAPAndroidPeer;
 
@@ -20,9 +21,14 @@ public class ASAPInitialExampleActivity extends AppCompatActivity {
             // initialize ASAP peer (application side)
             if(!ASAPAndroidPeer.peerInitialized()) {
                 Collection<CharSequence> formats = new ArrayList<>();
+
+                // add a name that identifies your app which also identifies general message format
                 formats.add(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME);
 
-                ASAPAndroidPeer.initializePeer(formats, this);
+                // generate a name for this peer
+                String peerName = ASAP.createUniqueID();
+
+                ASAPAndroidPeer.initializePeer(peerName, formats, this);
             }
 
             // start ASAP peer (service side)

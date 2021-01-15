@@ -4,12 +4,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-
-import net.sharksystem.asap.android.lora.ASAPLoRaException;
-import net.sharksystem.asap.android.lora.LoRaBTInputOutputStream;
-import net.sharksystem.asap.android.lora.messages.DiscoverASAPLoRaMessage;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;

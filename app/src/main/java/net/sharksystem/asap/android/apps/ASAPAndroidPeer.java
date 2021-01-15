@@ -6,9 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.support.annotation.CallSuper;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.CallSuper;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
-import static android.support.v4.content.PermissionChecker.PERMISSION_GRANTED;
+import static androidx.core.content.PermissionChecker.PERMISSION_DENIED;
+import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
 public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
@@ -133,10 +133,6 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         // remember me
         ASAPAndroidPeer.singleton = this;
 
-        // create proxy
-        this.asapPeerApplicationSide =
-                new ASAPPeerFS(asapOwner, this.getASAPRootFolder(), supportedFormats);
-
         // set context
         this.setActivity(initialActivity);
 
@@ -160,7 +156,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     /**
      * Start initialized ASAPAndroidPeer
      */
-    public static void startPeer() {
+    public static void startPeer() throws IOException, ASAPException {
         ASAPAndroidPeer.getASAPAndroidPeer().start();
     }
 
@@ -175,7 +171,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
      * <b>Never forget to launch your application.</b>
      */
     @CallSuper
-    public void start() {
+    public void start() throws IOException, ASAPException {
         if(!this.started) {
             Log.d(this.getLogStart(), "initialize and launch ASAP Service");
             // collect parameters
@@ -213,6 +209,12 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         } else {
             Log.e(this.getLogStart(), "try to re-start application - not allowed. Ignored");
         }
+
+        // finally create proxy
+        this.asapPeerApplicationSide =
+                new ASAPPeerFS(asapOwner, this.getASAPRootFolder(), supportedFormats);
+
+
     }
 
     private void askForPermissions() {
