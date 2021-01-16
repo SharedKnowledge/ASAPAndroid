@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import androidx.annotation.CallSuper;
 import androidx.core.app.ActivityCompat;
@@ -21,6 +22,7 @@ import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
+import net.sharksystem.asap.util.Helper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +38,10 @@ import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
 public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
+    private static final String PREFERENCES_FILE = "ASAPPeerApplicationSideInitSettings";
+    private static final String SUPPORTED_FORMATS = "ASAPPeer_SupportedFormats";
+    private static final String OWNER = "ASAPPeer_Owner";
+    private static final String ROOT_FOLDER = "ASAPPeer_RootFolder";
     private static ASAPAndroidPeer singleton;
     private ASAPPeerFS asapPeerApplicationSide = null;
     private Collection<CharSequence> supportedFormats;
@@ -68,6 +74,62 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         return ASAPAndroidPeer.singleton;
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    //                                       memento  mori                                     //
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static void writeMemento(Activity activity, Collection<CharSequence> supportedFormats,
+                                     CharSequence asapOwner, CharSequence rootFolder) {
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(
+                ASAPAndroidPeer.PREFERENCES_FILE, Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        String supportFormatsString = Helper.collection2String(supportedFormats);
+        Log.d(net.sharksystem.asap.util.Log.startLog(ASAPAndroidPeer.class).toString(),
+                "write memento: " + supportFormatsString + " | " + asapOwner
+                        + " | " + rootFolder);
+
+        editor.putString(ASAPAndroidPeer.SUPPORTED_FORMATS, supportFormatsString);
+        editor.putString(ASAPAndroidPeer.OWNER, asapOwner.toString());
+        editor.putString(ASAPAndroidPeer.ROOT_FOLDER, rootFolder.toString());
+
+        editor.commit();
+    }
+
+    static void restoreFromMemento(Activity activity)
+            throws ASAPComponentNotYetInitializedException {
+
+        Log.d(net.sharksystem.asap.util.Log.startLog(ASAPAndroidPeer.class).toString(),
+            "restore from memento with activity == " + activity);
+
+        SharedPreferences sharedPref = activity.getSharedPreferences(
+                ASAPAndroidPeer.PREFERENCES_FILE, Context.MODE_PRIVATE);
+
+        if(sharedPref != null || !sharedPref.contains(ASAPAndroidPeer.SUPPORTED_FORMATS)) {
+                throw new ASAPComponentNotYetInitializedException(
+                        "ASAP peer was never initialized - nothing found in shared preferences: ");
+        }
+
+        try {
+            new ASAPAndroidPeer(
+                    // supported formats
+                    Helper.string2CharSequenceSet(
+                            sharedPref.getString(ASAPAndroidPeer.SUPPORTED_FORMATS, "")),
+                    // owner
+                    sharedPref.getString(ASAPAndroidPeer.OWNER, ASAPPeer.UNKNOWN_USER.toString()),
+                    // rootFolder
+                    sharedPref.getString(ASAPAndroidPeer.ROOT_FOLDER, ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME.toString()),
+                    ASAPPeer.ONLINE_EXCHANGE_DEFAULT,
+                    activity);
+        } catch (IOException | ASAPException e) {
+            // that's highly unlikely
+            throw new ASAPComponentNotYetInitializedException(
+                    "could not restore app side peer from shared preferences: " + e.getLocalizedMessage());
+        }
+    }
+
     public static boolean peerInitialized() {
         return ASAPAndroidPeer.singleton != null;
     }
@@ -81,10 +143,8 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
             Collection<CharSequence> supportedFormats, Activity initialActivity)
             throws IOException, ASAPException {
 
-        new ASAPAndroidPeer(supportedFormats, ASAPPeer.UNKNOWN_USER,
-                ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME,
-                ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
-
+        ASAPAndroidPeer.initializePeer(ASAPPeer.UNKNOWN_USER, supportedFormats,
+                ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME, initialActivity);
     }
 
     public static void initializePeer(CharSequence asapOwner,
@@ -92,9 +152,8 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                                       Activity initialActivity)
             throws IOException, ASAPException {
 
-        new ASAPAndroidPeer(supportedFormats, asapOwner,
-                ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME,
-                ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
+        ASAPAndroidPeer.initializePeer(asapOwner, supportedFormats,
+                ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME, initialActivity);
     }
 
     public static void initializePeer(CharSequence asapOwner,
@@ -103,6 +162,8 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                                       Activity initialActivity)
             throws IOException, ASAPException {
 
+        // write memento
+        ASAPAndroidPeer.writeMemento(initialActivity, supportedFormats, asapOwner, rootFolder);
         new ASAPAndroidPeer(supportedFormats, asapOwner, rootFolder,
                 ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
     }

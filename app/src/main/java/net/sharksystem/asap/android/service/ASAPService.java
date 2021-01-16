@@ -31,8 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Service that searches for and creates layer 2 point-to-point connections
- * to run an ASAP session on.
+ * This class controls layer 2 connections
  */
 
 public class ASAPService extends Service

@@ -44,28 +44,23 @@ public class ASAPActivity extends AppCompatActivity implements
     private ASAPAndroidPeer asapAndroidPeer;
 
     /**
-     * Create a new activity object. Make sure your application object is fully
-     * instantiated
-     * @param asapAndroidPeer
-     */
-    ASAPActivity(ASAPAndroidPeer asapAndroidPeer) {
-        this.asapAndroidPeer = asapAndroidPeer;
-    }
-
-    /**
      * @throws ASAPComponentNotYetInitializedException if ASAPAndroidPeer was not initialized
      */
     public ASAPActivity() {
-        this(ASAPAndroidPeer.getASAPAndroidPeer());
+        if(!ASAPAndroidPeer.peerInitialized()) {
+            // weired. Should be with initial activity - anyway try to recover from memento
+            Log.d(this.getLogStart(), "application side peer not yet initialized - try to restore from memory");
+            Log.d(this.getLogStart(), "this == " + this);
+            ASAPAndroidPeer.restoreFromMemento(this); // can throw exception
+            Log.d(this.getLogStart(), "application side peer restored from memory");
+        }
+
+        this.asapAndroidPeer = ASAPAndroidPeer.getASAPAndroidPeer();
     }
 
-    protected ASAPAndroidPeer getASAPAndroidPeer() {
-        return this.asapAndroidPeer;
-    }
+    protected ASAPAndroidPeer getASAPAndroidPeer() { return this.asapAndroidPeer; }
 
-    protected ASAPPeer getASAPPeer() {
-        return this.asapAndroidPeer;
-    }
+    protected ASAPPeer getASAPPeer() { return this.asapAndroidPeer; }
 
     /**
      * Create a closed asap channel. Ensure to call this method before ever sending a message into

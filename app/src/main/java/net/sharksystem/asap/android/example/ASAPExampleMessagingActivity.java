@@ -123,7 +123,13 @@ public class ASAPExampleMessagingActivity extends ASAPActivity {
             sb.append(e.getLocalizedMessage());
         }
 
-        TextView receivedMessagesTV = this.findViewById(R.id.exampleMessagingMessages);
-        receivedMessagesTV.setText(sb.toString());
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView receivedMessagesTV =
+                        ASAPExampleMessagingActivity.this.findViewById(R.id.exampleMessagingMessages);
+                receivedMessagesTV.setText(sb.toString());
+            }
+        });
     }
 }
