@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.R;
 // TODO do not work with internal classes in any example!!
 import net.sharksystem.asap.android.apps.ASAPActivity;

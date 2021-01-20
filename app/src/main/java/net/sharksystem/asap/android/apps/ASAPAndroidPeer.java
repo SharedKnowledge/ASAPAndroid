@@ -557,54 +557,9 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     //                         other listeners beside chunk received                             //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*
-    public void chunkReceived(String format, String sender, String uri, String foldername, int era) {
-        Log.d(this.getLogStart(), "got chunkReceived message: "
-                + format + " | "+ sender + " | " + uri  + " | " + foldername + " | " + era);
-
-        // inform uri changed listener - if any
-        Collection<ASAPUriContentChangedListener> uriListeners =
-                this.uriContentChangedListener.get(format);
-
-        Log.d(this.getLogStart(), "going to inform uri changed listener about it: "
-                + uriListeners);
-
-        if(uriListeners != null) {
-            for(ASAPUriContentChangedListener uriListener : uriListeners) {
-                uriListener.asapUriContentChanged(uri);
-            }
-        }
-
-        // inform message listeners - if any
-        Collection<ASAPMessageReceivedListener> messageListeners =
-                this.messageReceivedListener.get(format);
-
-        Log.d(this.getLogStart(), "going to inform message listener about it: "
-                + messageListeners);
-
-        if(messageListeners != null) {
-            ASAPMessages asapMessages = Helper.getMessagesByChunkReceivedInfos(
-                    format, sender, uri, foldername, era);
-
-            if(asapMessages == null) {
-                Log.e(this.getLogStart(), "cannot create message - failure - give up");
-                return;
-            }
-
-            for(ASAPMessageReceivedListener messageListener : messageListeners) {
-                try {
-                    messageListener.asapMessagesReceived(asapMessages);
-                } catch (IOException e) {
-                    Log.e(this.getLogStart(), "calling messageReceivedListener: "
-                            + e.getLocalizedMessage());
-                }
-            }
-        }
-    }
-     */
-
     /////// uri changed listener - under construction - not yet support with ASAPPeer and not yet documented in web page
 
+    // TODO - replace or move to ASAPPeer in the Java project
     private Map<CharSequence, Collection<ASAPUriContentChangedListener>> uriContentChangedListener
             = new HashMap<>();
 
