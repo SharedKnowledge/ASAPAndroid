@@ -28,7 +28,7 @@ public class Base64Test {
     @Test
     public void usesAppContext() {
         // Test if we are running in App Context
-        Context appContext = InstrumentationRegistry.getTargetContext();
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("net.sharksystem.asap.example", appContext.getPackageName());
     }
 
