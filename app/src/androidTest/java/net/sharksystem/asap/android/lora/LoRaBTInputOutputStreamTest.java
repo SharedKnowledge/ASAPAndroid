@@ -78,7 +78,7 @@ public class LoRaBTInputOutputStreamTest {
         assertEquals("net.sharksystem.asap.example", appContext.getPackageName());
     }
 
-    @Test(timeout = 30000)
+    @Test(timeout = 10000)
     public void testASAPOutputToBTInput() throws IOException, ASAPLoRaMessageException {
         Alice.getASAPOutputStream("1001").write("Test".getBytes());
         Alice.flushASAPOutputStreams();
@@ -93,6 +93,13 @@ public class LoRaBTInputOutputStreamTest {
                 assertEquals(new ASAPLoRaMessage("1000", "Test".getBytes()).toString(), asapMsg.toString());
                 break;
             }
+        }
+    }
+
+    @Test(timeout = 100000)
+    public void testMultipleASAPOutputToBTInput() throws IOException, ASAPLoRaMessageException {
+        for (int i = 0; i < 10; i++) {
+            this.testASAPOutputToBTInput();
         }
     }
 }
