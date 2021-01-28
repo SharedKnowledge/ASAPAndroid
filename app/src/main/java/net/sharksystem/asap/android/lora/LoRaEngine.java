@@ -1,8 +1,11 @@
 package net.sharksystem.asap.android.lora;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
 
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 
@@ -42,8 +45,19 @@ public class LoRaEngine extends MacLayerEngine {
     public void start() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.start() called");
         try {
-            loRaCommunicationManager = new LoRaCommunicationManager();
-            loRaCommunicationManager.start();
+            //TODO - move btDevice selection to Parameter / initialize Selection-Dialog
+            BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+            btAdapter.enable();
+            btAdapter.cancelDiscovery();
+
+            for (BluetoothDevice btDevice : btAdapter.getBondedDevices()) {
+                if (btDevice.getName().indexOf("ASAP-LoRa") == 0) { //TODO: What about more than 1 paired ASAP-LoRa Board? Or 1 avail and 1 unavail?
+                    loRaCommunicationManager = new LoRaCommunicationManager(btDevice);
+                    loRaCommunicationManager.start();
+                    break;
+                }
+            }
         } catch (ASAPLoRaException e) {
             e.printStackTrace(); //TODO
         }
@@ -60,13 +74,13 @@ public class LoRaEngine extends MacLayerEngine {
     @Override
     public boolean tryReconnect() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.tryReconnect() called");
-        return false;
+        return true; //TODO assume we have a good connection at the moment.
     }
 
     @Override
     public void checkConnectionStatus() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.checkConnectionStatus() called");
-
+        //NOOP, as we do not have persistent connections
     }
 
     void tryConnect(String macAddress) {

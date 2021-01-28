@@ -3,6 +3,7 @@ package net.sharksystem.asap.android.lora;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 
@@ -18,6 +19,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 
 
@@ -35,7 +37,7 @@ public class LoRaBTInputOutputStream {
     private final HashMap<String, LoRaASAPInputStream> loRaASAPInputStreams = new HashMap<>();
     private final HashMap<String, BufferedOutputStream> loRaASAPOutputStreams = new HashMap<>();
 
-    LoRaBTInputOutputStream(BluetoothSocket btSocket) throws IOException {
+    public LoRaBTInputOutputStream(BluetoothSocket btSocket) throws IOException {
         this.btSocket = btSocket;
         this.is = new LoRaBTInputStream(btSocket.getInputStream());
         this.os = new LoRaBTOutputStream(btSocket.getOutputStream());
@@ -56,7 +58,7 @@ public class LoRaBTInputOutputStream {
         if (this.loRaASAPOutputStreams.containsKey(mac))
             return this.loRaASAPOutputStreams.get(mac);
 
-        this.loRaASAPOutputStreams.put(mac, new BufferedOutputStream(new LoRaASAPOutputStream(mac), 20)); //TODO increase buffer size
+        this.loRaASAPOutputStreams.put(mac, new BufferedOutputStream(new LoRaASAPOutputStream(mac), 10)); //TODO increase buffer size
         return this.getASAPOutputStream(mac); //TODO rewrite to make sure to never have endless loop?
     }
 
@@ -139,11 +141,10 @@ public class LoRaBTInputOutputStream {
         }
     }
 
-    class LoRaASAPOutputStream extends ByteArrayOutputStream {
+    class LoRaASAPOutputStream extends OutputStream {
         private final String LoRaAddress;
 
         public LoRaASAPOutputStream(String mac) {
-            super(250); //TODO Prüfen ob wir wirklich immer 250 bytes schicken können
             this.LoRaAddress = mac;
         }
 
@@ -151,7 +152,8 @@ public class LoRaBTInputOutputStream {
         public synchronized void write(byte[] b, int off, int len) {
             //TODO...? Ist das sinnig?
             try {
-                LoRaBTInputOutputStream.this.getOutputStream().write(new ASAPLoRaMessage(this.LoRaAddress, b));
+
+                LoRaBTInputOutputStream.this.getOutputStream().write(new ASAPLoRaMessage(this.LoRaAddress, Arrays.copyOf(b, len)));
             } catch (IOException | ASAPLoRaException e) {
                 e.printStackTrace(); //TODO...
             }

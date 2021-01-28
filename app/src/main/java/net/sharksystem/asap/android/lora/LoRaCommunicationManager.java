@@ -1,11 +1,10 @@
 package net.sharksystem.asap.android.lora;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.os.Build;
 import android.util.Log;
 
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DeviceDiscoveredASAPLoRaMessage;
@@ -15,7 +14,6 @@ import net.sharksystem.asap.android.lora.messages.ErrorASAPLoRaMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Base64;
 import java.util.UUID;
 
 public class LoRaCommunicationManager extends Thread {
@@ -31,26 +29,16 @@ public class LoRaCommunicationManager extends Thread {
     private static LoRaBTInputOutputStream ioStream = null;
     private BluetoothDevice btDevice = null;
 
-    public LoRaCommunicationManager() throws ASAPLoRaException {
+    public LoRaCommunicationManager(BluetoothDevice bluetoothDevice) throws ASAPLoRaException {
 
-        BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+        this.btDevice = bluetoothDevice;
 
-        btAdapter.enable();
-        btAdapter.cancelDiscovery();
-
-        //TODO - move to Parameter / initialize Selection-Dialog
-        for (BluetoothDevice btDevice : btAdapter.getBondedDevices()) {
-            if (btDevice.getName().indexOf("ASAP-LoRa") == 0) { //TODO: What about more than 1 paired ASAP-LoRa Board? Or 1 avail and 1 unavail?
-                this.btDevice = btDevice;
-                break;
-            }
-        }
         if (this.btDevice == null)
             throw new ASAPLoRaException("Please pair to an ASAP-LoRa Board before Starting LoRa!");
 
         /**
          * uses UUID of Serial Devices for now - https://www.bluetooth.com/specifications/assigned-numbers/
-         * Might be a good idea to move another uuid to define a ASAP-LoRa Node
+         * Might be a good idea to move another uuid to define a ASAP-LoRa Node? TODO
          */
         try {
             BluetoothSocket btSocket = btDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
@@ -71,8 +59,6 @@ public class LoRaCommunicationManager extends Thread {
 
     @Override
     public void run() {
-        super.run();
-
         try {
             //this.ioStream.getOutputStream().write(new RawASAPLoRaMessage("AT"));
             this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage()); //TODO, do this periodically?

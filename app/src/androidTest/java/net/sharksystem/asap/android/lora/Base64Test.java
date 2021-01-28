@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.LoRaEngine;
+package net.sharksystem.asap.android.lora;
 
 
 import android.content.Context;

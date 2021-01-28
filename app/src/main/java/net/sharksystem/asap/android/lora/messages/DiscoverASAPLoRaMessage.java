@@ -5,4 +5,9 @@ public class DiscoverASAPLoRaMessage extends AbstractASAPLoRaMessage {
     public String getPayload() {
         return "DSCVR";
     }
+
+    @Override
+    public String toString() {
+        return "DSCVR";
+    }
 }

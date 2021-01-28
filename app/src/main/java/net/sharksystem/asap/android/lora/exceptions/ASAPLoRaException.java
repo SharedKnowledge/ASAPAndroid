@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.lora;
+package net.sharksystem.asap.android.lora.exceptions;
 
 import net.sharksystem.asap.ASAPException;
 
