@@ -117,6 +117,7 @@ public class LoRaBTInputOutputStream {
 
     static class LoRaASAPInputStream extends InputStream {
         private final String LoRaAddress;
+        private Thread waitThread;
 
         private SequenceInputStream sis;
 
@@ -129,12 +130,26 @@ public class LoRaBTInputOutputStream {
         public synchronized void appendData(byte[] data) {
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
             this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right.
-            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
+            if(this.waitThread != null) this.waitThread.interrupt();
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #2");
         }
 
         @Override
         public synchronized int read() throws IOException {
-            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #1");
+            if(sis.available() < 1) {
+                // no data
+                this.waitThread = Thread.currentThread();
+                // wait
+                try {
+                    this.waitThread.wait();
+                } catch (InterruptedException e) {
+                    /* ok.. what happend
+                    a) new data arrived return data.
+                    b) no more data at all - return -1
+                     */
+                }
+            }
+            /*
             while (sis.available() <= 0) { //TODO Timeout
                 net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #2");
                 try {
@@ -144,6 +159,7 @@ public class LoRaBTInputOutputStream {
                 }
             }
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #3");
+             */
             return sis.read();
         }
     }
