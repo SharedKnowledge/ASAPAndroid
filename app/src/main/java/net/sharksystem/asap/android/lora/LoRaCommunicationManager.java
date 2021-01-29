@@ -65,34 +65,35 @@ public class LoRaCommunicationManager extends Thread {
             //this.ioStream.getOutputStream().write(new ASAPLoRaMessage("A2FF", "Hi there!"));
             long lastBufferFlush = System.currentTimeMillis();
             while (!this.isInterrupted()) {
+                if (this.ioStream.getInputStream().available() > 0) {
+                    AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
+                    Log.i(this.CLASS_LOG_TAG, "Message recieved: " + asapLoRaMessage.toString());
+                    //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
+                    if (asapLoRaMessage instanceof ASAPLoRaMessage) {
+                        //New Message inbound, write to corresponding stream of ASAPPeer
+                        this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
+                    } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
+                        //New Device in Range found
+                        LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
+                    } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
+                        //LoRa Error occured
+                        // TODO
+                    }
+                }
+
                 //Periodically flush Buffers
                 if ((System.currentTimeMillis() - lastBufferFlush) > this.FLUSH_BUFFER_TIMEOUT) {
-                    if (this.ioStream.getInputStream().available() > 0) {
-                        AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
-                        Log.i(this.CLASS_LOG_TAG, "Message recieved: " + asapLoRaMessage.toString());
-                        //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
-                        if (asapLoRaMessage instanceof ASAPLoRaMessage) {
-                            //New Message inbound, write to corresponding stream of ASAPPeer
-                            this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
-                        } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
-                            //New Device in Range found
-                            LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
-                        } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
-                            //LoRa Error occured
-                            // TODO
-                        }
-                    }
-
                     this.ioStream.flushASAPOutputStreams();
                     lastBufferFlush = System.currentTimeMillis();
                 }
             }
-            Log.i(CLASS_LOG_TAG, "Thread was interrupted, shutting down.");
+            Log.i(CLASS_LOG_TAG, "Thread was interrupted, starting Shutdown.");
         } catch (IOException | ASAPLoRaException e) {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());
             //throw new ASAPLoRaException(e);
         } finally {
             this.ioStream.close(); //cleanup after ourselves
+            Log.i(CLASS_LOG_TAG, "Streams were closed. Shutting down.");
         }
     }
 }
