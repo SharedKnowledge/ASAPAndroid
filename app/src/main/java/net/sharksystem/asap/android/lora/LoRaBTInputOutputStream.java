@@ -130,13 +130,16 @@ public class LoRaBTInputOutputStream {
 
         @Override
         public synchronized int read() throws IOException {
+            net.sharksystem.utils.Log.writeLog(this, "read called #1");
             while (sis.available() <= 0) { //TODO Timeout
+                net.sharksystem.utils.Log.writeLog(this, "read called #2");
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     //return -1; //No Data
                 }
             }
+            net.sharksystem.utils.Log.writeLog(this, "read called #3");
             return sis.read();
         }
     }
