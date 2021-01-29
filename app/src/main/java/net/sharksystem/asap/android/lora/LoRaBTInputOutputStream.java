@@ -6,6 +6,7 @@ import android.util.Log;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
+import net.sharksystem.asap.utils.DateTimeHelper;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -20,6 +21,7 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 
 
@@ -125,21 +127,23 @@ public class LoRaBTInputOutputStream {
         }
 
         public synchronized void appendData(byte[] data) {
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
             this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right.
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
         }
 
         @Override
         public synchronized int read() throws IOException {
-            net.sharksystem.utils.Log.writeLog(this, "read called #1");
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #1");
             while (sis.available() <= 0) { //TODO Timeout
-                net.sharksystem.utils.Log.writeLog(this, "read called #2");
+                net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #2");
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(100); // polling is really a very very bad thing. Makes CPU hot and kills any battery in no time.
                 } catch (InterruptedException e) {
                     //return -1; //No Data
                 }
             }
-            net.sharksystem.utils.Log.writeLog(this, "read called #3");
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #3");
             return sis.read();
         }
     }

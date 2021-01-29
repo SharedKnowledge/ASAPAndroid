@@ -67,7 +67,7 @@ public class LoRaCommunicationManager extends Thread {
             while (!this.isInterrupted()) {
                 if (this.ioStream.getInputStream().available() > 0) {
                     AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
-                    Log.i(this.CLASS_LOG_TAG, "Message recieved: " + asapLoRaMessage.toString());
+                    Log.i(this.CLASS_LOG_TAG, "Message received: " + asapLoRaMessage.toString());
                     //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
                     if (asapLoRaMessage instanceof ASAPLoRaMessage) {
                         //New Message inbound, write to corresponding stream of ASAPPeer
