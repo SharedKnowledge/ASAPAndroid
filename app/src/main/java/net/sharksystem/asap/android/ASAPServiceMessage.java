@@ -5,7 +5,7 @@ import android.os.Message;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.util.Helper;
+import net.sharksystem.asap.utils.Helper;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -327,7 +327,7 @@ public class ASAPServiceMessage {
     //                                     others                                 //
     /////////////////////////////////////////////////////////////////////////////////
     private String getLogStart() {
-        return net.sharksystem.asap.util.Log.startLog(this).toString();
+        return net.sharksystem.utils.Log.startLog(this).toString();
     }
 
     public CharSequence getFormat() { return this.format; }

@@ -21,8 +21,8 @@ import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.lora.LoRaEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
-import net.sharksystem.asap.internals.ASAPChunkReceivedListener;
-import net.sharksystem.asap.util.Helper;
+import net.sharksystem.asap.engine.ASAPChunkReceivedListener;
+import net.sharksystem.asap.utils.Helper;
 
 import java.io.File;
 import java.io.IOException;

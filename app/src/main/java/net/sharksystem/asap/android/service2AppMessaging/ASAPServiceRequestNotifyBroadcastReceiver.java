@@ -6,9 +6,8 @@ import android.content.Intent;
 import android.util.Log;
 
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
-import net.sharksystem.asap.util.Helper;
+import net.sharksystem.asap.utils.Helper;
 
-import java.util.List;
 import java.util.Set;
 
 public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver {

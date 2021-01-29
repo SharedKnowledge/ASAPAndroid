@@ -13,16 +13,17 @@ import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import net.sharksystem.Utils;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
 import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.ASAPPeerFS;
+import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
-import net.sharksystem.asap.util.Helper;
+import net.sharksystem.asap.utils.Helper;
+import net.sharksystem.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         SharedPreferences.Editor editor = sharedPref.edit();
 
         String supportFormatsString = Helper.collection2String(supportedFormats);
-        Log.d(net.sharksystem.asap.util.Log.startLog(ASAPAndroidPeer.class).toString(),
+        net.sharksystem.utils.Log.writeLog(ASAPAndroidPeer.class,
                 "write memento: " + supportFormatsString + " | " + asapOwner
                         + " | " + rootFolder);
 
@@ -101,7 +102,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     static void restoreFromMemento(Activity activity)
             throws ASAPComponentNotYetInitializedException {
 
-        Log.d(net.sharksystem.asap.util.Log.startLog(ASAPAndroidPeer.class).toString(),
+        net.sharksystem.utils.Log.writeLog(ASAPAndroidPeer.class,
             "restore from memento with activity == " + activity);
 
         SharedPreferences sharedPref = activity.getSharedPreferences(
@@ -274,8 +275,11 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         // finally create proxy
         this.asapPeerApplicationSide =
                 new ASAPPeerFS(asapOwner, this.getASAPRootFolder(), supportedFormats);
+    }
 
-
+    @Override
+    public ASAPStorage getASAPStorage(CharSequence format) throws IOException, ASAPException {
+        return this.getASAPPeerApplicationSide().getASAPStorage(format);
     }
 
     private void askForPermissions() {

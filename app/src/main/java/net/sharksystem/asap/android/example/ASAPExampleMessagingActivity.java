@@ -11,7 +11,7 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPActivity;
-import net.sharksystem.asap.internals.ASAPMessages;
+import net.sharksystem.asap.ASAPMessages;
 
 import java.io.IOException;
 import java.util.ArrayList;

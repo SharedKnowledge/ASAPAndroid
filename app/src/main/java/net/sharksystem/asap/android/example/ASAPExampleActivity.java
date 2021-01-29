@@ -9,11 +9,11 @@ import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPPeer;
+import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.R;
 // TODO do not work with internal classes in any example!!
 import net.sharksystem.asap.android.apps.ASAPActivity;
-import net.sharksystem.asap.internals.ASAPEngineFS;
-import net.sharksystem.asap.internals.ASAPStorage;
+import net.sharksystem.asap.engine.ASAPEngineFS;
 
 import java.io.IOException;
 import java.util.Set;

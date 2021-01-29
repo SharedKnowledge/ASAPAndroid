@@ -109,6 +109,6 @@ public class ASAPServiceCreationIntent extends Intent {
     }
 
     private String getLogStart() {
-        return net.sharksystem.asap.util.Log.startLog(this).toString();
+        return net.sharksystem.utils.Log.startLog(this).toString();
     }
 }
