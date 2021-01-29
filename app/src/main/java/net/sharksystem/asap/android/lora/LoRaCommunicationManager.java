@@ -28,7 +28,7 @@ public class LoRaCommunicationManager extends Thread {
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
     private static LoRaBTInputOutputStream ioStream = null;
-    private BluetoothDevice btDevice = null;
+    private BluetoothDevice btDevice;
     private LoRaBTListenThread loRaBTListenThread = null;
 
     public LoRaCommunicationManager(BluetoothDevice bluetoothDevice) throws ASAPLoRaException {
@@ -47,6 +47,12 @@ public class LoRaCommunicationManager extends Thread {
             btSocket.connect();
             this.ioStream = new LoRaBTInputOutputStream(btSocket);
         } catch (IOException e) {
+            //Cleanup...
+            if(this.loRaBTListenThread != null)
+                this.loRaBTListenThread.interrupt();
+            if(this.ioStream != null)
+                this.ioStream.close();
+            //...then bubble up the exception
             throw new ASAPLoRaException(e);
         }
     }

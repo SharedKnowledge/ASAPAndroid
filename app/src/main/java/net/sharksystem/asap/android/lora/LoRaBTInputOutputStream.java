@@ -127,7 +127,7 @@ public class LoRaBTInputOutputStream {
             this.LoRaAddress = mac;
         }
 
-        public synchronized void appendData(byte[] data) {
+        public void appendData(byte[] data) {
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
             synchronized (this.threadLock) {
                 this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right.
@@ -137,7 +137,7 @@ public class LoRaBTInputOutputStream {
         }
 
         @Override
-        public synchronized int read() throws IOException {
+        public int read() throws IOException {
             synchronized (this.threadLock) {
                 while (sis.available() < 1) {
                     // no data, wait
