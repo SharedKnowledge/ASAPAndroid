@@ -2,6 +2,7 @@ package net.sharksystem.asap.android.lora.messages;
 
 import android.util.Log;
 
+import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
 public abstract class AbstractASAPLoRaMessage {
@@ -9,6 +10,10 @@ public abstract class AbstractASAPLoRaMessage {
 
     public String getPayload() throws ASAPLoRaMessageException {
         throw new ASAPLoRaMessageException("Trying to call getPayload() on non-outgoing ASAP Message. This should never happen.");
+    }
+
+    public void handleMessage(LoRaCommunicationManager loRaCommunicationManager) throws ASAPLoRaMessageException {
+        throw new ASAPLoRaMessageException("Tried handling a message, that cannot be handled.");
     }
 
     public static AbstractASAPLoRaMessage createASAPLoRaMessage(String rawMessage) throws ASAPLoRaMessageException {

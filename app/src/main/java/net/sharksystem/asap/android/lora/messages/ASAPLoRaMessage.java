@@ -2,6 +2,10 @@ package net.sharksystem.asap.android.lora.messages;
 
 import android.os.Build;
 
+import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -10,12 +14,6 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
     public String address;
     public byte[] message;
     public String base64message;
-
-    //Constructor for Jackson
-    public ASAPLoRaMessage() {
-        this.address = "";
-        this.message = new byte[0];
-    }
 
     public ASAPLoRaMessage(String address, byte[] message) {
         this.address = address;
@@ -31,6 +29,11 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { //TODO!
             this.message = Base64.getMimeDecoder().decode(this.base64message.getBytes(StandardCharsets.UTF_8));
         }
+    }
+
+    @Override
+    public void handleMessage(LoRaCommunicationManager loRaCommunicationManager) {
+        loRaCommunicationManager.appendMessage(this);
     }
 
     @Override

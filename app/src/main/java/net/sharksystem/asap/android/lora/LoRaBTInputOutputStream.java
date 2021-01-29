@@ -90,7 +90,7 @@ public class LoRaBTInputOutputStream {
         public AbstractASAPLoRaMessage readASAPLoRaMessage() throws IOException, ASAPLoRaException {
             BufferedReader br = new BufferedReader(new InputStreamReader(this));
             String rawASAPLoRaMessage = br.readLine();
-            Log.i(CLASS_LOG_TAG, "Reading Message from BT Board: " + rawASAPLoRaMessage);
+            Log.i(CLASS_LOG_TAG, "Got Message from BT Board: " + rawASAPLoRaMessage);
             //TODO do not use empty line
             return AbstractASAPLoRaMessage.createASAPLoRaMessage(rawASAPLoRaMessage);
         }
@@ -117,7 +117,7 @@ public class LoRaBTInputOutputStream {
 
     static class LoRaASAPInputStream extends InputStream {
         private final String LoRaAddress;
-        private Thread waitThread;
+        private Object threadLock = new Object();
 
         private SequenceInputStream sis;
 
@@ -129,37 +129,28 @@ public class LoRaBTInputOutputStream {
 
         public synchronized void appendData(byte[] data) {
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
-            this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right.
-            if(this.waitThread != null) this.waitThread.interrupt();
+            synchronized (this.threadLock) {
+                this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right.
+                this.threadLock.notify();
+            }
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #2");
         }
 
         @Override
         public synchronized int read() throws IOException {
-            if(sis.available() < 1) {
-                // no data
-                this.waitThread = Thread.currentThread();
-                // wait
-                try {
-                    this.waitThread.wait();
-                } catch (InterruptedException e) {
+            synchronized (this.threadLock) {
+                while (sis.available() < 1) {
+                    // no data, wait
+                    try {
+                        this.threadLock.wait();
+                    } catch (InterruptedException e) {
                     /* ok.. what happend
                     a) new data arrived return data.
                     b) no more data at all - return -1
                      */
+                    }
                 }
             }
-            /*
-            while (sis.available() <= 0) { //TODO Timeout
-                net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #2");
-                try {
-                    Thread.sleep(100); // polling is really a very very bad thing. Makes CPU hot and kills any battery in no time.
-                } catch (InterruptedException e) {
-                    //return -1; //No Data
-                }
-            }
-            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read called #3");
-             */
             return sis.read();
         }
     }
@@ -175,7 +166,6 @@ public class LoRaBTInputOutputStream {
         public synchronized void write(byte[] b, int off, int len) {
             //TODO...? Ist das sinnig?
             try {
-
                 LoRaBTInputOutputStream.this.getOutputStream().write(new ASAPLoRaMessage(this.LoRaAddress, Arrays.copyOf(b, len)));
             } catch (IOException | ASAPLoRaException e) {
                 e.printStackTrace(); //TODO...

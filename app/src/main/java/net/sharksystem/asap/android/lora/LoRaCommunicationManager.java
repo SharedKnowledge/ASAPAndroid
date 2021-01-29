@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DeviceDiscoveredASAPLoRaMessage;
@@ -28,6 +29,7 @@ public class LoRaCommunicationManager extends Thread {
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
     private static LoRaBTInputOutputStream ioStream = null;
     private BluetoothDevice btDevice = null;
+    private LoRaBTListenThread loRaBTListenThread = null;
 
     public LoRaCommunicationManager(BluetoothDevice bluetoothDevice) throws ASAPLoRaException {
 
@@ -57,30 +59,33 @@ public class LoRaCommunicationManager extends Thread {
         return this.ioStream.getASAPInputStream(mac);
     }
 
+    public LoRaBTInputOutputStream.LoRaBTInputStream getBTInputStream() {
+        return this.ioStream.getInputStream();
+    }
+
+    public void tryConnect(String address) {
+        LoRaEngine.getASAPLoRaEngine().tryConnect(address);
+    }
+
+    public void receiveASAPLoRaMessage(AbstractASAPLoRaMessage abstractASAPLoRaMessage) throws ASAPLoRaException {
+        Log.i(this.CLASS_LOG_TAG, "Message received: " + abstractASAPLoRaMessage.toString());
+        abstractASAPLoRaMessage.handleMessage(this);
+    }
+
+    public void appendMessage(ASAPLoRaMessage asapLoRaMessage) {
+        this.ioStream.getASAPInputStream(asapLoRaMessage.address).appendData(asapLoRaMessage.message);
+    }
+
     @Override
     public void run() {
         try {
-            //this.ioStream.getOutputStream().write(new RawASAPLoRaMessage("AT"));
+            //Start Listening for new Messages
+            this.loRaBTListenThread = new LoRaBTListenThread(this);
+            this.loRaBTListenThread.start();
+            //Announce our presence
             this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage()); //TODO, do this periodically?
-            //this.ioStream.getOutputStream().write(new ASAPLoRaMessage("A2FF", "Hi there!"));
             long lastBufferFlush = System.currentTimeMillis();
             while (!this.isInterrupted()) {
-                if (this.ioStream.getInputStream().available() > 0) {
-                    AbstractASAPLoRaMessage asapLoRaMessage = this.ioStream.getInputStream().readASAPLoRaMessage();
-                    Log.i(this.CLASS_LOG_TAG, "Message received: " + asapLoRaMessage.toString());
-                    //TODO, this is smelly... visitorpattern? handleMessage() in abstract?
-                    if (asapLoRaMessage instanceof ASAPLoRaMessage) {
-                        //New Message inbound, write to corresponding stream of ASAPPeer
-                        this.ioStream.getASAPInputStream(((ASAPLoRaMessage) asapLoRaMessage).address).appendData(((ASAPLoRaMessage) asapLoRaMessage).message);
-                    } else if (asapLoRaMessage instanceof DeviceDiscoveredASAPLoRaMessage) {
-                        //New Device in Range found
-                        LoRaEngine.getASAPLoRaEngine().tryConnect(((DeviceDiscoveredASAPLoRaMessage) asapLoRaMessage).address);
-                    } else if (asapLoRaMessage instanceof ErrorASAPLoRaMessage) {
-                        //LoRa Error occured
-                        // TODO
-                    }
-                }
-
                 //Periodically flush Buffers
                 if ((System.currentTimeMillis() - lastBufferFlush) > this.FLUSH_BUFFER_TIMEOUT) {
                     this.ioStream.flushASAPOutputStreams();
@@ -92,7 +97,9 @@ public class LoRaCommunicationManager extends Thread {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());
             //throw new ASAPLoRaException(e);
         } finally {
-            this.ioStream.close(); //cleanup after ourselves
+            //cleanup after ourselves
+            this.loRaBTListenThread.interrupt(); //Interrupt our Listen Thread
+            this.ioStream.close(); //Close the Streams
             Log.i(CLASS_LOG_TAG, "Streams were closed. Shutting down.");
         }
     }
