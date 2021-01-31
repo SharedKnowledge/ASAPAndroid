@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 
 public class LoRaBTInputOutputStream {
@@ -33,6 +34,7 @@ public class LoRaBTInputOutputStream {
      * Syntax (erstidee): "ADDR:datadatadatadata"
      */
     private static final String CLASS_LOG_TAG = "ASAPLoRaBTIOStream";
+    private static final long READ_WAIT_TIMEOUT = 10 * 1000; //10 seconds in ms
     private final BluetoothSocket btSocket;
     private final LoRaBTInputStream is;
     private final LoRaBTOutputStream os;
@@ -118,40 +120,72 @@ public class LoRaBTInputOutputStream {
     static class LoRaASAPInputStream extends InputStream {
         private final String LoRaAddress;
         private Object threadLock = new Object();
+        private long threadReadStartTime;
 
-        private SequenceInputStream sis;
+        private LinkedList<InputStream> inputStreams = new LinkedList();
 
         public LoRaASAPInputStream(String mac) {
             super();
-            this.sis = new SequenceInputStream(new ByteArrayInputStream(new byte[0]), new ByteArrayInputStream(new byte[0]));
             this.LoRaAddress = mac;
         }
 
         public void appendData(byte[] data) {
+
+            //discard empty data arrays
+            if (data.length == 0)
+                return;
+
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
             synchronized (this.threadLock) {
-                this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right.
+                //this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right. - turns out it is not. :)
+                this.inputStreams.add(new ByteArrayInputStream(data));
+                try {
+                    net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData fin, avail bytes: " + this.available());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 this.threadLock.notify();
             }
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #2");
         }
 
         @Override
+        public int available() throws IOException {
+            int availableBytes = 0;
+            for (InputStream is : inputStreams) {
+                availableBytes += is.available();
+            }
+            return availableBytes;
+        }
+
+        @Override
         public int read() throws IOException {
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read start");
+            this.threadReadStartTime = System.currentTimeMillis();
+            int returnResult = 0;
             synchronized (this.threadLock) {
-                while (sis.available() < 1) {
+                while (this.available() < 1) {
+                    //if timeout is reached, return no more data.
+                    //if((System.currentTimeMillis() - this.threadReadStartTime) > LoRaBTInputOutputStream.READ_WAIT_TIMEOUT) {
+                    //    net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read Timeout");
+                    //    return -1;
+                    //}
                     // no data, wait
                     try {
-                        this.threadLock.wait();
-                    } catch (InterruptedException e) {
-                    /* ok.. what happend
-                    a) new data arrived return data.
-                    b) no more data at all - return -1
-                     */
-                    }
+                        this.threadLock.wait(LoRaBTInputOutputStream.READ_WAIT_TIMEOUT);
+                    } catch (InterruptedException e) {/* NOOP, lets check our conditions again. */}
                 }
+                net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read return");
+                if (this.inputStreams.isEmpty())
+                    throw new IOException("Tried to read from Empty InputStream Queue.");
+                InputStream nextIs = this.inputStreams.peek();
+                returnResult = nextIs.read();
+
+                if (nextIs.available() == 0) //check if our stream is now empty
+                    this.inputStreams.pop(); //if so, remove empty stream from Queue
             }
-            return sis.read();
+            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "returning data: " + new String(new byte[]{(byte) returnResult}));
+            return returnResult;
         }
     }
 
@@ -174,9 +208,7 @@ public class LoRaBTInputOutputStream {
 
         @Override
         public synchronized void write(int b) {
-            //TODO...? Ist das sinnig?
-            byte[] byteArray = ByteBuffer.allocate(1).putInt(b).array();
-            this.write(byteArray, 0, 1);
+            this.write(new byte[]{(byte) b}, 0, 1);
         }
     }
 }
