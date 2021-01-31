@@ -15,11 +15,13 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
     public byte[] message;
     public String base64message;
 
-    public ASAPLoRaMessage(String address, byte[] message) {
+    public ASAPLoRaMessage(String address, byte[] message) throws ASAPLoRaMessageException {
+        if(message.length > 200) //TODO - is this actually the correct length?
+            throw new ASAPLoRaMessageException("Passed a message that is too long for LoRa Transport");
         this.address = address;
         this.message = message;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { //TODO!
-            this.base64message = new String(Base64.getMimeEncoder().encode(message), StandardCharsets.UTF_8);
+            this.base64message = new String(Base64.getEncoder().encode(message), StandardCharsets.UTF_8);
         }
     }
 
@@ -27,7 +29,7 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
         this.address = address;
         this.base64message = base64message.trim(); //whitespaces can be ignored, according to base64 RFC2045
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { //TODO!
-            this.message = Base64.getMimeDecoder().decode(this.base64message.getBytes(StandardCharsets.UTF_8));
+            this.message = Base64.getDecoder().decode(this.base64message.getBytes(StandardCharsets.UTF_8));
         }
     }
 
