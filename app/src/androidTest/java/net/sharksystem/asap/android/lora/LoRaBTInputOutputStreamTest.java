@@ -34,6 +34,8 @@ public class LoRaBTInputOutputStreamTest {
     public static LoRaBTInputOutputStream Alice;
     public static LoRaBTInputOutputStream Bob;
 
+    private static String longString = "This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 3+ messages.";
+
     @BeforeClass
     public static void setup() throws IOException, InterruptedException {
         BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -66,7 +68,7 @@ public class LoRaBTInputOutputStreamTest {
     }
 
     @AfterClass
-    public static  void teardown(){
+    public static void teardown() {
         Alice.close();
         Bob.close();
     }
@@ -96,10 +98,36 @@ public class LoRaBTInputOutputStreamTest {
         }
     }
 
-    @Test(timeout = 100000)
+    /*@Test(timeout = 100000)
     public void testMultipleASAPOutputToBTInput() throws IOException, ASAPLoRaMessageException {
         for (int i = 0; i < 10; i++) {
             this.testASAPOutputToBTInput();
+        }
+    }*/
+
+    /**
+     * TODO: This test still fails, because a buffered output stream will write 100% of the
+     * TODO: data through, if it is bigger than the buffer, failing to fulfill the task at hand
+     * TODO: of splitting the data up in multiple ASAPLoRaMessages.
+     *
+     * @throws IOException
+     * @throws ASAPLoRaMessageException
+     */
+    @Test(timeout = 100000)
+    public void testASAPOutputToBTInputLong() throws IOException, ASAPLoRaMessageException {
+        Alice.getASAPOutputStream("1001").write(longString.getBytes());
+        Alice.flushASAPOutputStreams();
+
+        while (true) {
+            if (Bob.getInputStream().available() > 0) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(Bob.getInputStream()));
+                String deviceResponse = br.readLine().trim();
+                System.out.print("Test Device Response: ");
+                System.out.println(deviceResponse);
+                ASAPLoRaMessage asapMsg = (ASAPLoRaMessage) AbstractASAPLoRaMessage.createASAPLoRaMessage(deviceResponse);
+                assertEquals(new ASAPLoRaMessage("1000", longString.getBytes()).toString(), asapMsg.toString());
+                break;
+            }
         }
     }
 }
