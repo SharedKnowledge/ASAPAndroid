@@ -22,7 +22,8 @@ public class LoRaBTListenThread extends Thread {
             try {
                 loRaCommunicationManager.receiveASAPLoRaMessage(this.loRaCommunicationManager.getBTInputStream().readASAPLoRaMessage());
             } catch (ASAPLoRaException | IOException e) {
-                Log.e(this.CLASS_LOG_TAG, e.getMessage());
+                //The ASAPLoRa-Module was disconnected, so we cannot continue to run the LoRaEngine
+                LoRaEngine.getASAPLoRaEngine().stop();
             }
         }
     }

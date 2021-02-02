@@ -12,9 +12,11 @@ import net.sharksystem.asap.android.lora.messages.DeviceDiscoveredASAPLoRaMessag
 import net.sharksystem.asap.android.lora.messages.DiscoverASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.ErrorASAPLoRaMessage;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class LoRaCommunicationManager extends Thread {
@@ -27,9 +29,11 @@ public class LoRaCommunicationManager extends Thread {
      */
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
+    private static final long DISCOVER_MESSAGE_TIMEOUT = 60 * 1000; //60s in ms
     private static LoRaBTInputOutputStream ioStream = null;
     private BluetoothDevice btDevice;
     private LoRaBTListenThread loRaBTListenThread = null;
+    private HashMap<String, Long> lastMessageTimeLog = new HashMap<>();
 
     public LoRaCommunicationManager(BluetoothDevice bluetoothDevice) throws ASAPLoRaException {
 
@@ -48,9 +52,9 @@ public class LoRaCommunicationManager extends Thread {
             this.ioStream = new LoRaBTInputOutputStream(btSocket);
         } catch (IOException e) {
             //Cleanup...
-            if(this.loRaBTListenThread != null)
+            if (this.loRaBTListenThread != null)
                 this.loRaBTListenThread.interrupt();
-            if(this.ioStream != null)
+            if (this.ioStream != null)
                 this.ioStream.close();
             //...then bubble up the exception
             throw new ASAPLoRaException(e);
@@ -76,10 +80,12 @@ public class LoRaCommunicationManager extends Thread {
     public void receiveASAPLoRaMessage(AbstractASAPLoRaMessage abstractASAPLoRaMessage) throws ASAPLoRaException {
         Log.i(this.CLASS_LOG_TAG, "Message received: " + abstractASAPLoRaMessage.toString());
         abstractASAPLoRaMessage.handleMessage(this);
+
+        this.lastMessageTimeLog.put(abstractASAPLoRaMessage.getAddress(), System.currentTimeMillis());
     }
 
-    public void appendMessage(ASAPLoRaMessage asapLoRaMessage) {
-        this.ioStream.getASAPInputStream(asapLoRaMessage.address).appendData(asapLoRaMessage.message);
+    public void appendMessage(ASAPLoRaMessage asapLoRaMessage) throws ASAPLoRaMessageException {
+        this.ioStream.getASAPInputStream(asapLoRaMessage.getAddress()).appendData(asapLoRaMessage.getMessage());
     }
 
     @Override
@@ -88,16 +94,33 @@ public class LoRaCommunicationManager extends Thread {
             //Start Listening for new Messages
             this.loRaBTListenThread = new LoRaBTListenThread(this);
             this.loRaBTListenThread.start();
-            //Announce our presence
-            this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage()); //TODO, do this periodically?
             long lastBufferFlush = System.currentTimeMillis();
+            long lastDiscoverMessage = 0;
+
             while (!this.isInterrupted()) {
+                //Periodically send Discover Message
+                if ((System.currentTimeMillis() - lastDiscoverMessage) > this.DISCOVER_MESSAGE_TIMEOUT) {
+                    this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage());
+                    lastDiscoverMessage = System.currentTimeMillis();
+                }
+
                 //Periodically flush Buffers
                 if ((System.currentTimeMillis() - lastBufferFlush) > this.FLUSH_BUFFER_TIMEOUT) {
                     this.ioStream.flushASAPOutputStreams();
                     lastBufferFlush = System.currentTimeMillis();
                 }
+
+                //Periodically check last message times and close streams
+                if ((System.currentTimeMillis() - lastDiscoverMessage) > (this.DISCOVER_MESSAGE_TIMEOUT)) { //TODO do we need an extra time?
+                    for (HashMap.Entry<String, Long> lastMessageTime :
+                            this.lastMessageTimeLog.entrySet()) {
+                        if((System.currentTimeMillis() - lastMessageTime.getValue()) > (this.DISCOVER_MESSAGE_TIMEOUT * 5))
+                            this.ioStream.closeASAPStream(lastMessageTime.getKey());
+
+                    }
+                }
             }
+
             Log.i(CLASS_LOG_TAG, "Thread was interrupted, starting Shutdown.");
         } catch (IOException | ASAPLoRaException e) {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());

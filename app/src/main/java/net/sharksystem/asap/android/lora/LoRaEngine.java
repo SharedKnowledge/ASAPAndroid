@@ -16,14 +16,6 @@ public class LoRaEngine extends MacLayerEngine {
     private static LoRaEngine engine = null;
     private LoRaCommunicationManager loRaCommunicationManager;
 
-    /**
-     * - Aufbau Verbindung zu BLE o. Bluetooth UART Schnittstelle
-     * - Prüfen der Verbindung zum LoRa Board AT <-> AT+OK
-     *
-     * @param ASAPService
-     * @param context
-     * @return
-     */
     public static LoRaEngine getASAPLoRaEngine(ASAPService ASAPService,
                                                Context context) {
         if (LoRaEngine.engine == null) {
@@ -52,7 +44,7 @@ public class LoRaEngine extends MacLayerEngine {
             btAdapter.cancelDiscovery();
 
             for (BluetoothDevice btDevice : btAdapter.getBondedDevices()) {
-                if (btDevice.getName().indexOf("ASAP-LoRa") == 0) { //TODO: What about more than 1 paired ASAP-LoRa Board? Or 1 avail and 1 unavail?
+                if (btDevice.getName().indexOf("ASAP-LoRa") == 0) {
                     loRaCommunicationManager = new LoRaCommunicationManager(btDevice);
                     loRaCommunicationManager.start();
                     break;
@@ -74,7 +66,7 @@ public class LoRaEngine extends MacLayerEngine {
     @Override
     public boolean tryReconnect() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.tryReconnect() called");
-        return true; //TODO assume we have a good connection at the moment.
+        return true; //assume we have a good connection, as we do not have persistent connections
     }
 
     @Override
