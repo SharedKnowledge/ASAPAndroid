@@ -34,7 +34,8 @@ public class LoRaBTInputOutputStreamTest {
     public static LoRaBTInputOutputStream Alice;
     public static LoRaBTInputOutputStream Bob;
 
-    private static String longString = "This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 3+ messages.";
+    //private static String longString = "This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 3+ messages.";
+    private static String longString = "This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 3+ messages.";
 
     @BeforeClass
     public static void setup() throws IOException, InterruptedException {
@@ -105,6 +106,25 @@ public class LoRaBTInputOutputStreamTest {
         }
     }*/
 
+    @Test(timeout = 100000)
+    public void testASAPOutputToBTInputLong() throws IOException, ASAPLoRaMessageException {
+        Alice.getASAPOutputStream("1001").write(longString.getBytes());
+        Alice.flushASAPOutputStreams();
+
+        String result = "";
+        while (!result.equals(longString)) {
+            if (Bob.getInputStream().available() > 0) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(Bob.getInputStream()));
+                String deviceResponse = br.readLine().trim();
+                System.out.print("Test Device Response: ");
+                System.out.println(deviceResponse);
+                ASAPLoRaMessage asapMsg = (ASAPLoRaMessage) AbstractASAPLoRaMessage.createASAPLoRaMessage(deviceResponse);
+                result += new String(asapMsg.getMessage());
+            }
+        }
+        assertEquals(longString, result);
+    }
+
     /**
      * TODO: This test still fails, because a buffered output stream will write 100% of the
      * TODO: data through, if it is bigger than the buffer, failing to fulfill the task at hand
@@ -114,20 +134,21 @@ public class LoRaBTInputOutputStreamTest {
      * @throws ASAPLoRaMessageException
      */
     @Test(timeout = 100000)
-    public void testASAPOutputToBTInputLong() throws IOException, ASAPLoRaMessageException {
-        Alice.getASAPOutputStream("1001").write(longString.getBytes());
+    public void testASAPOutputToBTInputReallyLong() throws IOException, ASAPLoRaMessageException {
+        Alice.getASAPOutputStream("1001").write((longString + longString + longString).getBytes());
         Alice.flushASAPOutputStreams();
 
-        while (true) {
+        String result = "";
+        while (!result.equals(longString)) {
             if (Bob.getInputStream().available() > 0) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(Bob.getInputStream()));
                 String deviceResponse = br.readLine().trim();
                 System.out.print("Test Device Response: ");
                 System.out.println(deviceResponse);
                 ASAPLoRaMessage asapMsg = (ASAPLoRaMessage) AbstractASAPLoRaMessage.createASAPLoRaMessage(deviceResponse);
-                assertEquals(new ASAPLoRaMessage("1000", longString.getBytes()).toString(), asapMsg.toString());
-                break;
+                result += new String(asapMsg.getMessage());
             }
         }
+        assertEquals(longString, result);
     }
 }
