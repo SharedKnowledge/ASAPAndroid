@@ -11,17 +11,13 @@ import net.sharksystem.asap.utils.DateTimeHelper;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.SequenceInputStream;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -39,7 +35,7 @@ public class LoRaBTInputOutputStream {
     private final LoRaBTInputStream is;
     private final LoRaBTOutputStream os;
     private final HashMap<String, LoRaASAPInputStream> loRaASAPInputStreams = new HashMap<>();
-    private final HashMap<String, BufferedOutputStream> loRaASAPOutputStreams = new HashMap<>();
+    private final HashMap<String, LoRaASAPOutputStream> loRaASAPOutputStreams = new HashMap<>();
 
     public LoRaBTInputOutputStream(BluetoothSocket btSocket) throws IOException {
         this.btSocket = btSocket;
@@ -49,21 +45,42 @@ public class LoRaBTInputOutputStream {
 
     public void close() {
         try {
-            //TODO Cleanup all loRaASAPOutputStreams
-            //TODO Cleanup all loRaASAPInputStreams
-            if (this.btSocket != null)
+            //Cleanup all loRaASAPOutputStreams
+            for (OutputStream os : this.loRaASAPOutputStreams.values())
+                os.close();
+            this.loRaASAPOutputStreams.clear();
+
+            //Cleanup all loRaASAPInputStreams
+            for (InputStream is : this.loRaASAPInputStreams.values())
+                is.close();
+
+            //Wait for all loRaASAPInputStreams to close
+            boolean allClosed;
+            do {
+                allClosed = true;
+                for (LoRaASAPInputStream is : this.loRaASAPInputStreams.values())
+                    allClosed = allClosed && is.closed();
+            } while (!allClosed);
+
+            //finish cleanup
+            this.loRaASAPInputStreams.clear();
+
+            //Close BT Socket if it is still open. Our IS and OS will close on socket disconnect
+            if (this.btSocket != null && this.btSocket.isConnected())
                 btSocket.close();
+
+            Log.i(CLASS_LOG_TAG, "Successfully closed all Streams");
         } catch (IOException e) {
-            Log.e(CLASS_LOG_TAG, e.getMessage());
+            Log.e(CLASS_LOG_TAG, "Exception in close(): " + e.getMessage());
         }
     }
 
-    public OutputStream getASAPOutputStream(String mac) {
+    public LoRaASAPOutputStream getASAPOutputStream(String mac) {
         if (this.loRaASAPOutputStreams.containsKey(mac))
             return this.loRaASAPOutputStreams.get(mac);
 
-        this.loRaASAPOutputStreams.put(mac, new BufferedOutputStream(new LoRaASAPOutputStream(mac), 10)); //TODO increase buffer size
-        return this.getASAPOutputStream(mac); //TODO rewrite to make sure to never have endless loop?
+        this.loRaASAPOutputStreams.put(mac, new LoRaASAPOutputStream(mac)); //TODO do we need a bufferstream here?
+        return this.getASAPOutputStream(mac);
     }
 
     public LoRaASAPInputStream getASAPInputStream(String mac) {
@@ -71,7 +88,7 @@ public class LoRaBTInputOutputStream {
             return this.loRaASAPInputStreams.get(mac);
 
         this.loRaASAPInputStreams.put(mac, new LoRaASAPInputStream(mac));
-        return this.getASAPInputStream(mac); //TODO rewrite to make sure to never have endless loop?
+        return this.getASAPInputStream(mac);
     }
 
     public LoRaBTInputStream getInputStream() {
@@ -83,17 +100,36 @@ public class LoRaBTInputOutputStream {
     }
 
     public void flushASAPOutputStreams() throws IOException {
-        for (BufferedOutputStream bufferedOutputStream : this.loRaASAPOutputStreams.values())
-            bufferedOutputStream.flush();
+        for (LoRaASAPOutputStream os : this.loRaASAPOutputStreams.values())
+            os.flush();
+    }
+
+    public void closeASAPStream(String mac) {
+        if (this.loRaASAPInputStreams.containsKey(mac)) {
+            LoRaASAPInputStream is = this.loRaASAPInputStreams.get(mac);
+            is.close();
+            do {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) { /* does not matter */}
+            } while (!is.closed());
+            this.loRaASAPInputStreams.remove(mac);
+        }
+        if (this.loRaASAPOutputStreams.containsKey(mac)) {
+            this.loRaASAPOutputStreams.get(mac).close();
+            this.loRaASAPOutputStreams.remove(mac);
+        }
     }
 
     static class LoRaBTInputStream extends FilterInputStream {
 
         public AbstractASAPLoRaMessage readASAPLoRaMessage() throws IOException, ASAPLoRaException {
             BufferedReader br = new BufferedReader(new InputStreamReader(this));
-            String rawASAPLoRaMessage = br.readLine();
-            Log.i(CLASS_LOG_TAG, "Got Message from BT Board: " + rawASAPLoRaMessage);
-            //TODO do not use empty line
+            String rawASAPLoRaMessage = "";
+            do {
+                rawASAPLoRaMessage = br.readLine();
+                Log.i(CLASS_LOG_TAG, "Got Message from BT Board: " + rawASAPLoRaMessage);
+            } while (rawASAPLoRaMessage.equals("")); //ignore empty lines
             return AbstractASAPLoRaMessage.createASAPLoRaMessage(rawASAPLoRaMessage);
         }
 
@@ -110,17 +146,21 @@ public class LoRaBTInputOutputStream {
         }
 
         public void write(AbstractASAPLoRaMessage msg) throws IOException, ASAPLoRaException {
-            String msgString = msg.getPayload();
-            Log.i(CLASS_LOG_TAG, "Writing Message to BT Board: " + msgString);
-            this.write(msgString.getBytes());
-            this.write('\n');
+            synchronized (this) {
+                String msgString = msg.getPayload();
+                Log.i(CLASS_LOG_TAG, "Writing Message to BT Board: " + msgString);
+                this.write(msgString.getBytes());
+                this.write('\n');
+            }
         }
     }
 
     static class LoRaASAPInputStream extends InputStream {
         private final String LoRaAddress;
         private Object threadLock = new Object();
-        private long threadReadStartTime;
+        private boolean shouldClose = false;
+        private boolean wasClosed = false;
+        private boolean isReading = false;
 
         private LinkedList<InputStream> inputStreams = new LinkedList();
 
@@ -129,86 +169,146 @@ public class LoRaBTInputOutputStream {
             this.LoRaAddress = mac;
         }
 
-        public void appendData(byte[] data) {
+        public boolean closed() {
+            return this.wasClosed;
+        }
 
+        public void appendData(byte[] data) {
             //discard empty data arrays
             if (data.length == 0)
                 return;
 
-            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #1");
             synchronized (this.threadLock) {
-                //this.sis = new SequenceInputStream(this.sis, new ByteArrayInputStream(data)); //TODO this can't be right. - turns out it is not. :)
                 this.inputStreams.add(new ByteArrayInputStream(data));
-                try {
-                    net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData fin, avail bytes: " + this.available());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 this.threadLock.notify();
             }
-            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "appendData #2");
         }
 
         @Override
         public int available() throws IOException {
             int availableBytes = 0;
-            for (InputStream is : inputStreams) {
+            for (InputStream is : inputStreams)
                 availableBytes += is.available();
-            }
+
             return availableBytes;
         }
 
         @Override
+        public void close() {
+            this.inputStreams.clear();
+            this.shouldClose = true;
+
+            // Check if someone is currently reading.
+            // If so, notify, else just assume we are closed
+            if (this.isReading)
+                synchronized (this.threadLock) {
+                    this.threadLock.notify();
+                }
+            else
+                this.wasClosed = true;
+        }
+
+        @Override
         public int read() throws IOException {
+            this.isReading = true;
             net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read start");
-            this.threadReadStartTime = System.currentTimeMillis();
             int returnResult = 0;
             synchronized (this.threadLock) {
                 while (this.available() < 1) {
-                    //if timeout is reached, return no more data.
-                    //if((System.currentTimeMillis() - this.threadReadStartTime) > LoRaBTInputOutputStream.READ_WAIT_TIMEOUT) {
-                    //    net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read Timeout");
-                    //    return -1;
-                    //}
+
+                    if (this.shouldClose) {
+                        this.wasClosed = true;
+                        this.isReading = false;
+                        return -1; //if our stream was closed, return an EOF Signal to ASAPEngine
+                    }
+
                     // no data, wait
                     try {
                         this.threadLock.wait(LoRaBTInputOutputStream.READ_WAIT_TIMEOUT);
                     } catch (InterruptedException e) {/* NOOP, lets check our conditions again. */}
                 }
-                net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "read return");
+
                 if (this.inputStreams.isEmpty())
-                    throw new IOException("Tried to read from Empty InputStream Queue.");
+                    throw new IOException("Tried to read from Empty InputStream Queue."); //this *SHOULD* never happen.
+
+                //get our current inputstream and read its data
                 InputStream nextIs = this.inputStreams.peek();
                 returnResult = nextIs.read();
 
                 if (nextIs.available() == 0) //check if our stream is now empty
-                    this.inputStreams.pop(); //if so, remove empty stream from Queue
+                    this.inputStreams.remove(); //if so, remove empty stream from Queue
             }
-            net.sharksystem.utils.Log.writeLog(this, DateTimeHelper.long2ExactTimeString(System.currentTimeMillis()), "returning data: " + new String(new byte[]{(byte) returnResult}));
+
+            this.isReading = false;
             return returnResult;
         }
     }
 
     class LoRaASAPOutputStream extends OutputStream {
         private final String LoRaAddress;
+        private byte chunk[] = new byte[177]; //TODO - is this the right value to maximize the throughput?
+        private int count = 0;
 
         public LoRaASAPOutputStream(String mac) {
             this.LoRaAddress = mac;
         }
 
         @Override
-        public synchronized void write(byte[] b, int off, int len) {
-            //TODO...? Ist das sinnig?
-            try {
-                LoRaBTInputOutputStream.this.getOutputStream().write(new ASAPLoRaMessage(this.LoRaAddress, Arrays.copyOf(b, len)));
-            } catch (IOException | ASAPLoRaException e) {
-                e.printStackTrace(); //TODO...
+        public void flush() throws IOException {
+            //send data to to LoRaBTInputOutputStream.this.getOutputStream()
+            if (this.count > 0) {
+                try {
+                    ASAPLoRaMessage asapLoRaMessage = new ASAPLoRaMessage(this.LoRaAddress, Arrays.copyOf(this.chunk, this.count));
+                    LoRaBTInputOutputStream.this.getOutputStream().write(asapLoRaMessage);
+                    this.count = 0;
+                } catch (ASAPLoRaException e) {
+                    throw new IOException(e); //convert our ASAPLoRaException to an IOException and bubble it.
+                }
             }
         }
 
         @Override
-        public synchronized void write(int b) {
-            this.write(new byte[]{(byte) b}, 0, 1);
+        public void close() {
+            // No need for any action. If we get closed, there is no point in sending any more data
+        }
+
+        /**
+         * Modified write from @BufferedOutputStream to create a chunked stream
+         * @param b
+         * @param off
+         * @param len
+         * @throws IOException
+         */
+        @Override
+        public synchronized void write(byte[] b, int off, int len) throws IOException {
+            //we need to write to a buffer and trigger a flush once one chunk is complete.
+            int currentChunkSpace = chunk.length - this.count;
+            if(len > currentChunkSpace){ //if the message is bigger than our current space in the buffer
+                //cut of a chunk the size of our remaining chunk
+                this.write(Arrays.copyOf(b, currentChunkSpace));
+                //Flush it down the LoRa Board
+                this.flush();
+                //handle the rest of the byte array recursively
+                this.write(Arrays.copyOfRange(b, currentChunkSpace, b.length));
+                return;
+            }
+
+            //write the data to our chunk
+            System.arraycopy(b, off, chunk, count, len);
+            count += len;
+
+            //if chunk is now full, flush it.
+            if (count >= chunk.length) {
+                this.flush();
+            }
+        }
+
+        @Override
+        public synchronized void write(int b) throws IOException {
+            if (count >= chunk.length) {
+                this.flush();
+            }
+            chunk[count++] = (byte)b;
         }
     }
 }
