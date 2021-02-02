@@ -7,9 +7,22 @@ import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
 public abstract class AbstractASAPLoRaMessage {
     private static final String CLASS_LOG_TAG = "AbstractASAPLoRaMessage";
+    private String address = null; //Address this message is for / from, depending on context
 
     public String getPayload() throws ASAPLoRaMessageException {
         throw new ASAPLoRaMessageException("Trying to call getPayload() on non-outgoing ASAP Message. This should never happen.");
+    }
+
+    public String getAddress() throws ASAPLoRaMessageException {
+        if(this.address == null)
+            throw new ASAPLoRaMessageException("Trying to call getAddress() on ASAP Message without address.");
+        return this.address;
+    }
+
+    public void setAddress(String address) throws ASAPLoRaMessageException {
+        if(address == null || address.equals("") || address.length() != 4)
+            throw new ASAPLoRaMessageException("Trying to call setAddress() with empty or invalid address.");
+        this.address = address;
     }
 
     public void handleMessage(LoRaCommunicationManager loRaCommunicationManager) throws ASAPLoRaMessageException {
