@@ -647,6 +647,12 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         asapActivity.sendASAPMessage(format, uri, message, true);
     }
 
+    @Override
+    public void sendOnlineASAPMessage(CharSequence charSequence, CharSequence charSequence1, byte[] bytes) throws ASAPException, IOException {
+        net.sharksystem.utils.Log.writeLogErr(this, "ASAPAndroidPeer.sendOnlineASAPMessage");
+        throw new ASAPComponentNotYetInitializedException("ASAPAndroidPeer.sendOnlineASAPMessage");
+    }
+
     private String getLogStart() {
 //        int objectID = this.hashCode();
 //        return "ASAPApplication(" + objectID + ")";

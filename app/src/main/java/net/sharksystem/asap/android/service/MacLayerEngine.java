@@ -160,7 +160,7 @@ public abstract class MacLayerEngine {
                 this.getAsapService().getASAPPeer().handleConnection(inputStream, outputStream));
 
         } catch (IOException | ASAPException e) {
-            Log.d(this.getLogStart(), "while lauching asap connection: " + e.getLocalizedMessage());
+            Log.d(this.getLogStart(), "while launching asap connection: " + e.getLocalizedMessage());
         }
     }
 
@@ -239,5 +239,10 @@ public abstract class MacLayerEngine {
         return false;
     }
 
+    /**
+     * TODO: do we need this? I doubt it (thsc)
+     * It can be called to check whether open connection are still running. It's a good idea for
+     * all connection oriented protocols but useless with connectionless.
+     */
     public abstract void checkConnectionStatus();
 }
