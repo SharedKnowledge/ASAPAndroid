@@ -171,19 +171,20 @@ public class ASAPActivity extends AppCompatActivity implements
      */
     @CallSuper
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         Log.d(this.getLogStart(),
                 ".onActivityResult(): requestCode == " + requestCode +
                         " / resultCode == " + resultCode);
 
-        if(requestCode == MY_REQUEST_2ENABLE_BT && resultCode == RESULT_OK) {
+        if (requestCode == MY_REQUEST_2ENABLE_BT && resultCode == RESULT_OK) {
             Log.d(this.getLogStart(), "Bluetooth now enabled - ask service to start BT");
             this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH);
         }
 
-        if(requestCode == MY_REQUEST_SET_BT_DISCOVERABLE) {
+        if (requestCode == MY_REQUEST_SET_BT_DISCOVERABLE) {
             Log.d(this.getLogStart(),
                     "user allowed BT discoverability for seconds: "
-                        + resultCode);
+                            + resultCode);
 
             // notify
             Log.d(this.getLogStart(), "call asapNotifyBTDiscoverableStarted()");

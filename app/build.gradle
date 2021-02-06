@@ -7,12 +7,12 @@ https://developer.android.com/studio/projects/android-library
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         // we produce a library by commenting out that line:
         //applicationId "net.sharksystem.asap.example"
         minSdkVersion 23
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -28,7 +28,7 @@ android {
 dependencies {
     //implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation files('libs\\ASAPJava.jar')
     testImplementation 'junit:junit:4.13.1'
