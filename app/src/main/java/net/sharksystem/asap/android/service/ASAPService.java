@@ -2,6 +2,8 @@ package net.sharksystem.asap.android.service;
 
 import android.Manifest;
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
@@ -283,6 +285,22 @@ public class ASAPService extends Service
 
     void startLoRa() {
         Log.d(this.getLogStart(), "start LoRa");
+
+        // Helper for finding an ASAPLoRaBTModule
+        //TODO - actually there should be a Setting or selection Dialog here
+        BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        btAdapter.enable();
+        btAdapter.cancelDiscovery();
+
+        for (BluetoothDevice btDevice : btAdapter.getBondedDevices()) {
+            if (btDevice.getName().indexOf("ASAP-LoRa") == 0) {
+                LoRaEngine.getASAPLoRaEngine(this, this).setAsapLoRaBTModule(btDevice);
+                break;
+            }
+        }
+        // End helper for finding an ASAPLoRaBTModule
+
         LoRaEngine.getASAPLoRaEngine(this, this).start();
     }
 

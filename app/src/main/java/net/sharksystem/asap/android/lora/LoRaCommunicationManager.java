@@ -8,11 +8,9 @@ import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
-import net.sharksystem.asap.android.lora.messages.DeviceDiscoveredASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DiscoverASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.ErrorASAPLoRaMessage;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,6 +21,7 @@ public class LoRaCommunicationManager extends Thread {
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
     private static final long DISCOVER_MESSAGE_TIMEOUT = 60 * 1000; //60s in ms
+    private static final long CONNECTION_ACTIVE_TIMEOUT = DISCOVER_MESSAGE_TIMEOUT * 10; //60s in ms
     private static LoRaBTInputOutputStream ioStream = null;
     private BluetoothDevice btDevice;
     private LoRaBTListenThread loRaBTListenThread = null;
@@ -37,7 +36,7 @@ public class LoRaCommunicationManager extends Thread {
 
         /**
          * uses UUID of Serial Devices for now - https://www.bluetooth.com/specifications/assigned-numbers/
-         * Might be a good idea to move another uuid to define a ASAP-LoRa Node? TODO
+         * Might be a good idea to move another uuid to define a ASAP-LoRa Node in the future
          */
         try {
             BluetoothSocket btSocket = btDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
@@ -99,22 +98,20 @@ public class LoRaCommunicationManager extends Thread {
                 if ((System.currentTimeMillis() - lastDiscoverMessage) > this.DISCOVER_MESSAGE_TIMEOUT) {
                     this.ioStream.getOutputStream().write(new DiscoverASAPLoRaMessage());
                     lastDiscoverMessage = System.currentTimeMillis();
+
+                    //Periodically check last message times and close streams
+                    for (HashMap.Entry<String, Long> lastMessageTime :
+                            this.lastMessageTimeLog.entrySet()) {
+                        if ((System.currentTimeMillis() - lastMessageTime.getValue()) > (CONNECTION_ACTIVE_TIMEOUT))
+                            ioStream.closeASAPStream(lastMessageTime.getKey());
+
+                    }
                 }
 
                 //Periodically flush Buffers
                 if ((System.currentTimeMillis() - lastBufferFlush) > this.FLUSH_BUFFER_TIMEOUT) {
                     this.ioStream.flushASAPOutputStreams();
                     lastBufferFlush = System.currentTimeMillis();
-                }
-
-                //Periodically check last message times and close streams
-                if ((System.currentTimeMillis() - lastDiscoverMessage) > (this.DISCOVER_MESSAGE_TIMEOUT)) { //TODO do we need an extra time?
-                    for (HashMap.Entry<String, Long> lastMessageTime :
-                            this.lastMessageTimeLog.entrySet()) {
-                        if ((System.currentTimeMillis() - lastMessageTime.getValue()) > (this.DISCOVER_MESSAGE_TIMEOUT * 5))
-                            this.ioStream.closeASAPStream(lastMessageTime.getKey());
-
-                    }
                 }
             }
 

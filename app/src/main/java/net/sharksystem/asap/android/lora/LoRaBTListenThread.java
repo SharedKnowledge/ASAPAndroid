@@ -1,7 +1,5 @@
 package net.sharksystem.asap.android.lora;
 
-import android.util.Log;
-
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 
 import java.io.IOException;

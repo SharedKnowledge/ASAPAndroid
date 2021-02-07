@@ -1,10 +1,10 @@
 package net.sharksystem.asap.android.lora.messages;
 
-import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
-import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
-
 import android.util.Base64;
 import android.util.Log;
+
+import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
+import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
 import java.io.IOException;
 

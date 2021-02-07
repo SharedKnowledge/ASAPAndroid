@@ -1,6 +1,5 @@
 package net.sharksystem.asap.android.lora;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
@@ -15,6 +14,7 @@ public class LoRaEngine extends MacLayerEngine {
     private static final String CLASS_LOG_TAG = "ASAPLoRaEngine";
     private static LoRaEngine engine = null;
     private LoRaCommunicationManager loRaCommunicationManager;
+    private BluetoothDevice asapLoRaBTModule;
 
     public static LoRaEngine getASAPLoRaEngine(ASAPService ASAPService,
                                                Context context) {
@@ -33,25 +33,20 @@ public class LoRaEngine extends MacLayerEngine {
         super(asapService, context);
     }
 
+    public void setAsapLoRaBTModule(BluetoothDevice asapLoRaBTModule) {
+        this.asapLoRaBTModule = asapLoRaBTModule;
+    }
+
     @Override
     public void start() {
         Log.i(this.CLASS_LOG_TAG, "MacLayerEngine.start() called");
         try {
-            //TODO - move btDevice selection to Parameter / initialize Selection-Dialog
-            BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-
-            btAdapter.enable();
-            btAdapter.cancelDiscovery();
-
-            for (BluetoothDevice btDevice : btAdapter.getBondedDevices()) {
-                if (btDevice.getName().indexOf("ASAP-LoRa") == 0) {
-                    loRaCommunicationManager = new LoRaCommunicationManager(btDevice);
-                    loRaCommunicationManager.start();
-                    break;
-                }
-            }
+            loRaCommunicationManager = new LoRaCommunicationManager(this.asapLoRaBTModule);
+            loRaCommunicationManager.start();
         } catch (ASAPLoRaException e) {
-            e.printStackTrace(); //TODO
+            //In case we were not able to initialize the LoRaEngine, call the stop() method for cleanup
+            Log.e(CLASS_LOG_TAG, e.getMessage());
+            this.stop();
         }
     }
 
