@@ -7,6 +7,7 @@ import android.util.Log;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
+import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessageInterface;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DiscoverASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.ErrorASAPLoRaMessage;
@@ -17,6 +18,9 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * This Class orchestrates the Communication between the LoRaEngine and the different Stream-Instances
+ */
 public class LoRaCommunicationManager extends Thread {
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
@@ -27,6 +31,13 @@ public class LoRaCommunicationManager extends Thread {
     private LoRaBTListenThread loRaBTListenThread = null;
     private HashMap<String, Long> lastMessageTimeLog = new HashMap<>();
 
+    /**
+     * Creates our LoRa Communication Management Thread
+     * Takes a BluetoothDevice that is an ASAPLoRaBTModule as Parameter
+     *
+     * @param bluetoothDevice
+     * @throws ASAPLoRaException
+     */
     public LoRaCommunicationManager(BluetoothDevice bluetoothDevice) throws ASAPLoRaException {
 
         this.btDevice = bluetoothDevice;
@@ -65,21 +76,47 @@ public class LoRaCommunicationManager extends Thread {
         return this.ioStream.getInputStream();
     }
 
+    /**
+     * Tries to initiate a connection to a device with the MAC in address by passing it to the LoRaEngine
+     * This gets called if a new device was discovered after sending out a periodical Discover message
+     * @param address
+     */
     public void tryConnect(String address) {
         LoRaEngine.getASAPLoRaEngine().tryConnect(address);
     }
 
-    public void receiveASAPLoRaMessage(AbstractASAPLoRaMessage abstractASAPLoRaMessage) throws ASAPLoRaException {
-        Log.i(this.CLASS_LOG_TAG, "Message received: " + abstractASAPLoRaMessage.toString());
-        abstractASAPLoRaMessage.handleMessage(this);
+    /**
+     * Handle a new Message that was received by the LoRaBTInputOutputStream.
+     * Triggers the handleMessage()-Method of the Instance of ASAPLoRaMessageInterface
+     *
+     * Also resets the timeout for the disconnect of a peer
+     *
+     * @param theASAPLoRaMessage
+     * @throws ASAPLoRaException
+     */
+    public void receiveASAPLoRaMessage(ASAPLoRaMessageInterface theASAPLoRaMessage) throws ASAPLoRaException {
+        Log.i(this.CLASS_LOG_TAG, "Message received: " + theASAPLoRaMessage.toString());
+        theASAPLoRaMessage.handleMessage(this);
 
-        this.lastMessageTimeLog.put(abstractASAPLoRaMessage.getAddress(), System.currentTimeMillis());
+        this.lastMessageTimeLog.put(theASAPLoRaMessage.getAddress(), System.currentTimeMillis());
     }
 
+    /**
+     * Append Data from a received ASAPLoRaMessage to the corresponding ASAPInputStream, to
+     * pass the data to the ASAPPeer it is addressed to go to, which is reading from the InputStream.
+     *
+     * @param asapLoRaMessage
+     * @throws ASAPLoRaMessageException
+     */
     public void appendMessage(ASAPLoRaMessage asapLoRaMessage) throws ASAPLoRaMessageException {
         this.ioStream.getASAPInputStream(asapLoRaMessage.getAddress()).appendData(asapLoRaMessage.getMessage());
     }
 
+    /**
+     * Handle an error that was passed from the ASAPLoRaBTModule in form of an ErrorASAPLoRaMessage.
+     *
+     * @param asapLoRaMessage
+     */
     public void handleError(ErrorASAPLoRaMessage asapLoRaMessage) {
         Log.e(CLASS_LOG_TAG, "ErrorASAPLoRaMessage discovered: " + asapLoRaMessage.getPayload());
     }

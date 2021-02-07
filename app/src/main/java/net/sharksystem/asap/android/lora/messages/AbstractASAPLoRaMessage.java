@@ -5,7 +5,7 @@ import android.util.Log;
 import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
-public abstract class AbstractASAPLoRaMessage {
+public abstract class AbstractASAPLoRaMessage implements ASAPLoRaMessageInterface {
     private static final String CLASS_LOG_TAG = "AbstractASAPLoRaMessage";
     private String address = null; //Address this message is for / from, depending on context
 
@@ -29,7 +29,7 @@ public abstract class AbstractASAPLoRaMessage {
         throw new ASAPLoRaMessageException("Tried handling a message, that cannot be handled.");
     }
 
-    public static AbstractASAPLoRaMessage createASAPLoRaMessage(String rawMessage) throws ASAPLoRaMessageException {
+    public static ASAPLoRaMessageInterface createASAPLoRaMessage(String rawMessage) throws ASAPLoRaMessageException {
         Log.i(CLASS_LOG_TAG, "Raw LoRa Message Received!");
         Log.i(CLASS_LOG_TAG, "Creating AbstractASAPLoRaMessage from String: " + rawMessage);
         // rawMessage is of format: <COMMAND (5 Char)>:<Payload> or <COMMAND (5 Char)>@<Address (4 Char)>:<Payload>

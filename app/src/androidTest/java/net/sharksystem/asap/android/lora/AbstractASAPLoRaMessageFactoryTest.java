@@ -2,6 +2,7 @@ package net.sharksystem.asap.android.lora;
 
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
+import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessageInterface;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DeviceDiscoveredASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.DiscoverASAPLoRaMessage;
@@ -27,14 +28,14 @@ public class AbstractASAPLoRaMessageFactoryTest {
 
     @Test
     public void ASAPLoRaMessageTest() throws ASAPLoRaMessageException {
-        AbstractASAPLoRaMessage factoryMessage = AbstractASAPLoRaMessage.createASAPLoRaMessage("MSSGE@1000:QWJzdHJhY3RBU0FQTG9SYU1lc3NhZ2VGYWN0b3J5VGVzdA==");
+        ASAPLoRaMessageInterface factoryMessage = AbstractASAPLoRaMessage.createASAPLoRaMessage("MSSGE@1000:QWJzdHJhY3RBU0FQTG9SYU1lc3NhZ2VGYWN0b3J5VGVzdA==");
         assertTrue(factoryMessage instanceof ASAPLoRaMessage);
         assertEquals(new ASAPLoRaMessage("1000", "AbstractASAPLoRaMessageFactoryTest".getBytes()).toString(), factoryMessage.toString());
     }
 
     @Test
     public void DeviceDiscoveredASAPLoRaMessage() throws ASAPLoRaMessageException {
-        AbstractASAPLoRaMessage factoryMessage = AbstractASAPLoRaMessage.createASAPLoRaMessage("DVDCR:1001");
+        ASAPLoRaMessageInterface factoryMessage = AbstractASAPLoRaMessage.createASAPLoRaMessage("DVDCR:1001");
         assertTrue(factoryMessage instanceof DeviceDiscoveredASAPLoRaMessage);
         assertEquals((new DeviceDiscoveredASAPLoRaMessage("1001")).toString(), factoryMessage.toString());
     }

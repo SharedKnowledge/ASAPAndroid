@@ -5,6 +5,7 @@ import android.util.Log;
 
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
+import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessageInterface;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 import net.sharksystem.asap.utils.DateTimeHelper;
 
@@ -20,14 +21,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
+/**
+ * This class manages the Stream-Operations in communication with the ASAPLoRaBTModule and the
+ * corresponding ASAPPeers, negotiating data flow from or to the BluetoothSocket to or from the
+ * LoRaASAPInput- or OutputStreams by using the Hardware-address from the Packet-Header.
+ */
 public class LoRaBTInputOutputStream {
-    /**
-     * Die IS / OS in dieser Klasse schreiben/lesen auf einem BluetoothSocket
-     * Alle Adressen nutzen I/O Stream des BluetoothSocket, daher kapseln wir diesen in einel LoraBTInputStream
-     * --> Adresse wird mit an uC gesendet, damit dieser an die richtige Stelle schreibt.
-     * Syntax (erstidee): "ADDR:datadatadatadata"
-     */
     private static final String CLASS_LOG_TAG = "ASAPLoRaBTIOStream";
     private static final long READ_WAIT_TIMEOUT = 10 * 1000; //10 seconds in ms
     private final BluetoothSocket btSocket;
@@ -36,12 +35,21 @@ public class LoRaBTInputOutputStream {
     private final HashMap<String, LoRaASAPInputStream> loRaASAPInputStreams = new HashMap<>();
     private final HashMap<String, LoRaASAPOutputStream> loRaASAPOutputStreams = new HashMap<>();
 
+    /**
+     * Initialize our managementclass, opening Sockets from and to the ASAPLoRaBTModule
+     *
+     * @param btSocket
+     * @throws IOException
+     */
     public LoRaBTInputOutputStream(BluetoothSocket btSocket) throws IOException {
         this.btSocket = btSocket;
         this.is = new LoRaBTInputStream(btSocket.getInputStream());
         this.os = new LoRaBTOutputStream(btSocket.getOutputStream());
     }
 
+    /**
+     * Close all open Sockets and Resources, wait for them to close down
+     */
     public void close() {
         try {
             //Cleanup all loRaASAPOutputStreams
@@ -74,6 +82,13 @@ public class LoRaBTInputOutputStream {
         }
     }
 
+    /**
+     * Tries to retrieve the {@link LoRaASAPOutputStream} corresponding to the MAC-Address in mac
+     * If no {@link LoRaASAPOutputStream} exists yet, it creates one.
+     *
+     * @param mac
+     * @return
+     */
     public LoRaASAPOutputStream getASAPOutputStream(String mac) {
         if (this.loRaASAPOutputStreams.containsKey(mac))
             return this.loRaASAPOutputStreams.get(mac);
@@ -82,6 +97,14 @@ public class LoRaBTInputOutputStream {
         return this.getASAPOutputStream(mac);
     }
 
+
+    /**
+     * Tries to retrieve the {@link LoRaASAPInputStream} corresponding to the MAC-Address in mac
+     * If no {@link LoRaASAPInputStream} exists yet, it creates one.
+     *
+     * @param mac
+     * @return
+     */
     public LoRaASAPInputStream getASAPInputStream(String mac) {
         if (this.loRaASAPInputStreams.containsKey(mac))
             return this.loRaASAPInputStreams.get(mac);
@@ -98,11 +121,22 @@ public class LoRaBTInputOutputStream {
         return os;
     }
 
+    /**
+     * Triggers sending of Packages residing in the {@link LoRaASAPOutputStream}s
+     * @throws IOException
+     */
     public void flushASAPOutputStreams() throws IOException {
         for (LoRaASAPOutputStream os : this.loRaASAPOutputStreams.values())
             os.flush();
     }
 
+    /**
+     * Closes the {@link LoRaASAPInputStream} and waits for it to actually close, before removing
+     * it from our HashMap, so that it gets garbage collected. This is necessary, so that it has
+     * time to signal the ASAPPeer the EOF of the stream, closing the ASAPPeers connection. The
+     * corresponding {@link LoRaASAPOutputStream} is closed and removed from the HashMap, too.
+     * @param mac
+     */
     public void closeASAPStream(String mac) {
         if (this.loRaASAPInputStreams.containsKey(mac)) {
             LoRaASAPInputStream is = this.loRaASAPInputStreams.get(mac);
@@ -114,15 +148,26 @@ public class LoRaBTInputOutputStream {
             } while (!is.closed());
             this.loRaASAPInputStreams.remove(mac);
         }
+
         if (this.loRaASAPOutputStreams.containsKey(mac)) {
             this.loRaASAPOutputStreams.get(mac).close();
             this.loRaASAPOutputStreams.remove(mac);
         }
     }
 
+    /**
+     * Subclass for the Communication with ASAPMessages over BluetoothStreams
+     */
     static class LoRaBTInputStream extends FilterInputStream {
-
-        public AbstractASAPLoRaMessage readASAPLoRaMessage() throws IOException, ASAPLoRaException {
+        /**
+         * Blocking reads a Line from the underlying BluetoothInputStream and tries to create an
+         * {@link ASAPLoRaMessageInterface} from its {@link AbstractASAPLoRaMessage} Factory.
+         *
+         * @return ASAPLoRaMessageInterface
+         * @throws IOException
+         * @throws ASAPLoRaException
+         */
+        public ASAPLoRaMessageInterface readASAPLoRaMessage() throws IOException, ASAPLoRaException {
             BufferedReader br = new BufferedReader(new InputStreamReader(this));
             String rawASAPLoRaMessage = "";
             do {
@@ -137,6 +182,9 @@ public class LoRaBTInputOutputStream {
         }
     }
 
+    /**
+     * Subclass for the Communication with ASAPMessages over BluetoothStreams
+     */
     static class LoRaBTOutputStream extends FilterOutputStream {
         private static final String CLASS_LOG_TAG = "ASAPLoRaBTOutputStream";
 
@@ -144,7 +192,15 @@ public class LoRaBTInputOutputStream {
             super(out);
         }
 
-        public void write(AbstractASAPLoRaMessage msg) throws IOException, ASAPLoRaException {
+        /**
+         * Writes the Payload of an Instance of {@link ASAPLoRaMessageInterface} onto the
+         * underlying OutputStream.
+         *
+         * @param msg
+         * @throws IOException
+         * @throws ASAPLoRaException
+         */
+        public void write(ASAPLoRaMessageInterface msg) throws IOException, ASAPLoRaException {
             synchronized (this) {
                 String msgString = msg.getPayload();
                 Log.i(CLASS_LOG_TAG, "Writing Message to BT Board: " + msgString);
@@ -154,6 +210,9 @@ public class LoRaBTInputOutputStream {
         }
     }
 
+    /**
+     * Subclass for the communication to ASAPPeers
+     */
     static class LoRaASAPInputStream extends InputStream {
         private final String LoRaAddress;
         private Object threadLock = new Object();
@@ -172,6 +231,12 @@ public class LoRaBTInputOutputStream {
             return this.wasClosed;
         }
 
+        /**
+         * Append a {@link ByteArrayInputStream} to Read Data from, created from the bytes in data.
+         * Then notify a potential reading thread about the new data arriving.
+         *
+         * @param data
+         */
         public void appendData(byte[] data) {
             //discard empty data arrays
             if (data.length == 0)
@@ -183,6 +248,12 @@ public class LoRaBTInputOutputStream {
             }
         }
 
+        /**
+         * Returns the sum of all available bytes in all Streams of our InputStream-Queue.
+         *
+         * @return
+         * @throws IOException
+         */
         @Override
         public int available() throws IOException {
             int availableBytes = 0;
@@ -192,6 +263,9 @@ public class LoRaBTInputOutputStream {
             return availableBytes;
         }
 
+        /**
+         * Tell our Stream that we're about to close and notify a potential reading thread.
+         */
         @Override
         public void close() {
             this.inputStreams.clear();
@@ -207,6 +281,13 @@ public class LoRaBTInputOutputStream {
                 this.wasClosed = true;
         }
 
+        /**
+         * Reads from our Stream.
+         * Blocks until data arrives or the Stream is closed from the {@link LoRaCommunicationManager}
+         *
+         * @return New Data or -1
+         * @throws IOException
+         */
         @Override
         public int read() throws IOException {
             this.isReading = true;
@@ -243,6 +324,12 @@ public class LoRaBTInputOutputStream {
         }
     }
 
+
+    /**
+     * Subclass for the communication from ASAPPeers.
+     * Divides all data into LoRa-Transmissible chunks.
+     * Derived from @{@link java.io.BufferedOutputStream}
+     */
     class LoRaASAPOutputStream extends OutputStream {
         private final String LoRaAddress;
         private byte chunk[] = new byte[174]; //we can't deliver messages that are longer over LoRa
@@ -252,9 +339,12 @@ public class LoRaBTInputOutputStream {
             this.LoRaAddress = mac;
         }
 
+        /**
+         * Flushes our current chunk to the {@link LoRaBTOutputStream} if there is any data
+         * @throws IOException
+         */
         @Override
         public void flush() throws IOException {
-            //send data to to LoRaBTInputOutputStream.this.getOutputStream()
             if (this.count > 0) {
                 try {
                     ASAPLoRaMessage asapLoRaMessage = new ASAPLoRaMessage(this.LoRaAddress, Arrays.copyOf(this.chunk, this.count));
@@ -272,7 +362,9 @@ public class LoRaBTInputOutputStream {
         }
 
         /**
-         * Modified write from @BufferedOutputStream to create a chunked stream
+         * Writes a Byte-Array to our chunk, subdivides if necessary and flushes our buffer if needed.
+         * This is a modified write from BufferedOutputStream to create a chunked stream.
+         *
          * @param b
          * @param off
          * @param len
@@ -302,6 +394,12 @@ public class LoRaBTInputOutputStream {
             }
         }
 
+        /**
+         * Writes a single byte and flushes the chunk if it would overflow otherwise.
+         *
+         * @param b
+         * @throws IOException
+         */
         @Override
         public synchronized void write(int b) throws IOException {
             if (count >= chunk.length) {
