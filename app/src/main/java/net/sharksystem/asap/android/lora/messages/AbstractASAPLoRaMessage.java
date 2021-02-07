@@ -49,6 +49,8 @@ public abstract class AbstractASAPLoRaMessage {
                 String messageAddress = messagePayload.substring(0, 4);
                 String message = messagePayload.substring(5);
                 return new ASAPLoRaMessage(messageAddress, message);
+            case "ERROR":
+                return new ErrorASAPLoRaMessage(messagePayload);
         }
         throw new ASAPLoRaMessageException("Recieved invalid Message Type: " + rawMessage);
     }

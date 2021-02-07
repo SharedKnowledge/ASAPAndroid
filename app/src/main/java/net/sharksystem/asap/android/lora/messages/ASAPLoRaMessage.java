@@ -4,8 +4,12 @@ import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
 import android.util.Base64;
+import android.util.Log;
+
+import java.io.IOException;
 
 public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
+    private static final String CLASS_LOG_TAG = "ASAPLoRaMessage";
     private byte[] message;
     private String base64message;
 
@@ -19,7 +23,7 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
 
     public ASAPLoRaMessage(String address, String base64message) throws ASAPLoRaMessageException {
         this.setAddress(address);
-        this.base64message = base64message.trim(); //whitespaces can be ignored, according to base64 RFC2045
+        this.base64message = base64message.trim(); //whitespaces are ignored, according to RFC2045
         this.message = Base64.decode(this.base64message, Base64.DEFAULT);
     }
 
@@ -32,7 +36,18 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
         try {
             loRaCommunicationManager.appendMessage(this);
         } catch (ASAPLoRaMessageException e) {
-            e.printStackTrace(); //TODO, do we need to do something about this?
+            //In case we're not able to communicate with this peer, try to close the connection
+            Log.e(CLASS_LOG_TAG, e.getMessage());
+            try {
+                loRaCommunicationManager.getASAPInputStream(this.getAddress()).close();
+            } catch (ASAPLoRaMessageException | IOException closingException) {
+                /**
+                 * In case we were not able to close this stream, something is seriously wrong.
+                 * Halt all communication over LoRa.
+                 */
+                Log.e(CLASS_LOG_TAG, closingException.getMessage());
+                loRaCommunicationManager.interrupt();
+            }
         }
     }
 

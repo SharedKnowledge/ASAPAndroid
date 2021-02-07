@@ -20,13 +20,6 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class LoRaCommunicationManager extends Thread {
-    /**
-     * Diese Klasse bildet 3 Zwecke ab:
-     * - die Kommunikation mit dem SX1278 via {@link LoRaBTInputOutputStream}
-     * - Ersatz der "isConnected" Logiken aus WiFi und BT (vgl SYN/ACK?)
-     * --> Damit Verwaltung der versch. Input/OutputStreams pro discovertem Peer
-     * - Discovery neuer Peers und Benachrichtigung der @{@link LoRaEngine}
-     */
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
     private static final long DISCOVER_MESSAGE_TIMEOUT = 60 * 1000; //60s in ms
@@ -88,6 +81,10 @@ public class LoRaCommunicationManager extends Thread {
         this.ioStream.getASAPInputStream(asapLoRaMessage.getAddress()).appendData(asapLoRaMessage.getMessage());
     }
 
+    public void handleError(ErrorASAPLoRaMessage asapLoRaMessage) {
+        Log.e(CLASS_LOG_TAG, "ErrorASAPLoRaMessage discovered: " + asapLoRaMessage.getPayload());
+    }
+
     @Override
     public void run() {
         try {
@@ -114,7 +111,7 @@ public class LoRaCommunicationManager extends Thread {
                 if ((System.currentTimeMillis() - lastDiscoverMessage) > (this.DISCOVER_MESSAGE_TIMEOUT)) { //TODO do we need an extra time?
                     for (HashMap.Entry<String, Long> lastMessageTime :
                             this.lastMessageTimeLog.entrySet()) {
-                        if((System.currentTimeMillis() - lastMessageTime.getValue()) > (this.DISCOVER_MESSAGE_TIMEOUT * 5))
+                        if ((System.currentTimeMillis() - lastMessageTime.getValue()) > (this.DISCOVER_MESSAGE_TIMEOUT * 5))
                             this.ioStream.closeASAPStream(lastMessageTime.getKey());
 
                     }
@@ -124,7 +121,6 @@ public class LoRaCommunicationManager extends Thread {
             Log.i(CLASS_LOG_TAG, "Thread was interrupted, starting Shutdown.");
         } catch (IOException | ASAPLoRaException e) {
             Log.e(this.CLASS_LOG_TAG, e.getMessage());
-            //throw new ASAPLoRaException(e);
         } finally {
             //cleanup after ourselves
             this.loRaBTListenThread.interrupt(); //Interrupt our Listen Thread
