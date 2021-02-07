@@ -10,8 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import android.util.Base64;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -33,20 +32,10 @@ public class Base64Test {
     }
 
     @Test
-    public void charsetEncodeDecode() {
-        byte[] message = "Testmessage123!&".getBytes();
-        String base64message = new String(Base64.getEncoder().encode(message), StandardCharsets.UTF_8);
-        byte[] decodedMessage = Base64.getMimeDecoder().decode(base64message.getBytes(StandardCharsets.UTF_8));
-        assertArrayEquals(message, decodedMessage);
-        assertEquals("Testmessage123!&", new String(decodedMessage));
-    }
-
-    @Test
     public void simpleEncodeDecode() {
         byte[] message = "Testmessage123!&".getBytes();
-        String base64message = Base64.getEncoder().encodeToString(message);
-        assertEquals("VGVzdG1lc3NhZ2UxMjMhJg==", base64message);
-        byte[] decodedMessage = Base64.getMimeDecoder().decode(base64message);
+        String base64message = Base64.encodeToString(message, Base64.DEFAULT);
+        byte[] decodedMessage = Base64.decode(base64message, Base64.DEFAULT);
         assertArrayEquals(message, decodedMessage);
         assertEquals("Testmessage123!&", new String(decodedMessage));
     }
