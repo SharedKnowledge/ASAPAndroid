@@ -14,7 +14,7 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
     private String base64message;
 
     public ASAPLoRaMessage(String address, byte[] message) throws ASAPLoRaMessageException {
-        if (message.length > 177) //TODO - is this actually the correct length?
+        if (message.length > 174)
             throw new ASAPLoRaMessageException("Passed a message that is too long for LoRa Transport");
         this.setAddress(address);
         this.message = message;

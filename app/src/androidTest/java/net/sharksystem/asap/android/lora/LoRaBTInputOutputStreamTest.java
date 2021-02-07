@@ -34,8 +34,8 @@ public class LoRaBTInputOutputStreamTest {
     public static LoRaBTInputOutputStream Alice;
     public static LoRaBTInputOutputStream Bob;
 
-    //private static String longString = "This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 3+ messages.";
-    private static String longString = "This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 3+ messages.";
+    private static String longString = "This is a long test. This is a long test.This is a long test. This is a long test.This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This is a long test. This should be 1+ messages.";
+    private static String veryLongString = longString + " " + longString + " " + longString;
 
     @BeforeClass
     public static void setup() throws IOException, InterruptedException {
@@ -69,9 +69,10 @@ public class LoRaBTInputOutputStreamTest {
     }
 
     @AfterClass
-    public static void teardown() {
+    public static void teardown() throws InterruptedException {
         Alice.close();
         Bob.close();
+        Thread.sleep(2000); //wait for teardown to finish...
     }
 
     @Test
@@ -125,21 +126,13 @@ public class LoRaBTInputOutputStreamTest {
         assertEquals(longString, result);
     }
 
-    /**
-     * TODO: This test still fails, because a buffered output stream will write 100% of the
-     * TODO: data through, if it is bigger than the buffer, failing to fulfill the task at hand
-     * TODO: of splitting the data up in multiple ASAPLoRaMessages.
-     *
-     * @throws IOException
-     * @throws ASAPLoRaMessageException
-     */
-    @Test(timeout = 100000)
+    @Test(timeout = 80000)
     public void testASAPOutputToBTInputReallyLong() throws IOException, ASAPLoRaMessageException {
-        Alice.getASAPOutputStream("1001").write((longString + longString + longString).getBytes());
+        Alice.getASAPOutputStream("1001").write(veryLongString.getBytes());
         Alice.flushASAPOutputStreams();
 
         String result = "";
-        while (!result.equals(longString)) {
+        while (!result.equals(veryLongString)) {
             if (Bob.getInputStream().available() > 0) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(Bob.getInputStream()));
                 String deviceResponse = br.readLine().trim();
@@ -149,6 +142,6 @@ public class LoRaBTInputOutputStreamTest {
                 result += new String(asapMsg.getMessage());
             }
         }
-        assertEquals(longString, result);
+        assertEquals(veryLongString, result);
     }
 }

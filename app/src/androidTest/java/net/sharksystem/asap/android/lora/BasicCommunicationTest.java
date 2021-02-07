@@ -7,6 +7,7 @@ import android.content.Context;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -59,6 +60,10 @@ public class BasicCommunicationTest {
         Thread.sleep(2000); //Give the BT Modules some time to stabilize
     }
 
+    @AfterClass
+    public static void teardown() throws InterruptedException {
+        Thread.sleep(10000); //Give the BT Modules some time to stabilize
+    }
     @Test
     public void usesAppContext() {
         // Test if we are running in App Context
