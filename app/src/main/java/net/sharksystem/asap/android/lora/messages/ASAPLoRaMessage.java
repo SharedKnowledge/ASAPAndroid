@@ -9,7 +9,7 @@ import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 import java.io.IOException;
 
 /**
- * Represents a Message from or to the ASAPLoRaBTModule, has the Payload "MSSGE@<Address 1000-FFFE>:<payload>"
+ * Represents a Message from or to the ASAPLoRaBTModule, has the Payload "MSSGE:<Address 1000-FFFE>:<payload>"
  *
  * As LoRa-Packages cannot send more than 250 byte of data in one Message, the limit has to be less
  * than 175 characters, since the payload is base64-encoded and the max length of a base64 message
@@ -88,7 +88,7 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
      */
     @Override
     public String getPayload() throws ASAPLoRaMessageException {
-        return "MSSGE@" + this.getAddress() + ":" + this.base64message;
+        return "MSSGE:" + this.getAddress() + ":" + this.base64message;
     }
 
     @Override

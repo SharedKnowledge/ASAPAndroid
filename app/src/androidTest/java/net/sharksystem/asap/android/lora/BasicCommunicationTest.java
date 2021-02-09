@@ -100,7 +100,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout = 30000)
     public void simpleAliceToBobMessageTest() throws IOException {
-        this.AliceSocket.getOutputStream().write("MSSGE@1001:Hello World!\n".getBytes());
+        this.AliceSocket.getOutputStream().write("MSSGE:1001:Hello World!\n".getBytes());
 
         while (true) {
             if (this.BobSocket.getInputStream().available() > 0) {
@@ -108,7 +108,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1000:Hello World!", deviceResponse);
+                assertEquals("MSSGE:1000:Hello World!", deviceResponse);
                 break;
             }
         }
@@ -116,7 +116,7 @@ public class BasicCommunicationTest {
 
     @Test(timeout = 30000)
     public void simpleBobToAliceMessageTest() throws IOException {
-        this.BobSocket.getOutputStream().write("MSSGE@1000:Hello World!".getBytes());
+        this.BobSocket.getOutputStream().write("MSSGE:1000:Hello World!".getBytes());
 
         while (true) {
             if (this.AliceSocket.getInputStream().available() > 0) {
@@ -124,7 +124,7 @@ public class BasicCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1001:Hello World!", deviceResponse);
+                assertEquals("MSSGE:1001:Hello World!", deviceResponse);
                 break;
             }
         }

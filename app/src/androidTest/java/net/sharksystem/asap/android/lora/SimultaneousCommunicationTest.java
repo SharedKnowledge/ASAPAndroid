@@ -68,8 +68,8 @@ public class SimultaneousCommunicationTest {
 
     @Test(timeout = 60000)
     public void simultaneousMessageTest() throws IOException {
-        this.BobSocket.getOutputStream().write("MSSGE@1000:Simultan Hello Alice!\n".getBytes());
-        this.AliceSocket.getOutputStream().write("MSSGE@1001:Simultan Hello Bob!\n".getBytes());
+        this.BobSocket.getOutputStream().write("MSSGE:1000:Simultan Hello Alice!\n".getBytes());
+        this.AliceSocket.getOutputStream().write("MSSGE:1001:Simultan Hello Bob!\n".getBytes());
 
         while (true) {
             if (this.BobSocket.getInputStream().available() > 0) {
@@ -77,7 +77,7 @@ public class SimultaneousCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1000:Simultan Hello Bob!", deviceResponse);
+                assertEquals("MSSGE:1000:Simultan Hello Bob!", deviceResponse);
                 break;
             }
         }
@@ -88,7 +88,7 @@ public class SimultaneousCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1001:Simultan Hello Alice!", deviceResponse);
+                assertEquals("MSSGE:1001:Simultan Hello Alice!", deviceResponse);
                 break;
             }
         }
@@ -98,8 +98,8 @@ public class SimultaneousCommunicationTest {
     public void tenSimultaneousMessageTest() throws IOException {
         int rounds = 10;
         for (int i = 0; i < rounds; i++) {
-            this.BobSocket.getOutputStream().write("MSSGE@1000:Simultan Hello Alice!\n".getBytes());
-            this.AliceSocket.getOutputStream().write("MSSGE@1001:Simultan Hello Bob!\n".getBytes());
+            this.BobSocket.getOutputStream().write("MSSGE:1000:Simultan Hello Alice!\n".getBytes());
+            this.AliceSocket.getOutputStream().write("MSSGE:1001:Simultan Hello Bob!\n".getBytes());
         }
 
         int AliceCounter = 0;
@@ -110,7 +110,7 @@ public class SimultaneousCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1001:Simultan Hello Alice!", deviceResponse);
+                assertEquals("MSSGE:1001:Simultan Hello Alice!", deviceResponse);
                 AliceCounter++;
                 System.out.print("Found that much correct answers from Bob: ");
                 System.out.println(AliceCounter);
@@ -120,7 +120,7 @@ public class SimultaneousCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1000:Simultan Hello Bob!", deviceResponse);
+                assertEquals("MSSGE:1000:Simultan Hello Bob!", deviceResponse);
                 BobCounter++;
                 System.out.print("Found that much correct answers from Alice: ");
                 System.out.println(BobCounter);
@@ -135,8 +135,8 @@ public class SimultaneousCommunicationTest {
     public void tenSimultaneousOrderedMessageTest() throws IOException {
         int rounds = 10;
         for (int i = 0; i < rounds; i++) {
-            this.BobSocket.getOutputStream().write(("MSSGE@1000:Hello Alice Nr. " + String.valueOf(i) + "\n").getBytes());
-            this.AliceSocket.getOutputStream().write(("MSSGE@1001:Hello Bob Nr. " + String.valueOf(i) + "\n").getBytes());
+            this.BobSocket.getOutputStream().write(("MSSGE:1000:Hello Alice Nr. " + String.valueOf(i) + "\n").getBytes());
+            this.AliceSocket.getOutputStream().write(("MSSGE:1001:Hello Bob Nr. " + String.valueOf(i) + "\n").getBytes());
         }
 
         int AliceCounter = 0;
@@ -147,7 +147,7 @@ public class SimultaneousCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1001:Hello Alice Nr. " + String.valueOf(AliceCounter), deviceResponse);
+                assertEquals("MSSGE:1001:Hello Alice Nr. " + String.valueOf(AliceCounter), deviceResponse);
                 AliceCounter++;
                 System.out.print("Found that much correct answers from Bob: ");
                 System.out.println(AliceCounter);
@@ -157,7 +157,7 @@ public class SimultaneousCommunicationTest {
                 String deviceResponse = br.readLine().trim();
                 System.out.print("ASAP LoRaEngine Test Device Response: ");
                 System.out.println(deviceResponse);
-                assertEquals("MSSGE@1000:Hello Bob Nr. " + String.valueOf(BobCounter), deviceResponse);
+                assertEquals("MSSGE:1000:Hello Bob Nr. " + String.valueOf(BobCounter), deviceResponse);
                 BobCounter++;
                 System.out.print("Found that much correct answers from Alice: ");
                 System.out.println(BobCounter);

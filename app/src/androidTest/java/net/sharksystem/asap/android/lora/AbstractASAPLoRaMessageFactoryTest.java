@@ -28,7 +28,7 @@ public class AbstractASAPLoRaMessageFactoryTest {
 
     @Test
     public void ASAPLoRaMessageTest() throws ASAPLoRaMessageException {
-        ASAPLoRaMessageInterface factoryMessage = AbstractASAPLoRaMessage.createASAPLoRaMessage("MSSGE@1000:QWJzdHJhY3RBU0FQTG9SYU1lc3NhZ2VGYWN0b3J5VGVzdA==");
+        ASAPLoRaMessageInterface factoryMessage = AbstractASAPLoRaMessage.createASAPLoRaMessage("MSSGE:1000:QWJzdHJhY3RBU0FQTG9SYU1lc3NhZ2VGYWN0b3J5VGVzdA==");
         assertTrue(factoryMessage instanceof ASAPLoRaMessage);
         assertEquals(new ASAPLoRaMessage("1000", "AbstractASAPLoRaMessageFactoryTest".getBytes()).toString(), factoryMessage.toString());
     }
