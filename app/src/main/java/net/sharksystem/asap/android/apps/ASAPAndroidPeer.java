@@ -278,6 +278,11 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     }
 
     @Override
+    public CharSequence getPeerName() {
+        return this.getPeerID();
+    }
+
+    @Override
     public ASAPStorage getASAPStorage(CharSequence format) throws IOException, ASAPException {
         return this.getASAPPeerApplicationSide().getASAPStorage(format);
     }
@@ -624,7 +629,6 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     //                                        ASAPSimplePeer                                     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Override
     public CharSequence getPeerID() {
         return this.getOwnerID();
     }

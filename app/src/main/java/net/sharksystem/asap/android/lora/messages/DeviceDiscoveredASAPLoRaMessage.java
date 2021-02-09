@@ -5,6 +5,10 @@ import android.util.Log;
 import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
+/**
+ * Represents a Device Discovered Message from the ASAPLoRaBTModule, has the Payload "DVDCR:<Address 1000-FFFE>"
+ */
+
 public class DeviceDiscoveredASAPLoRaMessage extends AbstractASAPLoRaMessage {
     private static final String CLASS_LOG_TAG = "DvcDscvrdLoRaMessage";
 
