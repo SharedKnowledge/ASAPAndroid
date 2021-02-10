@@ -43,12 +43,8 @@ public class ASAPActivity extends AppCompatActivity implements
 
     private ASAPAndroidPeer asapAndroidPeer;
 
-    /**
-     * @throws ASAPComponentNotYetInitializedException if ASAPAndroidPeer was not initialized
-     */
-    public ASAPActivity() {
+    protected ASAPAndroidPeer getASAPAndroidPeer() {
         if(!ASAPAndroidPeer.peerInitialized()) {
-            // weired. Should be with initial activity - anyway try to recover from memento
             Log.d(this.getLogStart(), "application side peer not yet initialized - try to restore from memory");
             Log.d(this.getLogStart(), "this == " + this);
             ASAPAndroidPeer.restoreFromMemento(this); // can throw exception
@@ -56,11 +52,11 @@ public class ASAPActivity extends AppCompatActivity implements
         }
 
         this.asapAndroidPeer = ASAPAndroidPeer.getASAPAndroidPeer();
+
+        return this.asapAndroidPeer;
     }
 
-    protected ASAPAndroidPeer getASAPAndroidPeer() { return this.asapAndroidPeer; }
-
-    protected ASAPPeer getASAPPeer() { return this.asapAndroidPeer; }
+    protected ASAPPeer getASAPPeer() { return this.getASAPAndroidPeer(); }
 
     /**
      * Create a closed asap channel. Ensure to call this method before ever sending a message into
@@ -377,13 +373,13 @@ public class ASAPActivity extends AppCompatActivity implements
         filter.addAction(ASAPAndroid.ASAP_CHUNK_RECEIVED_ACTION);
 
         // register
-        this.registerReceiver(this.asapAndroidPeer, filter);
+        this.registerReceiver(this.getASAPAndroidPeer(), filter);
     }
 
     private void shutdownASAPChunkReceivedBroadcastReceiver() {
         Log.d(this.getLogStart(), "shutdown asap received bc receiver");
         try {
-            this.unregisterReceiver(this.asapAndroidPeer);
+            this.unregisterReceiver(this.getASAPAndroidPeer());
         }
         catch(RuntimeException re) {
             Log.d(this.getLogStart(), "problems when unregister asap received bcr - ignore"
@@ -409,14 +405,14 @@ public class ASAPActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(this.getLogStart(), "onCreate");
-        this.asapAndroidPeer.activityCreated(this);
+        this.getASAPAndroidPeer().activityCreated(this);
     }
 
     protected void onStart() {
         // Bind to the service
         super.onStart();
         Log.d(this.getLogStart(), "onStart");
-        this.asapAndroidPeer.setActivity(this);
+        this.getASAPAndroidPeer().setActivity(this);
         this.setupASAPServiceNotificationBroadcastReceiver();
         this.setupASAPChunkReceivedBroadcastReceiver();
         this.bindServices();
@@ -427,7 +423,7 @@ public class ASAPActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         Log.d(this.getLogStart(), "onResume");
-        this.asapAndroidPeer.setActivity(this);
+        this.getASAPAndroidPeer().setActivity(this);
         this.startASAPEngineBroadcasts();
     }
 
@@ -455,7 +451,7 @@ public class ASAPActivity extends AppCompatActivity implements
         Log.d(this.getLogStart(), "onDestroy");
         this.shutdownASAPServiceNotificationBroadcastReceiver();
         this.unbindServices();
-        this.asapAndroidPeer.activityDestroyed(this);
+        this.getASAPAndroidPeer().activityDestroyed(this);
 
         // forget stored messages
         this.messageStorage = null;
@@ -530,7 +526,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoverableStarted() {
-        this.asapAndroidPeer.notifyBTDiscoverable(true);
+        this.getASAPAndroidPeer().notifyBTDiscoverable(true);
     }
 
     /**
@@ -544,7 +540,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoverableStopped() {
-        this.asapAndroidPeer.notifyBTDiscoverable(false);
+        this.getASAPAndroidPeer().notifyBTDiscoverable(false);
     }
 
     /**
@@ -558,7 +554,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTEnvironmentStarted() {
-        this.asapAndroidPeer.notifyBTEnvironmentRunning(true);
+        this.getASAPAndroidPeer().notifyBTEnvironmentRunning(true);
     }
 
     /**
@@ -572,7 +568,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTEnvironmentStopped() {
-        this.asapAndroidPeer.notifyBTEnvironmentRunning(false);
+        this.getASAPAndroidPeer().notifyBTEnvironmentRunning(false);
     }
 
     /**
@@ -588,7 +584,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyOnlinePeersChanged(Set<CharSequence> peerList) {
-        this.asapAndroidPeer.notifyOnlinePeersChanged(peerList);
+        this.getASAPAndroidPeer().notifyOnlinePeersChanged(peerList);
     }
 
     /**
@@ -602,7 +598,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoveryStarted() {
-        this.asapAndroidPeer.notifyBTDiscovery(true);
+        this.getASAPAndroidPeer().notifyBTDiscovery(true);
     }
 
     /**
@@ -616,7 +612,7 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     @CallSuper
     public void asapNotifyBTDiscoveryStopped() {
-        this.asapAndroidPeer.notifyBTDiscovery(false);
+        this.getASAPAndroidPeer().notifyBTDiscovery(false);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -627,20 +623,20 @@ public class ASAPActivity extends AppCompatActivity implements
      * @return true if bluetooth environment is one.
      */
     public boolean isBluetoothEnvironmentOn() {
-        return this.asapAndroidPeer.getBTEnvironmentRunning();
+        return this.getASAPAndroidPeer().getBTEnvironmentRunning();
     }
 
     /**
      * @return true if this device is discoverable now.
      */
     public boolean isBluetoothDiscoverable() {
-        return this.asapAndroidPeer.getBTDiscoverable();
+        return this.getASAPAndroidPeer().getBTDiscoverable();
     }
 
     /**
      * @return true if this device looking for other Bluetooth devices.
      */
     public boolean isBluetoothDiscovery() {
-        return this.asapAndroidPeer.getBTDiscovery();
+        return this.getASAPAndroidPeer().getBTDiscovery();
     }
 }

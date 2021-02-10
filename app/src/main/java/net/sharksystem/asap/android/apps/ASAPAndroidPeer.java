@@ -37,6 +37,10 @@ import java.util.Set;
 import static androidx.core.content.PermissionChecker.PERMISSION_DENIED;
 import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
+/**
+ * Application side object that offers the ASAPPeer interface and hides all communication
+ * with ASAPService from ASAP application developers
+ */
 public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     private static final int MY_ASK_FOR_PERMISSIONS_REQUEST = 100;
     private static final String PREFERENCES_FILE = "ASAPPeerApplicationSideInitSettings";
@@ -66,7 +70,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     //                                     construction                                         //
     //////////////////////////////////////////////////////////////////////////////////////////////
 
-    static ASAPAndroidPeer getASAPAndroidPeer() {
+    public static ASAPAndroidPeer getASAPAndroidPeer() {
         if(ASAPAndroidPeer.singleton == null) {
             throw new ASAPComponentNotYetInitializedException(
                     "ASAPAndroidPeer not yet initialized");
@@ -79,7 +83,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     //                                       memento  mori                                     //
     /////////////////////////////////////////////////////////////////////////////////////////////
 
-    private static void writeMemento(Activity activity, Collection<CharSequence> supportedFormats,
+    private static void writeMemento(Context activity, Collection<CharSequence> supportedFormats,
                                      CharSequence asapOwner, CharSequence rootFolder) {
 
         SharedPreferences sharedPref = activity.getSharedPreferences(
@@ -157,15 +161,24 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                 ASAPPeerFS.DEFAULT_ROOT_FOLDER_NAME, initialActivity);
     }
 
+    /**
+     *
+     * @param asapOwner
+     * @param supportedFormats
+     * @param relativeRootFolderName relative (I repeat - relative, not absolut) folder name
+     * @param initialActivity
+     * @throws IOException
+     * @throws ASAPException
+     */
     public static void initializePeer(CharSequence asapOwner,
                                       Collection<CharSequence> supportedFormats,
-                                      CharSequence rootFolder,
+                                      CharSequence relativeRootFolderName,
                                       Activity initialActivity)
             throws IOException, ASAPException {
 
         // write memento
-        ASAPAndroidPeer.writeMemento(initialActivity, supportedFormats, asapOwner, rootFolder);
-        new ASAPAndroidPeer(supportedFormats, asapOwner, rootFolder,
+        ASAPAndroidPeer.writeMemento(initialActivity, supportedFormats, asapOwner, relativeRootFolderName);
+        new ASAPAndroidPeer(supportedFormats, asapOwner, relativeRootFolderName,
                 ASAPPeer.ONLINE_EXCHANGE_DEFAULT, initialActivity);
     }
 
@@ -173,19 +186,20 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
      * Do not forget to call start() to actually launch peer, especially the service
      * @param supportedFormats
      * @param asapOwner
-     * @param rootFolder
+     * @param relativeRootFolderName
      * @param onlineExchange
-     * @param initialActivity
+     * @param activity
      */
     private ASAPAndroidPeer(Collection<CharSequence> supportedFormats,
-                              CharSequence asapOwner,
-                              CharSequence rootFolder,
-                              boolean onlineExchange,
-                              Activity initialActivity) throws IOException, ASAPException {
+                            CharSequence asapOwner,
+                            CharSequence relativeRootFolderName,
+                            boolean onlineExchange,
+                            Activity activity) throws IOException, ASAPException {
 
         this.supportedFormats = supportedFormats;
         this.asapOwner = asapOwner;
-        this.rootFolder = rootFolder;
+        this.rootFolder =
+            Util.getASAPRootDirectory(activity, relativeRootFolderName, asapOwner).getAbsolutePath();
         this.onlineExchange = onlineExchange;
 
         if(ASAPAndroidPeer.peerInitialized()) {
@@ -195,8 +209,10 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         // remember me
         ASAPAndroidPeer.singleton = this;
 
-        // set context
-        this.setActivity(initialActivity);
+        /* set activity - that's the problem with init processes. There is no activity yet
+        we have to set up the system first.
+         */
+        //this.setActivity(initialActivity);
 
         Log.d(this.getLogStart(), "initialize ASAP Peer application side");
         // required permissions
@@ -212,14 +228,17 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
         // check for write permissions
         Log.d(this.getLogStart(), "ask for required permissions");
-        this.askForPermissions();
+        this.askForPermissions(activity);
     }
 
     /**
      * Start initialized ASAPAndroidPeer
+     * @return
      */
-    public static void startPeer() throws IOException, ASAPException {
-        ASAPAndroidPeer.getASAPAndroidPeer().start();
+    public static ASAPAndroidPeer startPeer(Activity initialActivity) throws IOException, ASAPException {
+        ASAPAndroidPeer asapAndroidPeer = ASAPAndroidPeer.getASAPAndroidPeer();
+        asapAndroidPeer.start(initialActivity);
+        return asapAndroidPeer;
     }
 
     public static boolean peerStarted() {
@@ -231,9 +250,10 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
      * deals with all supported layer 2 protocol and initiates ASAP session. Objects of
      * ASAPApplications (and derived classes) are in most cases proxies of this service.
      * <b>Never forget to launch your application.</b>
+     * @param initialActivity
      */
     @CallSuper
-    public void start() throws IOException, ASAPException {
+    public void start(Activity initialActivity) throws IOException, ASAPException {
         if(!this.started) {
             Log.d(this.getLogStart(), "initialize and launch ASAP Service");
             // collect parameters
@@ -257,13 +277,13 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
             this.onlineExchange = this.getASAPOnlineExchange();
 
             try {
-                Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(activity,
+                Intent asapServiceCreationIntent = new ASAPServiceCreationIntent(initialActivity,
                         this.asapOwner, this.rootFolder, this.onlineExchange, this.supportedFormats);
 
                 Log.d(this.getLogStart(), "start service with intent: "
                         + asapServiceCreationIntent.toString());
 
-                this.activity.startService(asapServiceCreationIntent);
+                initialActivity.startService(asapServiceCreationIntent);
                 this.started = true;
             } catch (ASAPException e) {
                 Log.e(this.getLogStart(), "could not start ASAP Service - fatal");
@@ -274,7 +294,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
         // finally create proxy
         this.asapPeerApplicationSide =
-                new ASAPPeerFS(asapOwner, this.getASAPRootFolder(), supportedFormats);
+                new ASAPPeerFS(this.asapOwner, this.rootFolder, this.supportedFormats);
     }
 
     @Override
@@ -282,7 +302,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         return this.getASAPPeerApplicationSide().getASAPStorage(format);
     }
 
-    private void askForPermissions() {
+    private void askForPermissions(Activity activity) {
         if(this.requiredPermissions.size() < 1) {
             Log.d(this.getLogStart(), "no further permissions to ask for");
             return;
@@ -291,18 +311,18 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         String wantedPermission = requiredPermissions.remove(0);
         Log.d(this.getLogStart(), "handle permission " + wantedPermission);
 
-        if (ContextCompat.checkSelfPermission(this.getActivity(), wantedPermission)
+        if (ContextCompat.checkSelfPermission(activity, wantedPermission)
                 == PackageManager.PERMISSION_GRANTED) {
             // already granted
             Log.d(this.getLogStart(), wantedPermission + " already granted");
             this.grantedPermissions.add(wantedPermission);
-            this.askForPermissions(); // next iteration
+            this.askForPermissions(activity); // next iteration
             return;
         }
 
         // not yet granted
         // ask for missing permission
-        ActivityCompat.requestPermissions(this.activity, new String[]{wantedPermission},
+        ActivityCompat.requestPermissions(activity, new String[]{wantedPermission},
                 MY_ASK_FOR_PERMISSIONS_REQUEST);
     }
 
@@ -334,7 +354,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                 break;
         }
 
-        this.askForPermissions();
+        this.askForPermissions(this.getActivity());
     }
 
     private ASAPPeerFS getASAPPeerApplicationSide() {
@@ -441,7 +461,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     public String getApplicationRootFolder(String appName) {
         appName = Utils.url2FileName(appName);
         String absoluteASAPApplicationRootFolder = this.getASAPRootFolder() + "/" + appName;
-        Log.d(this.getLogStart(), "absolute asap app rootfolder: "
+        Log.d(this.getLogStart(), "absolute asap app root folder: "
                 + absoluteASAPApplicationRootFolder);
 
         return absoluteASAPApplicationRootFolder;
@@ -515,6 +535,10 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
         // notify listeners - delegate
         this.getASAPPeerApplicationSide().notifyOnlinePeersChanged(newPeerList);
+    }
+
+    boolean unconnected() {
+        return this.onlinePeerList.size() == 0;
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -633,29 +657,44 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     //                          ASAP messages are sent with the service                          //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    private void sendASAPMessage(
+        CharSequence format, CharSequence uri, byte[] message, boolean persistent)
+            throws ASAPException {
+
+        net.sharksystem.utils.Log.writeLog(this, "send message "
+                + format + " | " + uri + " | persistent == " + persistent);
+
+    /* TODO: better:
+        if(this.unconnected()) {
+            if(persistent) {
+                // if offline - simply put it into file for further delivery
+                //this.getASAPPeerApplicationSide().sendASAPMessage(format, uri, message);
+            } else { // do no do anything } */
+    //    } else { // online
+            Activity activity = this.getActivity();
+            if(activity == null) throw new ASAPException("no active activity");
+
+            if(! (activity instanceof ASAPActivity))
+                throw new ASAPException("current activity not derived from ASAPActivity");
+
+            ASAPActivity asapActivity = (ASAPActivity)activity;
+            asapActivity.sendASAPMessage(format, uri, message, persistent);
+    //    }
+    }
+
     @Override
     public void sendASAPMessage(CharSequence format, CharSequence uri, byte[] message)
             throws ASAPException {
-
-        Activity activity = this.getActivity();
-        if(activity == null) throw new ASAPException("no active activity");
-
-        if(! (activity instanceof ASAPActivity))
-            throw new ASAPException("current activity not derived from ASAPActivity");
-
-        ASAPActivity asapActivity = (ASAPActivity)activity;
-        asapActivity.sendASAPMessage(format, uri, message, true);
+        this.sendASAPMessage(format, uri, message, true);
     }
 
     @Override
-    public void sendOnlineASAPMessage(CharSequence charSequence, CharSequence charSequence1, byte[] bytes) throws ASAPException, IOException {
-        net.sharksystem.utils.Log.writeLogErr(this, "ASAPAndroidPeer.sendOnlineASAPMessage");
-        throw new ASAPComponentNotYetInitializedException("ASAPAndroidPeer.sendOnlineASAPMessage");
+    public void sendOnlineASAPMessage(CharSequence format, CharSequence uri, byte[] message)
+            throws ASAPException {
+        this.sendASAPMessage(format, uri, message, false);
     }
 
     private String getLogStart() {
-//        int objectID = this.hashCode();
-//        return "ASAPApplication(" + objectID + ")";
         return Util.getLogStart(this);
     }
 }

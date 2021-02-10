@@ -30,8 +30,8 @@ public class Util {
         return rootFolder + "/" + folderName;
     }
 
-    public static File getASAPRootDirectory(Context ctx,
-                                    CharSequence rootFolder, CharSequence owner) {
+    public static File getASAPRootDirectory(
+            Context ctx, CharSequence rootFolder, CharSequence owner) {
 
         File dir = ctx.getExternalFilesDir(Util.makeValidFolderName(rootFolder, owner));
 

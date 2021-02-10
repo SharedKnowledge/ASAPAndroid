@@ -40,12 +40,11 @@ public class ASAPService extends Service
         implements ASAPChunkReceivedListener, ASAPEnvironmentChangesListener {
 
     /** time in minutes until a new connection attempt is made to an already paired device is made*/
-    public static final int WAIT_MINUTES_UNTIL_TRY_RECONNECT = 1; // debugging
+    public static final int WAIT_MINUTES_UNTIL_TRY_RECONNECT = 1; // debugging: TODO
     //public static final int WAIT_UNTIL_TRY_RECONNECT = 30; // real life
 
     private String asapEngineRootFolderName;
 
-    //private asapMultiEngine asapMultiEngine = null;
     private ASAPPeerFS asapPeer;
     private CharSequence owner;
     private CharSequence rootFolder;
@@ -170,10 +169,13 @@ public class ASAPService extends Service
             }
         }
 
-        // get root directory
-        File asapRoot = null;
+        // get root directory - assumed that application side has sent a valid folder name
+        File asapRoot = new File(this.rootFolder.toString());
+
+        /*
         Log.d(this.getLogStart(), "use Util.getASAPRootDirectory()");
         asapRoot = Util.getASAPRootDirectory(this, this.rootFolder, this.owner);
+         */
 
         this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
         Log.d(this.getLogStart(),"work with folder: " + this.asapEngineRootFolderName);

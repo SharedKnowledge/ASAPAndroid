@@ -105,13 +105,20 @@ class ASAPMessageHandler extends Handler {
 
         ASAPPeerFS asapPeer = this.asapService.getASAPPeer();
 
-        asapPeer.sendASAPMessage(
-                asapMessage.getFormat(),
-                asapMessage.getURI(),
-                asapMessage.getASAPMessage()
-        );
-
-        Log.d(this.getLogStart(), "done sending");
+        if(asapMessage.getPersistent()) {
+            asapPeer.sendASAPMessage(
+                    asapMessage.getFormat(),
+                    asapMessage.getURI(),
+                    asapMessage.getASAPMessage()
+            );
+            Log.d(this.getLogStart(), "sent message (and stored for re-delivery)");
+        } else {
+            asapPeer.sendOnlineASAPMessage(
+                    asapMessage.getFormat(),
+                    asapMessage.getURI(),
+                    asapMessage.getASAPMessage());
+            Log.d(this.getLogStart(), "sent message online only");
+        }
     }
 
     private void handleCreateClosedChannel(Message msg) throws ASAPException, IOException {

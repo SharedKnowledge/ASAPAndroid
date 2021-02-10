@@ -33,7 +33,7 @@ public class ASAPInitialExampleActivity extends AppCompatActivity {
 
             // start ASAP peer (service side)
             if(!ASAPAndroidPeer.peerStarted()) {
-                ASAPAndroidPeer.startPeer();
+                ASAPAndroidPeer.startPeer(this);
             }
         } catch (IOException | ASAPException e) {
             e.printStackTrace();
