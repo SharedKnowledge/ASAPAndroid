@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 
-import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaException;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
 import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
@@ -62,10 +61,10 @@ public class LoRaBTInputOutputStreamTest {
         AliceSocket.connect();
         BobSocket.connect();
 
-        Thread.sleep(2000); //Give the BT Modules some time to stabilize
 
         Alice = new LoRaBTInputOutputStream(AliceSocket);
         Bob = new LoRaBTInputOutputStream(BobSocket);
+        Thread.sleep(2000); //Give the BT Modules some time to stabilize
     }
 
     @AfterClass
@@ -94,18 +93,16 @@ public class LoRaBTInputOutputStreamTest {
                 System.out.print("Test Device Response: ");
                 System.out.println(deviceResponse);
                 ASAPLoRaMessage asapMsg = (ASAPLoRaMessage) AbstractASAPLoRaMessage.createASAPLoRaMessage(deviceResponse);
-                assertEquals(new ASAPLoRaMessage("1000", "Test".getBytes()).toString(), asapMsg.toString());
+                ASAPLoRaMessage expectedMessage = new ASAPLoRaMessage("1000", "Test".getBytes());
+                System.out.print("Received Message: ");
+                System.out.println(asapMsg);
+                System.out.print("Expected Message: ");
+                System.out.println(expectedMessage);
+                assertEquals(expectedMessage.toString(), asapMsg.toString());
                 break;
             }
         }
     }
-
-    /*@Test(timeout = 100000)
-    public void testMultipleASAPOutputToBTInput() throws IOException, ASAPLoRaMessageException {
-        for (int i = 0; i < 10; i++) {
-            this.testASAPOutputToBTInput();
-        }
-    }*/
 
     @Test(timeout = 100000)
     public void testASAPOutputToBTInputLong() throws IOException, ASAPLoRaMessageException {

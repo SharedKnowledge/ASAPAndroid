@@ -34,7 +34,8 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
             throw new ASAPLoRaMessageException("Passed a message that is too long for LoRa Transport");
         this.setAddress(address);
         this.message = message;
-        this.base64message = Base64.encodeToString(message, Base64.DEFAULT);
+        //NO_WRAP to stop the Base64 Util to terminate the string with a newline, as we add our own LF
+        this.base64message = Base64.encodeToString(message, Base64.NO_WRAP);
     }
 
     /**
@@ -46,7 +47,7 @@ public class ASAPLoRaMessage extends AbstractASAPLoRaMessage {
      */
     public ASAPLoRaMessage(String address, String base64message) throws ASAPLoRaMessageException {
         this.setAddress(address);
-        this.base64message = base64message.trim(); //whitespaces are ignored, according to RFC2045
+        this.base64message = base64message.trim(); //whitespaces can be ignored, according to RFC2045
         this.message = Base64.decode(this.base64message, Base64.DEFAULT);
     }
 
