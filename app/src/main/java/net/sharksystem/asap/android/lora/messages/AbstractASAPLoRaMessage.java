@@ -5,6 +5,10 @@ import android.util.Log;
 import net.sharksystem.asap.android.lora.LoRaCommunicationManager;
 import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
 
+/**
+ * abstract implementation of {@link ASAPLoRaMessageInterface},
+ * adding some errorhandling and a ASAPLoRaMessage-Factory
+ */
 public abstract class AbstractASAPLoRaMessage implements ASAPLoRaMessageInterface {
     private static final String CLASS_LOG_TAG = "AbstractASAPLoRaMessage";
     private String address = null; //Address this message is for / from, depending on context
@@ -25,10 +29,23 @@ public abstract class AbstractASAPLoRaMessage implements ASAPLoRaMessageInterfac
         this.address = address;
     }
 
+    /**
+     * NOOP-Implementation of the Handler-Message for received ASAPLoRaMessages
+     * @param loRaCommunicationManager
+     * @throws ASAPLoRaMessageException
+     */
     public void handleMessage(LoRaCommunicationManager loRaCommunicationManager) throws ASAPLoRaMessageException {
         throw new ASAPLoRaMessageException("Tried handling a message, that cannot be handled.");
     }
 
+    /**
+     * Abstract Factory for Messages, creates @{@link ASAPLoRaMessageInterface}-Instances from raw
+     * messages received by the ASAPLoRaBTModule.
+     *
+     * @param rawMessage
+     * @return
+     * @throws ASAPLoRaMessageException
+     */
     public static ASAPLoRaMessageInterface createASAPLoRaMessage(String rawMessage) throws ASAPLoRaMessageException {
         Log.i(CLASS_LOG_TAG, "Raw LoRa Message Received!");
         Log.i(CLASS_LOG_TAG, "Creating AbstractASAPLoRaMessage from String: " + rawMessage);

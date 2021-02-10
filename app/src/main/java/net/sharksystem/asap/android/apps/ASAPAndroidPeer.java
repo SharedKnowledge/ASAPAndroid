@@ -649,8 +649,8 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public CharSequence getPeerID() {
-        return this.getOwnerID();
+    public CharSequence getPeerName() {
+        return this.asapOwner;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
