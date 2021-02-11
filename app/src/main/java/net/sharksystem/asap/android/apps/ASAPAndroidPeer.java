@@ -538,7 +538,8 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     }
 
     boolean unconnected() {
-        return this.onlinePeerList.size() == 0;
+        // not initialized or no encounter - we are not connected
+        return (this.getActivity() == null || this.onlinePeerList.size() == 0);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -663,13 +664,17 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         net.sharksystem.utils.Log.writeLog(this, "send message "
                 + format + " | " + uri + " | persistent == " + persistent);
 
-    /* TODO: better:
         if(this.unconnected()) {
             if(persistent) {
+                net.sharksystem.utils.Log.writeLog(this,
+                        "not connected - write message directly to storage");
                 // if offline - simply put it into file for further delivery
-                //this.getASAPPeerApplicationSide().sendASAPMessage(format, uri, message);
-            } else { // do no do anything } */
-    //    } else { // online
+                this.getASAPPeerApplicationSide().sendASAPMessage(format, uri, message);
+            } else { // do no do anything
+                net.sharksystem.utils.Log.writeLog(this,
+                        "not connected - online message gets lost");
+            }
+        } else { // online
             Activity activity = this.getActivity();
             if(activity == null) throw new ASAPException("no active activity");
 
@@ -678,7 +683,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
             ASAPActivity asapActivity = (ASAPActivity)activity;
             asapActivity.sendASAPMessage(format, uri, message, persistent);
-    //    }
+        }
     }
 
     @Override
