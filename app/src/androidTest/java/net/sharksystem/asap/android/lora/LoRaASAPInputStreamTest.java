@@ -1,26 +1,15 @@
 package net.sharksystem.asap.android.lora;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
+
 import android.content.Context;
 
-import net.sharksystem.asap.android.lora.exceptions.ASAPLoRaMessageException;
-import net.sharksystem.asap.android.lora.messages.ASAPLoRaMessage;
-import net.sharksystem.asap.android.lora.messages.AbstractASAPLoRaMessage;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.util.UUID;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;

@@ -93,7 +93,7 @@ public class SimultaneousCommunicationTest {
             }
         }
     }
-/*
+
     @Test(timeout = 240000)
     public void tenSimultaneousMessageTest() throws IOException {
         int rounds = 10;
@@ -130,7 +130,7 @@ public class SimultaneousCommunicationTest {
         assertEquals(rounds, AliceCounter);
         assertEquals(rounds, BobCounter);
     }
-*/
+
     @Test(timeout = 240000)
     public void tenSimultaneousOrderedMessageTest() throws IOException {
         int rounds = 10;

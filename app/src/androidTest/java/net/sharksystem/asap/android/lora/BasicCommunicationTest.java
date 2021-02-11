@@ -61,8 +61,10 @@ public class BasicCommunicationTest {
     }
 
     @AfterClass
-    public static void teardown() throws InterruptedException {
-        Thread.sleep(10000); //Give the BT Modules some time to stabilize
+    public static void teardown() throws InterruptedException, IOException {
+        BasicCommunicationTest.AliceSocket.close();
+        BasicCommunicationTest.BobSocket.close();
+        Thread.sleep(2000); //Give the BT Modules some time to stabilize
     }
     @Test
     public void usesAppContext() {
