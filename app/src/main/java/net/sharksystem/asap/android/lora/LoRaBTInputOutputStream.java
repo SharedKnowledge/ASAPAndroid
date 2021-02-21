@@ -268,17 +268,19 @@ public class LoRaBTInputOutputStream {
          */
         @Override
         public void close() {
-            this.inputStreams.clear();
             this.shouldClose = true;
 
             // Check if someone is currently reading.
             // If so, notify, else just assume we are closed
-            if (this.isReading)
+            if (this.isReading) {
                 synchronized (this.threadLock) {
+                    this.inputStreams.clear();
                     this.threadLock.notify();
                 }
-            else
+            } else {
+                this.inputStreams.clear();
                 this.wasClosed = true;
+            }
         }
 
         /**
