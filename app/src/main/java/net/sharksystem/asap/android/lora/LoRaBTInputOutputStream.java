@@ -113,6 +113,15 @@ public class LoRaBTInputOutputStream {
         return this.getASAPInputStream(mac);
     }
 
+    /**
+     * Checks if there is an active {@link LoRaASAPInputStream} for this mac
+     * @param macAddress
+     * @return
+     */
+    public boolean hasASAPInputStream(String macAddress) {
+        return this.loRaASAPInputStreams.containsKey(macAddress);
+    }
+
     public LoRaBTInputStream getInputStream() {
         return is;
     }

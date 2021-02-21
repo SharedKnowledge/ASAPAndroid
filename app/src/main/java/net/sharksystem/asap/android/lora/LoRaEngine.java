@@ -99,11 +99,24 @@ public class LoRaEngine extends MacLayerEngine {
      * @param macAddress
      */
     void tryConnect(String macAddress) {
-        if (this.shouldConnectToMACPeer(macAddress)) {
+        if (this.shouldConnectToMACPeer(macAddress) && !this.hasActiveConnectionToMACPeer(macAddress)) {
+            Log.d(this.CLASS_LOG_TAG, "Connection to "
+                    + macAddress + " not yet established. Trying to start an ASAPSession.");
             this.launchASAPConnection(macAddress, this.loRaCommunicationManager.getASAPInputStream(macAddress), this.loRaCommunicationManager.getASAPOutputStream(macAddress));
         } else {
             Log.d(this.CLASS_LOG_TAG, "Connection to "
                     + macAddress + " not needed.");
         }
+    }
+
+    /**
+     * Test if there is a currently active Connection to a macAddress.
+     * @param macAddress
+     * @return
+     */
+    private boolean hasActiveConnectionToMACPeer(String macAddress) {
+        if(this.loRaCommunicationManager != null && this.loRaCommunicationManager.isAlive())
+            return this.loRaCommunicationManager.hasASAPInputStream(macAddress);
+        return false;
     }
 }
