@@ -39,7 +39,7 @@ public abstract class AbstractASAPLoRaMessage implements ASAPLoRaMessageInterfac
     }
 
     /**
-     * Abstract Factory for Messages, creates @{@link ASAPLoRaMessageInterface}-Instances from raw
+     * Static Factory for Messages, creates @{@link ASAPLoRaMessageInterface}-Instances from raw
      * messages received by the ASAPLoRaBTModule.
      *
      * @param rawMessage
