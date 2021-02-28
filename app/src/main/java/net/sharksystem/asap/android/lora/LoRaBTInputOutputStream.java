@@ -343,7 +343,7 @@ public class LoRaBTInputOutputStream {
      */
     class LoRaASAPOutputStream extends OutputStream {
         private final String LoRaAddress;
-        private byte chunk[] = new byte[174]; //we can't deliver messages that are longer over LoRa
+        private byte chunk[] = new byte[174]; //we can't deliver messages that are longer than 174 chars over LoRa
         private int count = 0;
 
         public LoRaASAPOutputStream(String mac) {
