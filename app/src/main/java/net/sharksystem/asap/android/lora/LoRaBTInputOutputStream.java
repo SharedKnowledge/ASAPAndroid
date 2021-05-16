@@ -113,6 +113,15 @@ public class LoRaBTInputOutputStream {
         return this.getASAPInputStream(mac);
     }
 
+    /**
+     * Checks if there is an active {@link LoRaASAPInputStream} for this mac
+     * @param macAddress
+     * @return
+     */
+    public boolean hasASAPInputStream(String macAddress) {
+        return this.loRaASAPInputStreams.containsKey(macAddress);
+    }
+
     public LoRaBTInputStream getInputStream() {
         return is;
     }
@@ -268,17 +277,19 @@ public class LoRaBTInputOutputStream {
          */
         @Override
         public void close() {
-            this.inputStreams.clear();
             this.shouldClose = true;
 
             // Check if someone is currently reading.
             // If so, notify, else just assume we are closed
-            if (this.isReading)
+            if (this.isReading) {
                 synchronized (this.threadLock) {
+                    this.inputStreams.clear();
                     this.threadLock.notify();
                 }
-            else
+            } else {
+                this.inputStreams.clear();
                 this.wasClosed = true;
+            }
         }
 
         /**
@@ -332,7 +343,7 @@ public class LoRaBTInputOutputStream {
      */
     class LoRaASAPOutputStream extends OutputStream {
         private final String LoRaAddress;
-        private byte chunk[] = new byte[174]; //we can't deliver messages that are longer over LoRa
+        private byte chunk[] = new byte[174]; //we can't deliver messages that are longer than 174 chars over LoRa
         private int count = 0;
 
         public LoRaASAPOutputStream(String mac) {

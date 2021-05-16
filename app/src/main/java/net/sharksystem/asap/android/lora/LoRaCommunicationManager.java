@@ -24,7 +24,7 @@ import java.util.UUID;
 public class LoRaCommunicationManager extends Thread {
     private static final String CLASS_LOG_TAG = "ASAPLoRaCommManager";
     private static final long FLUSH_BUFFER_TIMEOUT = 250;
-    private static final long DISCOVER_MESSAGE_TIMEOUT = 60 * 1000; //60s in ms
+    private static final long DISCOVER_MESSAGE_TIMEOUT = 5 * 60 * 1000; //5 minutes in ms
     private static final long CONNECTION_ACTIVE_TIMEOUT = DISCOVER_MESSAGE_TIMEOUT * 10; //60s in ms
     private static LoRaBTInputOutputStream ioStream = null;
     private BluetoothDevice btDevice;
@@ -66,6 +66,10 @@ public class LoRaCommunicationManager extends Thread {
 
     public OutputStream getASAPOutputStream(String mac) {
         return this.ioStream.getASAPOutputStream(mac);
+    }
+
+    public boolean hasASAPInputStream(String macAddress) {
+        return this.ioStream.hasASAPInputStream(macAddress);
     }
 
     public InputStream getASAPInputStream(String mac) {
