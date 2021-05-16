@@ -23,6 +23,7 @@ import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.utils.Helper;
+import net.sharksystem.asap.utils.PeerIDHelper;
 import net.sharksystem.utils.Utils;
 
 import java.io.IOException;
@@ -651,6 +652,14 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
     public CharSequence getPeerID() {
         return this.asapOwner;
+    }
+
+    public boolean samePeer(ASAPPeer otherPeer) {
+        return this.samePeer(otherPeer.getPeerID());
+    }
+
+    public boolean samePeer(CharSequence otherPeerID) {
+        return PeerIDHelper.sameID(this.getPeerID(), otherPeerID);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
