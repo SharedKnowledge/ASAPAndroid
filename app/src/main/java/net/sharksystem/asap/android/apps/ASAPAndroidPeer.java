@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.SharkNotSupportedException;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
@@ -303,6 +304,16 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         return this.getASAPPeerApplicationSide().getASAPStorage(format);
     }
 
+    @Override
+    public boolean isASAPRoutingAllowed(CharSequence charSequence) throws IOException, ASAPException {
+        throw new SharkNotSupportedException("no implemented yet");
+    }
+
+    @Override
+    public void setASAPRoutingAllowed(CharSequence charSequence, boolean b) throws IOException, ASAPException {
+        throw new SharkNotSupportedException("no implemented yet");
+    }
+
     private void askForPermissions(Activity activity) {
         if(this.requiredPermissions.size() < 1) {
             Log.d(this.getLogStart(), "no further permissions to ask for");
@@ -556,12 +567,22 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
             ASAPChunkReceivedBroadcastIntent asapReceivedIntent
                     = new ASAPChunkReceivedBroadcastIntent(intent);
 
+            /*
+    void chunkReceived(String format, String senderE2E, String uri, int era, // E2E part
+                       String senderPoint2Point, boolean verified, boolean encrypted, // Point2Point part
+                       EncounterConnectionType connectionType) throws IOException;
+             */
             // delegate to local peer proxy
             this.getASAPPeerApplicationSide().chunkReceived(
                     asapReceivedIntent.getFormat().toString(),
-                    asapReceivedIntent.getUser().toString(),
+                    asapReceivedIntent.getSenderE2E().toString(),
                     asapReceivedIntent.getUri().toString(),
-                    asapReceivedIntent.getEra());
+                    asapReceivedIntent.getEra(),
+                    asapReceivedIntent.getSenderPoint2Point(),
+                    asapReceivedIntent.getVerified(),
+                    asapReceivedIntent.getEncrypted(),
+                    asapReceivedIntent.getConnectionType()
+                    );
         } catch (ASAPException | IOException e) {
             Log.w(this.getLogStart(), "could call chunk received in local peer proxy: "
                     + e.getLocalizedMessage());

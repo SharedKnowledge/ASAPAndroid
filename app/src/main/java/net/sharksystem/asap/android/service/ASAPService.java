@@ -11,6 +11,7 @@ import android.os.Messenger;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
 
+import net.sharksystem.EncounterConnectionType;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPPeer;
@@ -399,14 +400,18 @@ public class ASAPService extends Service
     private List<ASAPChunkReceivedBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
 
     @Override
-    public void chunkReceived(String format, String sender, String uri, int era) {
+    public void chunkReceived(String format, String senderE2E, String uri, int era, // E2E part
+                              String senderPoint2Point, boolean verified, boolean encrypted, // Point2Point part
+                              EncounterConnectionType connectionType) {
+
         Log.d(this.getLogStart(), "was notified by asap engine that chunk received - broadcast. Uri: "
                 + uri);
         // issue broadcast
         ASAPChunkReceivedBroadcastIntent intent = null;
         try {
             intent = new ASAPChunkReceivedBroadcastIntent(
-                    format, sender, this.getASAPRootFolderName(), uri, era);
+                    format, senderE2E, this.getASAPRootFolderName(), uri, era,
+                    senderPoint2Point, verified, encrypted, connectionType);
         } catch (ASAPException e) {
             e.printStackTrace();
             return;

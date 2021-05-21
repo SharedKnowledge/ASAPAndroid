@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import net.sharksystem.EncounterConnectionType;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
 import net.sharksystem.asap.android.R;
@@ -42,7 +43,10 @@ public class ASAPExampleMessagingActivity extends ASAPActivity {
 
         this.receivedListener = new ASAPMessageReceivedListener() {
             @Override
-            public void asapMessagesReceived(ASAPMessages asapMessages) {
+            public void asapMessagesReceived(ASAPMessages asapMessages,
+                                             String senderE2E, // E2E part
+                                             String senderPoint2Point, boolean verified, boolean encrypted, // Point2Point part
+                                             EncounterConnectionType connectionType) {
                 Log.d(getLogStart(), "asapMessageReceived");
                 ASAPExampleMessagingActivity.this.doHandleReceivedMessages(asapMessages);
             }

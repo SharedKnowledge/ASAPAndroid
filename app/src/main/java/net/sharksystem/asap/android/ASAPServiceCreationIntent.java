@@ -42,7 +42,7 @@ public class ASAPServiceCreationIntent extends Intent {
         this.onlineExchange = onlineExchange;
         this.maxExecutionTime = maxExecutionTime;
 
-        this.putExtra(ASAPAndroid.USER, owner);
+        this.putExtra(ASAPAndroid.SENDER_E2E, owner);
         this.putExtra(ASAPAndroid.FOLDER, rootFolder);
         this.putExtra(ASAPAndroid.ONLINE_EXCHANGE_PARAMETER_NAME, onlineExchange);
         this.putExtra(ASAPAndroid.MAX_EXECUTION_TIME_PARAMETER_NAME, maxExecutionTime);
@@ -62,7 +62,7 @@ public class ASAPServiceCreationIntent extends Intent {
         super();
 
         // just parse extras
-        this.owner = intent.getStringExtra(ASAPAndroid.USER);
+        this.owner = intent.getStringExtra(ASAPAndroid.SENDER_E2E);
         this.rootFolder = intent.getStringExtra(ASAPAndroid.FOLDER);
         this.onlineExchange = intent.getBooleanExtra(ASAPAndroid.ONLINE_EXCHANGE_PARAMETER_NAME,
                 ASAPPeer.ONLINE_EXCHANGE_DEFAULT);

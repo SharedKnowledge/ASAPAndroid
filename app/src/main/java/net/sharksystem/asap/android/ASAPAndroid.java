@@ -4,9 +4,13 @@ package net.sharksystem.asap.android;
  * Be sure to have the ASAPEngine in one of your library directories!
  */
 public class ASAPAndroid {
-    public static final String USER = "user";
+    public static final String SENDER_E2E = "senderE2E";
     public static final String FOLDER = "folder";
-    public static final String RECIPIENT = "recipient";
+    public static final String RECEIVER = "receiver";
+    public static final String SENDER_POINT2POINT = "senderP2P";
+    public static final String VERIFIED = "verified";
+    public static final String ENCRYPTED = "encrypted";
+    public static final String CONNECTION_TYPE = "connectionType";
 
     public static final String ASAP_CHUNK_RECEIVED_ACTION = "net.sharksystem.asap.received";
 
@@ -15,4 +19,5 @@ public class ASAPAndroid {
     public static final String ONLINE_EXCHANGE_PARAMETER_NAME = "ASAP_ONLINE_EXCHANGE";
     public static final String MAX_EXECUTION_TIME_PARAMETER_NAME = "ASAP_MAX_EXECUTION_TIME";
     public static final String SUPPORTED_FORMATS_PARAMETER_NAME = "ASAP_SUPPORTED_FORMATS";
+
 }
