@@ -2,16 +2,17 @@ package net.sharksystem.asap.android;
 
 import android.content.Intent;
 
-import net.sharksystem.EncounterConnectionType;
 import net.sharksystem.SharkNotSupportedException;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.ASAPHop;
+import net.sharksystem.asap.utils.ASAPSerialization;
+import net.sharksystem.utils.Log;
+
+import java.io.IOException;
 
 public class ASAPChunkReceivedBroadcastIntent extends Intent {
 
-    private final String senderPoint2Point;
-    private final boolean verified;
-    private final boolean encrypted;
-    private final EncounterConnectionType connectionType;
+    private final ASAPHop asapHop;
     private CharSequence folder;
     private CharSequence uri;
     private int era;
@@ -21,8 +22,7 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
     public ASAPChunkReceivedBroadcastIntent(CharSequence format, CharSequence senderE2E,
                 CharSequence folderName,
                 CharSequence uri, int era,
-                String senderPoint2Point, boolean verified, boolean encrypted,
-                EncounterConnectionType connectionType) throws ASAPException {
+                ASAPHop asapHop) throws ASAPException {
 
         super();
 
@@ -36,23 +36,24 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         this.putExtra(ASAPAndroid.FOLDER, folderName);
         this.putExtra(ASAPServiceMethods.URI_TAG, uri);
         this.putExtra(ASAPAndroid.SENDER_E2E, senderE2E);
-        this.putExtra(ASAPAndroid.SENDER_POINT2POINT, senderPoint2Point);
-        this.putExtra(ASAPAndroid.VERIFIED, verified);
-        this.putExtra(ASAPAndroid.ENCRYPTED, encrypted);
-        this.putExtra(ASAPAndroid.CONNECTION_TYPE, connectionType);
+        try {
+            byte[] asapHopBytes = ASAPSerialization.asapHop2ByteArray(asapHop);
+            this.putExtra(ASAPAndroid.ASAP_HOP, asapHopBytes);
+        }
+        catch(IOException e) {
+            // ignore
+            Log.writeLogErr(this, "cannot serialize ASAPHop: " + asapHop);
+        }
 
         this.format = format;
         this.folder = folderName;
         this.uri = uri;
         this.era = era;
         this.senderE2E = senderE2E;
-        this.senderPoint2Point = senderPoint2Point;
-        this.verified = verified;
-        this.encrypted = encrypted;
-        this.connectionType = connectionType;
+        this.asapHop = asapHop;
     }
 
-    public ASAPChunkReceivedBroadcastIntent(Intent intent) throws ASAPException {
+    public ASAPChunkReceivedBroadcastIntent(Intent intent) throws ASAPException, IOException {
         super();
 
         // just parse extras
@@ -61,10 +62,8 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         this.uri = intent.getStringExtra(ASAPServiceMethods.URI_TAG);
         this.era = intent.getIntExtra(ASAPServiceMethods.ERA_TAG, 0);
         this.senderE2E = intent.getStringExtra(ASAPAndroid.SENDER_E2E);
-        this.senderPoint2Point = intent.getStringExtra(ASAPAndroid.SENDER_POINT2POINT);
-        this.verified = intent.getBooleanExtra(ASAPAndroid.VERIFIED, false);
-        this.encrypted = intent.getBooleanExtra(ASAPAndroid.ENCRYPTED, false);
-        this.connectionType = null;
+        byte[] asapHopBytes = intent.getByteArrayExtra(ASAPAndroid.ASAP_HOP);
+        this.asapHop = ASAPSerialization.byteArray2ASAPHop(asapHopBytes);
     }
 
     public CharSequence getFoldername() {
@@ -86,20 +85,7 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
 
     public CharSequence getFormat() { return this.format; }
 
-    public String getSenderPoint2Point() {
-        return this.senderPoint2Point;
-    }
-
-    public boolean getVerified() {
-        return this.verified;
-    }
-
-    public boolean getEncrypted() {
-        return this.encrypted;
-    }
-
-    // TODO
-    public EncounterConnectionType getConnectionType() {
-        throw new SharkNotSupportedException("no implemented yet");
+    public ASAPHop getASAPHop() {
+        return this.asapHop;
     }
 }

@@ -578,10 +578,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                     asapReceivedIntent.getSenderE2E().toString(),
                     asapReceivedIntent.getUri().toString(),
                     asapReceivedIntent.getEra(),
-                    asapReceivedIntent.getSenderPoint2Point(),
-                    asapReceivedIntent.getVerified(),
-                    asapReceivedIntent.getEncrypted(),
-                    asapReceivedIntent.getConnectionType()
+                    asapReceivedIntent.getASAPHop()
                     );
         } catch (ASAPException | IOException e) {
             Log.w(this.getLogStart(), "could call chunk received in local peer proxy: "

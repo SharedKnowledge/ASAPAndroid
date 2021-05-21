@@ -7,10 +7,7 @@ public class ASAPAndroid {
     public static final String SENDER_E2E = "senderE2E";
     public static final String FOLDER = "folder";
     public static final String RECEIVER = "receiver";
-    public static final String SENDER_POINT2POINT = "senderP2P";
-    public static final String VERIFIED = "verified";
-    public static final String ENCRYPTED = "encrypted";
-    public static final String CONNECTION_TYPE = "connectionType";
+    public static final String ASAP_HOP = "asapHop";
 
     public static final String ASAP_CHUNK_RECEIVED_ACTION = "net.sharksystem.asap.received";
 
