@@ -401,7 +401,7 @@ public class ASAPService extends Service
 
     @Override
     public void chunkReceived(String format, String senderE2E, String uri, int era, // E2E part
-                              ASAPHop asapHop) {
+                              List<ASAPHop> asapHops) {
 
         Log.d(this.getLogStart(), "was notified by asap engine that chunk received - broadcast. Uri: "
                 + uri);
@@ -409,7 +409,7 @@ public class ASAPService extends Service
         ASAPChunkReceivedBroadcastIntent intent = null;
         try {
             intent = new ASAPChunkReceivedBroadcastIntent(
-                    format, senderE2E, this.getASAPRootFolderName(), uri, era, asapHop);
+                    format, senderE2E, this.getASAPRootFolderName(), uri, era, asapHops);
         } catch (ASAPException e) {
             e.printStackTrace();
             return;

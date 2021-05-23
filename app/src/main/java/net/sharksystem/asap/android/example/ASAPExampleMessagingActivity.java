@@ -45,7 +45,7 @@ public class ASAPExampleMessagingActivity extends ASAPActivity {
             @Override
             public void asapMessagesReceived(ASAPMessages asapMessages,
                                              String senderE2E, // E2E part
-                                             ASAPHop asapHop) {
+                                             List<ASAPHop> asapHops) {
                 Log.d(getLogStart(), "asapMessageReceived");
                 ASAPExampleMessagingActivity.this.doHandleReceivedMessages(asapMessages);
             }

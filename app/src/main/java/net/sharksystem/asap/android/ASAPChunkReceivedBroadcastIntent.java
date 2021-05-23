@@ -2,17 +2,17 @@ package net.sharksystem.asap.android;
 
 import android.content.Intent;
 
-import net.sharksystem.SharkNotSupportedException;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPHop;
 import net.sharksystem.asap.utils.ASAPSerialization;
 import net.sharksystem.utils.Log;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ASAPChunkReceivedBroadcastIntent extends Intent {
 
-    private final ASAPHop asapHop;
+    private final List<ASAPHop> asapHops;
     private CharSequence folder;
     private CharSequence uri;
     private int era;
@@ -20,9 +20,9 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
     private CharSequence format;
 
     public ASAPChunkReceivedBroadcastIntent(CharSequence format, CharSequence senderE2E,
-                CharSequence folderName,
-                CharSequence uri, int era,
-                ASAPHop asapHop) throws ASAPException {
+                                            CharSequence folderName,
+                                            CharSequence uri, int era,
+                                            List<ASAPHop> asapHops) throws ASAPException {
 
         super();
 
@@ -37,12 +37,12 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         this.putExtra(ASAPServiceMethods.URI_TAG, uri);
         this.putExtra(ASAPAndroid.SENDER_E2E, senderE2E);
         try {
-            byte[] asapHopBytes = ASAPSerialization.asapHop2ByteArray(asapHop);
-            this.putExtra(ASAPAndroid.ASAP_HOP, asapHopBytes);
+            byte[] asapHopBytes = ASAPSerialization.asapHopList2ByteArray(asapHops);
+            this.putExtra(ASAPAndroid.ASAP_HOPS, asapHopBytes);
         }
         catch(IOException e) {
             // ignore
-            Log.writeLogErr(this, "cannot serialize ASAPHop: " + asapHop);
+            Log.writeLogErr(this, "cannot serialize ASAPHop: " + asapHops);
         }
 
         this.format = format;
@@ -50,7 +50,7 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         this.uri = uri;
         this.era = era;
         this.senderE2E = senderE2E;
-        this.asapHop = asapHop;
+        this.asapHops = asapHops;
     }
 
     public ASAPChunkReceivedBroadcastIntent(Intent intent) throws ASAPException, IOException {
@@ -62,8 +62,8 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
         this.uri = intent.getStringExtra(ASAPServiceMethods.URI_TAG);
         this.era = intent.getIntExtra(ASAPServiceMethods.ERA_TAG, 0);
         this.senderE2E = intent.getStringExtra(ASAPAndroid.SENDER_E2E);
-        byte[] asapHopBytes = intent.getByteArrayExtra(ASAPAndroid.ASAP_HOP);
-        this.asapHop = ASAPSerialization.byteArray2ASAPHop(asapHopBytes);
+        byte[] asapHopsBytes = intent.getByteArrayExtra(ASAPAndroid.ASAP_HOPS);
+        this.asapHops = ASAPSerialization.byteArray2ASAPHopList(asapHopsBytes);
     }
 
     public CharSequence getFoldername() {
@@ -85,7 +85,7 @@ public class ASAPChunkReceivedBroadcastIntent extends Intent {
 
     public CharSequence getFormat() { return this.format; }
 
-    public ASAPHop getASAPHop() {
-        return this.asapHop;
+    public List<ASAPHop> getASAPHop() {
+        return this.asapHops;
     }
 }
