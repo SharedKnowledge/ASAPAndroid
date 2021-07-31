@@ -9,16 +9,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPEncounterManager;
 import net.sharksystem.asap.ASAPException;
+import net.sharksystem.asap.EncounterConnectionType;
 import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.streams.StreamPair;
+import net.sharksystem.streams.StreamPairImpl;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,10 +45,10 @@ public class BluetoothEngine extends MacLayerEngine {
     private boolean btEnvironmentOn = false;
     private BluetoothServerSocketThread btServerSocketThread;
 
-    public static BluetoothEngine getASAPBluetoothEngine(ASAPService ASAPService,
+    public static BluetoothEngine getASAPBluetoothEngine(ASAPService asapService,
                                                          Context context) {
         if(BluetoothEngine.engine == null) {
-            BluetoothEngine.engine = new BluetoothEngine(ASAPService, context);
+            BluetoothEngine.engine = new BluetoothEngine(asapService, context);
         }
 
         return BluetoothEngine.engine;
@@ -445,43 +446,17 @@ public class BluetoothEngine extends MacLayerEngine {
     /**
      * Both client and server sockets
      * @param socket
-     * @param isClient for debugging: who is calling client socket / server socket?
+     * @param initiator for debugging: who is calling client socket / server socket?
      * @throws IOException
      */
-    void handleBTSocket(BluetoothSocket socket, boolean isClient) throws IOException {
+    void handleBTSocket(BluetoothSocket socket, boolean initiator) throws IOException {
         String remoteMacAddress = socket.getRemoteDevice().getAddress();
 
-        String logMessage = isClient ? "Client" : "Server";
-        logMessage += "socket called: handle new BT connection" + socket;
+        StreamPair streamPair = StreamPairImpl.getStreamPairWithEndpointAddress(
+                socket.getInputStream(), socket.getOutputStream(), remoteMacAddress);
 
-        Log.d(this.getLogStart(), logMessage + remoteMacAddress);
-
-        // already an open connection?
-        if (this.checkAlreadyConnectedWithDevice(remoteMacAddress)) {
-            socket.close();
-            return;
-        }
-
-        // avoid the nasty race condition
-        boolean waited = this.waitBeforeASAPSessionLaunch(
-                socket.getInputStream(),
-                socket.getOutputStream(),
-                isClient, 500);
-
-        // ask again?
-        if(waited) {
-            if (this.checkAlreadyConnectedWithDevice(remoteMacAddress)) {
-                socket.close();
-                return;
-            }
-        }
-
-        // remember that new connection
-        Log.d(this.getLogStart(), "remember socket: " + socket);
-        this.openSockets.put(remoteMacAddress, socket);
-
-        Log.d(this.getLogStart(), "launch asap session");
-        this.launchASAPConnection(remoteMacAddress, socket.getInputStream(), socket.getOutputStream());
+        this.getAsapService().getASAPEncounterManager().handleEncounter(
+                streamPair, EncounterConnectionType.AD_HOC_LAYER_2_NETWORK, initiator);
     }
 
     public void propagateStatus(Context ctx) throws ASAPException {

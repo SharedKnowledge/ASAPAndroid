@@ -66,6 +66,17 @@ public abstract class MacLayerEngine {
         this.start();
     }
 
+    private String getLogStart() {
+        return "ASAPMacLayerEngine";
+    }
+
+    /**
+     * TODO: do we need this? I doubt it (thsc)
+     * It can be called to check whether open connection are still running. It's a good idea for
+     * all connection oriented protocols but useless with connectionless.
+     */
+    public abstract void checkConnectionStatus();
+
     /** keeps info about device we have tried (!!) recently to connect
      * <MAC address, connection time>
      */
@@ -114,24 +125,7 @@ public abstract class MacLayerEngine {
         return false;
     }
 
-    private String getLogStart() {
-        return "ASAPMacLayerEngine";
-    }
-
     private Map<String, ASAPConnection> asapConnections = new HashMap<>();
-
-    private String localMacAddress = null;
-    public String getLocalMacAddress() {
-        if(localMacAddress == null) {
-            WifiManager wifiManager = (WifiManager)
-                    asapService.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-            WifiInfo wInfo = wifiManager.getConnectionInfo();
-            this.localMacAddress = wInfo.getMacAddress();
-        }
-
-        return this.localMacAddress;
-    }
 
     /**
      * kill connection to address
@@ -222,7 +216,7 @@ public abstract class MacLayerEngine {
         Log.d(this.getLogStart(), sb.toString());
 
         /* Here comes the bias: An initiator with a smaller value waits a moment */
-        if(connectionInitiator & initiatorValue < nonInitiatorValue) {
+        if(connectionInitiator && initiatorValue < nonInitiatorValue) {
             try {
                 sb = new StringBuilder();
                 sb.append("wait ");
@@ -238,11 +232,4 @@ public abstract class MacLayerEngine {
 
         return false;
     }
-
-    /**
-     * TODO: do we need this? I doubt it (thsc)
-     * It can be called to check whether open connection are still running. It's a good idea for
-     * all connection oriented protocols but useless with connectionless.
-     */
-    public abstract void checkConnectionStatus();
 }

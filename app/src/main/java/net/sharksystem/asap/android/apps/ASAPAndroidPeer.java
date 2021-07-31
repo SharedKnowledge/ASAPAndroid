@@ -680,6 +680,16 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         return PeerIDHelper.sameID(this.getPeerID(), otherPeerID);
     }
 
+    @Override
+    public void putExtra(CharSequence key, byte[] bytes) throws IOException, ASAPException {
+        this.asapPeerApplicationSide.putExtra(key, bytes);
+    }
+
+    @Override
+    public byte[] getExtra(CharSequence key) throws ASAPException, IOException {
+        return this.asapPeerApplicationSide.getExtra(key);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                          ASAP messages are sent with the service                          //
     ///////////////////////////////////////////////////////////////////////////////////////////////

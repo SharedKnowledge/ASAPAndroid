@@ -11,6 +11,8 @@ import android.os.Messenger;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPEncounterManager;
+import net.sharksystem.asap.ASAPEncounterManagerImpl;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPHop;
@@ -26,6 +28,8 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotif
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 import net.sharksystem.asap.engine.ASAPChunkReceivedListener;
 import net.sharksystem.asap.utils.Helper;
+import net.sharksystem.hub.peerside.ASAPHubManager;
+import net.sharksystem.hub.peerside.ASAPHubManagerImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,11 +51,13 @@ public class ASAPService extends Service
     private String asapEngineRootFolderName;
 
     private ASAPPeerFS asapPeer;
+    private ASAPEncounterManager asapEncounterManager;
     private CharSequence owner;
     private CharSequence rootFolder;
     private boolean onlineExchange;
     private long maxExecutionTime;
     private ArrayList<CharSequence> supportedFormats;
+    private ASAPHubManager asapASAPHubManager;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -114,6 +120,27 @@ public class ASAPService extends Service
         }
 
         return this.asapPeer;
+    }
+
+    public ASAPEncounterManager getASAPEncounterManager() {
+        if(this.asapEncounterManager == null) {
+            try {
+                this.asapEncounterManager = new ASAPEncounterManagerImpl(this.getASAPPeer());
+            } catch (ASAPException e) {
+                Log.e(this.getLogStart(), "cannot create encounter manager: "
+                        + e.getLocalizedMessage());
+            }
+        }
+
+        return this.asapEncounterManager;
+    }
+
+    public ASAPHubManager getASAPHubManager() {
+        if(this.asapASAPHubManager == null) {
+            this.asapASAPHubManager = new ASAPHubManagerImpl(this.getASAPEncounterManager());
+        }
+
+        return this.asapASAPHubManager;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
