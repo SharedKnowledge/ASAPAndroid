@@ -195,9 +195,10 @@ public class ASAPExampleActivity extends ASAPActivity {
                 ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME);
     }
 
-    public void onAddOnlineSenderClick(View view) {
-        Log.d(this.getLogStart(), "onAddOnlineSenderClick reached");
-        Log.d(this.getLogStart(), "TODO: implement");
+    public void onASAPHub(View view) {
+        Log.d(this.getLogStart(), "onASAPHub reached");
+        this.startActivity(new Intent(this, ASAPExampleHubManagementActivity.class));
+
         /*
         try {
             this.checkStorage();

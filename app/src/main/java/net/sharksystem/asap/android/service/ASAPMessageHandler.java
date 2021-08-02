@@ -1,5 +1,8 @@
 package net.sharksystem.asap.android.service;
 
+import static net.sharksystem.asap.android.ASAPServiceMessage.HUB_CONNECTOR_DESCRIPTION_TAG;
+
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -88,14 +91,35 @@ class ASAPMessageHandler extends Handler {
                     this.asapService.stopLoRa();
                     break;
 
+                case ASAPServiceMethods.CONNECT_HUB:
+                    this.asapService.connectHub(this.getHubDescription(msg));
+                    break;
+
+                case ASAPServiceMethods.DISCONNECT_HUB:
+                    this.asapService.disconnectHub(this.getHubDescription(msg));
+                    break;
+
                 default:
                     super.handleMessage(msg);
             }
         }
 //        catch(ASAPException e) {
-        catch(Throwable e) {
+        catch (Throwable e) {
             Log.d(this.getLogStart(), e.getLocalizedMessage());
         }
+    }
+
+
+    private byte[] getHubDescription(Message msg) throws ASAPException {
+        Bundle msgData = msg.getData();
+        if(msgData ==null) {
+            Log.e(this.getLogStart(), "send message must contain parameters");
+            throw new ASAPException("send message must contain parameters");
+        }
+        byte[] hubConnectorDescription = msgData.getByteArray(HUB_CONNECTOR_DESCRIPTION_TAG);
+        if(hubConnectorDescription == null) throw new ASAPException("hub connector data not set");
+
+        return hubConnectorDescription;
     }
 
     private void handleSendMessage(Message msg) throws ASAPException, IOException {

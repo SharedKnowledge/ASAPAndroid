@@ -19,6 +19,7 @@
         </activity>
         <activity android:name="net.sharksystem.asap.android.example.ASAPExampleActivity"/>
         <activity android:name="net.sharksystem.asap.android.example.ASAPExampleMessagingActivity"/>
+        <activity android:name="net.sharksystem.asap.android.example.ASAPExampleHubManagementActivity"/>
 
         <service
             android:name="net.sharksystem.asap.android.service.ASAPService"

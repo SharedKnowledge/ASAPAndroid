@@ -63,9 +63,9 @@
         android:layout_gravity="left|top" />
 
     <Button
-        android:id="@+id/nothing"
-        android:onClick="onClick"
-        android:text="nothing"
+        android:id="@+id/onASAPHubButton"
+        android:onClick="onASAPHub"
+        android:text="ASAP Hub"
         android:layout_gravity="left|top" />
 
     <Button

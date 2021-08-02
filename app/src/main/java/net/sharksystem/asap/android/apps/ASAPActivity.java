@@ -21,12 +21,15 @@ import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
+import net.sharksystem.asap.android.app2serviceMessaging.MessageFactory;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotificationListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.hub.peerside.HubConnectorFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -215,6 +218,48 @@ public class ASAPActivity extends AppCompatActivity implements
     protected String getLogStart() {
 //        return this.getClass().getSimpleName() +"->ASAPActivity";
         return this.getClass().getSimpleName();
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    //                                 ASAP hub management                             //
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Call this message to connect to a hub via tcp
+     */
+    public void connectTCPHub(CharSequence hostName, int port) {
+        Log.d(this.getLogStart(), "send message to service: connect hub via tcp: "
+                + hostName + ":" + port);
+
+        try {
+            Message connectHubMessage = MessageFactory.createConnectHubMessage(
+                    HubConnectorFactory.createTCPConnectorDescription(hostName, port));
+
+            this.sendMessage2Service(connectHubMessage);
+
+        } catch (IOException e) {
+            Log.e(this.getLogStart(), "cannot create hub connect message: "
+                    + e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Call this message to disconnect to a hub via tcp
+     */
+    public void disconnectTCPHub(CharSequence hostName, int port) {
+        Log.d(this.getLogStart(), "send message to service: disconnect from hub via tcp: "
+                + hostName + ":" + port);
+
+        try {
+            Message connectHubMessage = MessageFactory.createDisconnectHubMessage(
+                    HubConnectorFactory.createTCPConnectorDescription(hostName, port));
+
+            this.sendMessage2Service(connectHubMessage);
+
+        } catch (IOException e) {
+            Log.e(this.getLogStart(), "cannot create hub disconnect message: "
+                    + e.getLocalizedMessage());
+        }
     }
 
     /////////////////////////////////////////////////////////////////////////////////////

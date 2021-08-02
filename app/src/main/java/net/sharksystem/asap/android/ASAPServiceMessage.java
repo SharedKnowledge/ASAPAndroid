@@ -16,6 +16,8 @@ import static net.sharksystem.asap.android.ASAPServiceMethods.READABLE_NAME_TAG;
 
 public class ASAPServiceMessage {
     private static final CharSequence DEFAULT_CLOSED_MAKAN_NAME = "closed makan";
+    public static final String HUB_CONNECTOR_DESCRIPTION_TAG = "hubDescription";
+
     private int messageNumber;
     private String format = null;
     private String uri = null;

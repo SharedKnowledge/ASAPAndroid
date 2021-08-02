@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.Messenger;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
@@ -28,13 +29,23 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotif
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 import net.sharksystem.asap.engine.ASAPChunkReceivedListener;
 import net.sharksystem.asap.utils.Helper;
+import net.sharksystem.asap.utils.PeerIDHelper;
+import net.sharksystem.hub.ASAPHubException;
 import net.sharksystem.hub.peerside.ASAPHubManager;
 import net.sharksystem.hub.peerside.ASAPHubManagerImpl;
+import net.sharksystem.hub.peerside.HubConnector;
+import net.sharksystem.hub.peerside.HubConnectorFactory;
+import net.sharksystem.hub.peerside.HubConnectorStatusListener;
+import net.sharksystem.hub.peerside.NewConnectionListener;
+import net.sharksystem.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -57,7 +68,7 @@ public class ASAPService extends Service
     private boolean onlineExchange;
     private long maxExecutionTime;
     private ArrayList<CharSequence> supportedFormats;
-    private ASAPHubManager asapASAPHubManager;
+    private ASAPHubManagerImpl asapASAPHubManager;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -138,6 +149,7 @@ public class ASAPService extends Service
     public ASAPHubManager getASAPHubManager() {
         if(this.asapASAPHubManager == null) {
             this.asapASAPHubManager = new ASAPHubManagerImpl(this.getASAPEncounterManager());
+            new Thread(this.asapASAPHubManager).start();
         }
 
         return this.asapASAPHubManager;
@@ -339,6 +351,51 @@ public class ASAPService extends Service
         LoRaEngine ASAPLoRaEngine = LoRaEngine.getASAPLoRaEngine();
         if(ASAPLoRaEngine != null) {
             ASAPLoRaEngine.stop();
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                  ASAP hub management                             //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    private Map<byte[], HubConnector> connectedHubs = new HashMap<>();
+
+    private byte[] getHubDescriptionObject(byte[] sameButNotIdentical) {
+        for(byte[] key : this.connectedHubs.keySet()) {
+            if(Utils.compareArrays(key, sameButNotIdentical)) return key;
+        }
+
+        return null;
+    }
+
+    void connectHub(byte[] connectorDescription) {
+        // create thread (network activity) - add to hub encounter manager.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    HubConnector hubConnector =
+                            HubConnectorFactory.createHubConnectorByDescription(connectorDescription);
+                    ASAPService.this.connectedHubs.put(connectorDescription, hubConnector);
+                    ASAPService.this.getASAPHubManager().addHub(hubConnector);
+
+                } catch (IOException | ASAPException e) {
+                    Log.e(ASAPService.this.getLogStart(), e.getLocalizedMessage());
+                }
+
+            }
+        }).start();
+    }
+
+    void disconnectHub(byte[] connectorDescription) {
+        connectorDescription = this.getHubDescriptionObject(connectorDescription);
+        if(connectorDescription != null) {
+            HubConnector connector2Remove = this.connectedHubs.remove(connectorDescription);
+            if(connector2Remove == null) {
+                Log.d(this.getLogStart(), "cannot disconnect from hub - entry not found");
+            } else {
+                this.getASAPHubManager().removeHub(connector2Remove);
+            }
         }
     }
 

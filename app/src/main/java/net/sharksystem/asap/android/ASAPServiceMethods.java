@@ -11,7 +11,7 @@ public class ASAPServiceMethods {
     /** mandatory: format, uri, recipients */
     public static final int CREATE_CLOSED_CHANNEL = 1;
 
-    ///////////// layer 2 protocol management
+    ///////////// layer 2 / point-to-point protocol management
     public static final int START_WIFI_DIRECT = 100;
     public static final int STOP_WIFI_DIRECT = 101;
 
@@ -31,6 +31,10 @@ public class ASAPServiceMethods {
     public static final int START_BROADCASTS = 200;
     public static final int STOP_BROADCASTS = 201;
     public static final int ASK_PROTOCOL_STATUS = 202;
+
+    ///////////// hub management
+    public static final int CONNECT_HUB = 300;
+    public static final int DISCONNECT_HUB = 301;
 
     // tags for putting extra data to messages or broadcasts
     public static final String URI_TAG = "ASAP_MESSAGE_URI";
