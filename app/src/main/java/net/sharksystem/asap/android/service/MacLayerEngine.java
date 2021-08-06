@@ -1,9 +1,10 @@
 package net.sharksystem.asap.android.service;
 
 import android.content.Context;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
+import android.content.pm.PackageManager;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
 
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.protocol.ASAPConnection;
@@ -49,7 +50,7 @@ public abstract class MacLayerEngine {
         return this.context;
     }
 
-    protected ASAPService getAsapService() {
+    public ASAPService getASAPService() {
         return this.asapService;
     }
 
@@ -68,6 +69,18 @@ public abstract class MacLayerEngine {
 
     private String getLogStart() {
         return "ASAPMacLayerEngine";
+    }
+
+    public boolean permissionCheck(String requiredPermission) {
+        if (ActivityCompat.checkSelfPermission(this.asapService, requiredPermission)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.e(this.getLogStart(),
+                    "failure: required permission not granted \n" +
+                            "check Android ASAP peer init process and \n" +
+                            "check manifest");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -151,7 +164,7 @@ public abstract class MacLayerEngine {
 //            TestConnectionHandler testConnectionHandler = new TestConnectionHandler(this.is, this.os);
 //            testConnectionHandler.start();
             this.asapConnections.put(address,
-                this.getAsapService().getASAPPeer().handleConnection(inputStream, outputStream));
+                this.getASAPService().getASAPPeer().handleConnection(inputStream, outputStream));
 
         } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "while launching asap connection: " + e.getLocalizedMessage());

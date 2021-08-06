@@ -227,6 +227,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         this.requiredPermissions.add(Manifest.permission.BLUETOOTH);
         this.requiredPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
         this.requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        this.requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
         // check for write permissions
         Log.d(this.getLogStart(), "ask for required permissions");

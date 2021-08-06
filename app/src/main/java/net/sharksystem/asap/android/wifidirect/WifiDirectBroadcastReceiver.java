@@ -1,12 +1,17 @@
 package net.sharksystem.asap.android.wifidirect;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
 
 class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     // https://developer.android.com/guide/topics/connectivity/wifip2p#java
@@ -16,10 +21,10 @@ class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     private final Context context;
     private final WifiP2pManager.PeerListListener peerListListener;
     private final WifiP2pManager.ConnectionInfoListener connectionInfoListener;
-    private final WifiP2PEngine aaspWifiP2PEngine;
+    private final WifiP2PEngine asapWifiP2PEngine;
 
     public WifiDirectBroadcastReceiver(
-            WifiP2PEngine aaspWifiP2PEngine,
+            WifiP2PEngine asapWifiP2PEngine,
             WifiP2pManager manager,
             WifiP2pManager.Channel channel,
             Context context,
@@ -27,7 +32,7 @@ class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             WifiP2pManager.ConnectionInfoListener connectionInfoListener
     ) {
         super();
-        this.aaspWifiP2PEngine = aaspWifiP2PEngine;
+        this.asapWifiP2PEngine = asapWifiP2PEngine;
         this.mManager = manager;
         this.mChannel = channel;
         this.context = context;
@@ -35,6 +40,7 @@ class WifiDirectBroadcastReceiver extends BroadcastReceiver {
         this.connectionInfoListener = connectionInfoListener;
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onReceive(Context context, Intent intent) {
         // https://developer.android.com/guide/topics/connectivity/wifip2p#java
@@ -49,10 +55,10 @@ class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                 Log.d("Wifi_BR", "BL: wifi p2p enabled");
 
                 // discoverPeers peers
-                this.aaspWifiP2PEngine.discoverPeers();
+                this.asapWifiP2PEngine.discoverPeers();
             } else {
                 // Wi-Fi P2P is not enabled
-                Log.d("Wifi_BR","BL: wifi p2p not enabled");
+                Log.d("Wifi_BR", "BL: wifi p2p not enabled");
             }
 
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
@@ -60,8 +66,11 @@ class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             // that event is a result of a previous discoverPeers peers
 
             Log.d("Wifi_BR", "p2p peers changed");
-            // call for a list of peers
             if (mManager != null) {
+                if(!this.asapWifiP2PEngine.permissionCheck(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    return;
+                }
+                // ask for a list of new peers - send to PeerListListener
                 mManager.requestPeers(mChannel, this.peerListListener);
             }
 
@@ -93,5 +102,9 @@ class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 
             // TODO do something useful with that information
         }
+    }
+
+    private String getLogStart() {
+        return this.getClass().getSimpleName();
     }
 }

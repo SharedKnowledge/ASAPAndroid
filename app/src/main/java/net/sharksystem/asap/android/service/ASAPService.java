@@ -258,7 +258,8 @@ public class ASAPService extends Service
 
     void stopWifiDirect() {
         Log.d("ASAPService", "stop wifi p2p");
-        WifiP2PEngine ASAPWifiP2PEngine = WifiP2PEngine.getASAPWifiP2PEngine();
+        WifiP2PEngine ASAPWifiP2PEngine =
+                WifiP2PEngine.getASAPWifiP2PEngine(this, this);
         if(ASAPWifiP2PEngine != null) {
             ASAPWifiP2PEngine.stop();
         }
