@@ -10,12 +10,12 @@ public class MessageFactory {
 
     /////////////////// ASAP hub management
     public static Message createConnectHubMessage(byte[] hubDescription) {
-        Message msg = Message.obtain(null, ASAPServiceMethods.CONNECT_HUB, 0, 0);
+        Message msg = Message.obtain(null, ASAPServiceMethods.CONNECT_ASAP_HUBS, 0, 0);
         return addHubDescription(msg, hubDescription);
     }
 
     public static Message createDisconnectHubMessage(byte[] hubDescription) {
-        Message msg = Message.obtain(null, ASAPServiceMethods.DISCONNECT_HUB, 0, 0);
+        Message msg = Message.obtain(null, ASAPServiceMethods.DISCONNECT_ASAP_HUBS, 0, 0);
         return addHubDescription(msg, hubDescription);
     }
 

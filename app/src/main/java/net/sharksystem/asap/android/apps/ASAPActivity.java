@@ -221,48 +221,6 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
-    //                                 ASAP hub management                             //
-    /////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Call this message to connect to a hub via tcp
-     */
-    public void connectTCPHub(CharSequence hostName, int port) {
-        Log.d(this.getLogStart(), "send message to service: connect hub via tcp: "
-                + hostName + ":" + port);
-
-        try {
-            Message connectHubMessage = MessageFactory.createConnectHubMessage(
-                    HubConnectorFactory.createTCPConnectorDescription(hostName, port));
-
-            this.sendMessage2Service(connectHubMessage);
-
-        } catch (IOException e) {
-            Log.e(this.getLogStart(), "cannot create hub connect message: "
-                    + e.getLocalizedMessage());
-        }
-    }
-
-    /**
-     * Call this message to disconnect to a hub via tcp
-     */
-    public void disconnectTCPHub(CharSequence hostName, int port) {
-        Log.d(this.getLogStart(), "send message to service: disconnect from hub via tcp: "
-                + hostName + ":" + port);
-
-        try {
-            Message connectHubMessage = MessageFactory.createDisconnectHubMessage(
-                    HubConnectorFactory.createTCPConnectorDescription(hostName, port));
-
-            this.sendMessage2Service(connectHubMessage);
-
-        } catch (IOException e) {
-            Log.e(this.getLogStart(), "cannot create hub disconnect message: "
-                    + e.getLocalizedMessage());
-        }
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////////
     //                                 mac protocol stuff                              //
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -342,6 +300,31 @@ public class ASAPActivity extends AppCompatActivity implements
         Log.d(this.getLogStart(), "send message to service: start BT Discovery");
         this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERY);
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    //                                 ASAP hub management                             //
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Call this message to connect all known hubs and run encounter attempts in regular intervals.
+     */
+    public void connectASAPHubs() {
+        Log.d(this.getLogStart(), "send message to service: start ASAP hubs");
+        this.sendMessage2Service(ASAPServiceMethods.CONNECT_ASAP_HUBS);
+    }
+
+    /**
+     * Call this message to connect cancel all hub connections. Your app will be back in
+     * Ad-hoc communication only mode.
+     */
+    public void disconnectASAPHubs() {
+        Log.d(this.getLogStart(), "send message to service: stop ASAP hubs");
+        this.sendMessage2Service(ASAPServiceMethods.DISCONNECT_ASAP_HUBS);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    //                            manage broadcast with service                        //
+    /////////////////////////////////////////////////////////////////////////////////////
 
     /*
     There is a race condition:
@@ -632,6 +615,16 @@ public class ASAPActivity extends AppCompatActivity implements
         this.getASAPAndroidPeer().notifyOnlinePeersChanged(peerList);
     }
 
+    @Override
+    public void asapNotifyHubsConnected() {
+        this.getASAPAndroidPeer().notifyASAPHubsConnected(true);
+    }
+
+    @Override
+    public void asapNotifyHubsDisconnected() {
+        this.getASAPAndroidPeer().notifyASAPHubsConnected(false);
+    }
+
     /**
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
@@ -684,4 +677,6 @@ public class ASAPActivity extends AppCompatActivity implements
     public boolean isBluetoothDiscovery() {
         return this.getASAPAndroidPeer().getBTDiscovery();
     }
+
+    public boolean isASAPHubsConnected() { return this.getASAPAndroidPeer().getASAPHubsConnected(); }
 }

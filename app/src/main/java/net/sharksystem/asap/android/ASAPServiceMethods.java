@@ -33,8 +33,8 @@ public class ASAPServiceMethods {
     public static final int ASK_PROTOCOL_STATUS = 202;
 
     ///////////// hub management
-    public static final int CONNECT_HUB = 300;
-    public static final int DISCONNECT_HUB = 301;
+    public static final int CONNECT_ASAP_HUBS = 300;
+    public static final int DISCONNECT_ASAP_HUBS = 301;
 
     // tags for putting extra data to messages or broadcasts
     public static final String URI_TAG = "ASAP_MESSAGE_URI";

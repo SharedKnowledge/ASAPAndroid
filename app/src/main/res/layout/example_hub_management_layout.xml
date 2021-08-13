@@ -18,6 +18,7 @@
     android:rowCount="2"
     android:orientation="horizontal">
 
+    <!--        android:text="asaphub.f4.htw-berlin.de" -->
     <EditText
         android:id="@+id/hostname"
         android:layout_gravity="left|top"
@@ -27,7 +28,7 @@
     <EditText
         android:id="@+id/port"
         android:layout_gravity="left|top"
-        android:text="7777"
+        android:text="6910"
         android:inputType="numberDecimal"
         />
 

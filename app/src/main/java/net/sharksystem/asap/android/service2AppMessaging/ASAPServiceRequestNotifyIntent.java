@@ -16,6 +16,8 @@ public class ASAPServiceRequestNotifyIntent extends Intent {
     public static final int ASAP_NOTIFY_BT_ENVIRONMENT_STARTED = 104;
     public static final int ASAP_NOTIFY_BT_ENVIRONMENT_STOPPED = 105;
     public static final int ASAP_NOTIFY_ONLINE_PEERS_CHANGED = 106;
+    public static final int ASAP_NOTIFY_HUBS_CONNECTED = 107;
+    public static final int ASAP_NOTIFY_HUBS_DISCONNECTED = 108;
 
     public static final String ASAP_PARAMETER_1 = "ASAP_PARAMETER_1";
 

@@ -91,12 +91,12 @@ class ASAPMessageHandler extends Handler {
                     this.asapService.stopLoRa();
                     break;
 
-                case ASAPServiceMethods.CONNECT_HUB:
-                    this.asapService.connectHub(this.getHubDescription(msg));
+                case ASAPServiceMethods.CONNECT_ASAP_HUBS:
+                    this.asapService.connectASAPHubs();
                     break;
 
-                case ASAPServiceMethods.DISCONNECT_HUB:
-                    this.asapService.disconnectHub(this.getHubDescription(msg));
+                case ASAPServiceMethods.DISCONNECT_ASAP_HUBS:
+                    this.asapService.disconnectASAPHubs();
                     break;
 
                 default:

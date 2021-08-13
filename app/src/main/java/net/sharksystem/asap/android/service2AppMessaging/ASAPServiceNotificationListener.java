@@ -16,4 +16,8 @@ public interface ASAPServiceNotificationListener {
     void asapNotifyBTEnvironmentStopped();
 
     void asapNotifyOnlinePeersChanged(Set<CharSequence> peerList);
+
+    void asapNotifyHubsConnected();
+
+    void asapNotifyHubsDisconnected();
 }

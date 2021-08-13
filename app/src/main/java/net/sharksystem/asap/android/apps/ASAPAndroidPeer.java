@@ -60,6 +60,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     private boolean btDisoverableOn = false;
     private boolean btDisoveryOn = false;
     private boolean btEnvironmentOn = false;
+    private boolean asapHubsConnected = false;
 
     private Activity activity;
 
@@ -531,6 +532,14 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
     public boolean getBTDiscovery() {
         return this.btDisoveryOn;
+    }
+
+    public boolean getASAPHubsConnected() {
+        return this.asapHubsConnected;
+    }
+
+    public void notifyASAPHubsConnected(boolean connected) {
+        this.asapHubsConnected = connected;
     }
 
     public void notifyOnlinePeersChanged(Set<CharSequence> newPeerList) {

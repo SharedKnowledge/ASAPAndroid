@@ -88,6 +88,16 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
                 this.notificationListener.asapNotifyOnlinePeersChanged(peersSet);
                 break;
 
+            case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_HUBS_CONNECTED:
+                Log.d(this.getLogStart(), "notified hubs connected");
+                this.notificationListener.asapNotifyHubsConnected();
+                break;
+
+            case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_HUBS_DISCONNECTED:
+                Log.d(this.getLogStart(), "notified hubs disconnected");
+                this.notificationListener.asapNotifyHubsDisconnected();
+                break;
+
             default:
                 Log.d(this.getLogStart(), "unknown request / notification number: " + cmd);
 
