@@ -20,6 +20,8 @@ import java.io.IOException;
 class ASAPMessageHandler extends Handler {
     private ASAPService asapService;
 
+    public static final boolean DEFAULT_MULTICHANNEL = true;
+
     ASAPMessageHandler(ASAPService asapService) {
         this.asapService = asapService;
     }
@@ -92,7 +94,7 @@ class ASAPMessageHandler extends Handler {
                     break;
 
                 case ASAPServiceMethods.CONNECT_ASAP_HUBS:
-                    this.asapService.connectASAPHubs();
+                    this.asapService.connectASAPHubs(DEFAULT_MULTICHANNEL);
                     break;
 
                 case ASAPServiceMethods.DISCONNECT_ASAP_HUBS:

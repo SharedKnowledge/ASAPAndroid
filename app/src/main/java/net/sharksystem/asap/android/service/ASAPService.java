@@ -11,8 +11,8 @@ import android.os.Messenger;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
 
-import net.sharksystem.SharkPeerHubSupport;
-import net.sharksystem.SharkPeerHubSupportImpl;
+import net.sharksystem.SharkPeerBasic;
+import net.sharksystem.SharkPeerBasicImpl;
 import net.sharksystem.asap.ASAPEncounterManager;
 import net.sharksystem.asap.ASAPEncounterManagerImpl;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
@@ -65,8 +65,7 @@ public class ASAPService extends Service
     private boolean onlineExchange;
     private long maxExecutionTime;
     private ArrayList<CharSequence> supportedFormats;
-    private ASAPHubManagerImpl asapASAPHubManager;
-    private SharkPeerHubSupportImpl sharkPeerSettings;
+    private ASAPHubManager asapASAPHubManager;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -81,19 +80,23 @@ public class ASAPService extends Service
         if(this.asapPeer == null) {
             Log.d(this.getLogStart(), "going to set up asapPeer");
 
+            /*
+            we are beyond level 19
+            https://developer.android.com/reference/android/Manifest.permission#WRITE_EXTERNAL_STORAGE
             // check write permissions
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
 
                 // Permission is not granted
-                Log.d(this.getLogStart(),"no write permission!!");
+                Log.e(this.getLogStart(),"SERIOUS: no write permission!!");
                 return null;
             }
+             */
 
             // we have write permissions
 
-            // set up asapMultiEngine
+            // set up ASAPPeer
             File rootFolder = new File(this.asapEngineRootFolderName);
             try {
                 if (!rootFolder.exists()) {
@@ -131,45 +134,12 @@ public class ASAPService extends Service
         return this.asapPeer;
     }
 
-    SharkPeerHubSupport getSharkPeerSettings() {
-        if(this.sharkPeerSettings == null) {
-            this.sharkPeerSettings = new SharkPeerHubSupportImpl(this.getASAPPeer());
-        }
-
-        return this.sharkPeerSettings;
-    }
-
-    public ASAPEncounterManager getASAPEncounterManager() {
+    public synchronized ASAPEncounterManager getASAPEncounterManager()  {
         if(this.asapEncounterManager == null) {
-            try {
-                this.asapEncounterManager = new ASAPEncounterManagerImpl(this.getASAPPeer());
-            } catch (ASAPException e) {
-                Log.e(this.getLogStart(), "cannot create encounter manager: "
-                        + e.getLocalizedMessage());
-            }
+            this.asapEncounterManager = new ASAPEncounterManagerImpl(this.getASAPPeer());
         }
 
         return this.asapEncounterManager;
-    }
-
-    /**
-     * timeouts inside hub - especially how long can a data connection be dead before killed
-     */
-    public static final int DEFAULT_TIMEOUT_ASAP_HUB_MILLIS = 5000;
-    /**
-     * hub manager connects hub and creates peer encounter. This happens in
-     * frequent intervals. That is the default interval.
-     */
-    public static final int DEFAULT_WAIT_INTERVALS_ASAP_HUB_SECONDS = 30;
-    public ASAPHubManager getASAPHubManager() {
-        if(this.asapASAPHubManager == null) {
-            this.asapASAPHubManager = new ASAPHubManagerImpl(
-                    this.getASAPEncounterManager(), DEFAULT_WAIT_INTERVALS_ASAP_HUB_SECONDS);
-            this.asapASAPHubManager.setTimeOutInMillis(DEFAULT_TIMEOUT_ASAP_HUB_MILLIS);
-            new Thread(this.asapASAPHubManager).start();
-        }
-
-        return this.asapASAPHubManager;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -269,12 +239,12 @@ public class ASAPService extends Service
     //////////////////////////////////////////////////////////////////////////////////////
 
     void startWifiDirect() {
-        Log.d("ASAPService", "start wifi p2p");
+        Log.d(this.getLogStart(), "start wifi p2p");
         WifiP2PEngine.getASAPWifiP2PEngine(this, this).start();
     }
 
     void stopWifiDirect() {
-        Log.d("ASAPService", "stop wifi p2p");
+        Log.d(this.getLogStart(), "stop wifi p2p");
         WifiP2PEngine ASAPWifiP2PEngine =
                 WifiP2PEngine.getASAPWifiP2PEngine(this, this);
         if(ASAPWifiP2PEngine != null) {
@@ -287,7 +257,7 @@ public class ASAPService extends Service
     //////////////////////////////////////////////////////////////////////////////////////
 
     void startBluetooth() {
-        Log.d("ASAPService", "start bluetooth");
+        Log.d(this.getLogStart(), "start bluetooth");
 
         BluetoothEngine btEngine = BluetoothEngine.getASAPBluetoothEngine(this, this);
         btEngine.start();
@@ -295,11 +265,11 @@ public class ASAPService extends Service
         Log.d(this.getLogStart(), "start reconnect thread");
         this.startReconnectPairedDevices();
 
-        Log.d("ASAPService", "started bluetooth");
+        Log.d(this.getLogStart(), "started bluetooth");
     }
 
     void stopBluetooth() {
-        Log.d("ASAPService", "stop bluetooth");
+        Log.d(this.getLogStart(), "stop bluetooth");
 
         BluetoothEngine asapBluetoothEngine =
                 BluetoothEngine.getASAPBluetoothEngine(this, this);
@@ -311,11 +281,11 @@ public class ASAPService extends Service
         Log.d(this.getLogStart(), "stop reconnect thread");
         this.stopReconnectPairedDevices();
 
-        Log.d("ASAPService", "stopped bluetooth");
+        Log.d(this.getLogStart(), "stopped bluetooth");
     }
 
     void startBluetoothDiscoverable() {
-        Log.d("ASAPService", "start bluetooth discoverable");
+        Log.d(this.getLogStart(), "start bluetooth discoverable");
 
         BluetoothEngine asapBluetoothEngine =
                 BluetoothEngine.getASAPBluetoothEngine(this, this);
@@ -375,52 +345,54 @@ public class ASAPService extends Service
     //////////////////////////////////////////////////////////////////////////////////////
     //                                  ASAP hub management                             //
     //////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * timeouts inside hub - especially how long can a data connection be dead before killed
+     */
+    public static final int DEFAULT_TIMEOUT_ASAP_HUB_MILLIS = 5000;
 
-    private Map<HubConnectorDescription, HubConnector> connectedHubs = new HashMap<>();
-
-    void connectASAPHubs() {
-        SharkPeerHubSupport sharkPeerSettings = this.getSharkPeerSettings();
-        for(HubConnectorDescription hcd : sharkPeerSettings.getHubDescriptions()) {
-            boolean isRunning = false;
-            // already running?
-            for(HubConnectorDescription runningHcd : this.connectedHubs.keySet()) {
-                if(runningHcd.isSame(hcd)) {
-                    isRunning = true; break;
-                }
-            }
-
-            if(!isRunning) {
-                // launch it
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d(ASAPService.this.getLogStart(), "init new hub connector: " + hcd);
-                        try {
-                            HubConnector hubConnector = HubConnectorFactory.createHubConnector(hcd);
-                            // register on hub
-                            hubConnector.connectHub(ASAPService.this.getASAPPeer().getPeerID());
-                            ASAPService.this.connectedHubs.put(hcd, hubConnector);
-                            ASAPService.this.getASAPHubManager().addHub(hubConnector);
-                            Log.d(ASAPService.this.getLogStart(),
-                                    "hub connector initialized: " + hcd);
-
-                        } catch (IOException | ASAPException e) {
-                            Log.e(ASAPService.this.getLogStart(), e.getLocalizedMessage());
-                            /*
-                            Toast.makeText(ASAPService.this,
-                                    e.getLocalizedMessage(),
-                                    Toast.LENGTH_SHORT).show();
-                             */
-                        }
-                    }
-                }).start();
-            } else {
-                Log.d(ASAPService.this.getLogStart(),"hub connector already running: " + hcd);
+    /**
+     * hub manager connects hub and creates peer encounter. This happens in
+     * frequent intervals. That is the default interval.
+     */
+    public static final int DEFAULT_WAIT_INTERVALS_ASAP_HUB_SECONDS = 30;
+    public ASAPHubManager getASAPHubManager() {
+        synchronized(this) {
+            if (this.asapASAPHubManager == null) {
+                this.asapASAPHubManager = ASAPHubManagerImpl.createASAPHubManager(
+                        this.getASAPEncounterManager(),
+                        DEFAULT_WAIT_INTERVALS_ASAP_HUB_SECONDS);
             }
         }
+        return this.asapASAPHubManager;
+    }
 
-        // check for orphans
-        this.disconnectRemovedASAPHubs();
+    private synchronized void stopASAPHubManager() {
+        synchronized (this) {
+            if (this.asapASAPHubManager != null) {
+                this.asapASAPHubManager.kill();
+                this.asapASAPHubManager = null;
+            }
+        }
+    }
+
+    void connectASAPHubs(boolean multichannel) {
+        Log.d(this.getLogStart(), "connect hubs called");
+        // create a wrapper around our ASAPPeer
+        SharkPeerBasic sharkPeerBasic = new SharkPeerBasicImpl(this.getASAPPeer());
+        Collection<HubConnectorDescription> hubDescriptions = sharkPeerBasic.getHubDescriptions();
+        if(hubDescriptions == null || hubDescriptions.isEmpty()) {
+            Log.d(this.getLogStart(), "no hub descriptions - no hub connector to start");
+            return;
+        }
+
+        // there is at least one hub description
+        Log.d(this.getLogStart(), "get hub manager reference");
+        ASAPHubManager asapHubManager = this.getASAPHubManager();
+
+        Log.d(this.getLogStart(),
+                "try to establish hub connection(s) - multichannel " + multichannel);
+
+        asapHubManager.connectASAPHubs(hubDescriptions, this.getASAPPeer(), multichannel);
 
         ASAPServiceRequestNotifyIntent intent =
                 new ASAPServiceRequestNotifyIntent(
@@ -429,65 +401,8 @@ public class ASAPService extends Service
         this.sendBroadcast(intent);
     }
 
-    /**
-     * Hub list management is one thing. Running hub connections another story. A removed hub
-     * description must lead to disconnect that connector.
-     */
-    void disconnectRemovedASAPHubs() {
-        SharkPeerHubSupport sharkPeerSettings = this.getSharkPeerSettings();
-
-        // any running hub connector must be in this list - if not - kill it
-        Collection<HubConnectorDescription> validHcd = sharkPeerSettings.getHubDescriptions();
-
-        // check any running connector
-        List<HubConnectorDescription> hcd2Stop = new ArrayList<>();
-        for(HubConnectorDescription runningHcd : this.connectedHubs.keySet()) {
-            boolean valid = false;
-            for(HubConnectorDescription hcd : validHcd) {
-                if(runningHcd.isSame(hcd)) {
-                    valid = true; break;
-                }
-            }
-            if(!valid) hcd2Stop.add(runningHcd);
-        }
-
-        for(HubConnectorDescription hcd : hcd2Stop) {
-            this.disconnectASAPHub(hcd);
-        }
-    }
-
-    void disconnectASAPHub(HubConnectorDescription hcd2Disconnect) {
-        // even same object?
-        HubConnector hubConnector = this.connectedHubs.get(hcd2Disconnect);
-        if(hubConnector == null) {
-            // maybe no same object - search for same
-            for(HubConnectorDescription runningHcd : this.connectedHubs.keySet()) {
-                if(runningHcd.isSame(hcd2Disconnect)) {
-                    hubConnector = this.connectedHubs.get(runningHcd);
-                    hcd2Disconnect = runningHcd;
-                    break;
-                }
-            }
-        }
-
-        if(hubConnector != null) {
-            this.getASAPHubManager().removeHub(hubConnector);
-            this.connectedHubs.remove(hcd2Disconnect);
-        }
-
-        ASAPServiceRequestNotifyIntent intent =
-                new ASAPServiceRequestNotifyIntent(
-                        ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_HUBS_DISCONNECTED);
-
-        this.sendBroadcast(intent);
-    }
-
     void disconnectASAPHubs() {
-        for(HubConnector hc : this.connectedHubs.values()) {
-            this.getASAPHubManager().removeHub(hc);
-            Log.d(ASAPService.this.getLogStart(), "removed hub connector: " + hc);
-        }
-        this.connectedHubs = new HashMap<>();
+        this.getASAPHubManager().disconnectASAPHubs();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////

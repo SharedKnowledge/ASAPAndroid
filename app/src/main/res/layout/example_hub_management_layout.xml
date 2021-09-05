@@ -32,6 +32,8 @@
         android:inputType="numberDecimal"
         />
 
+    <!-- TODO toggle: multiChannel yes / no -->
+
     <Button
         android:id="@+id/connectHubButton"
         android:onClick="onConnectHubButtonClick"

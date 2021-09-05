@@ -14,12 +14,14 @@ import android.util.Log;
 import android.widget.Toast;
 
 import net.sharksystem.SharkNotSupportedException;
+import net.sharksystem.asap.ASAPChannelContentChangedListener;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
 import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.ASAPStorage;
+import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
@@ -219,6 +221,8 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
         Log.d(this.getLogStart(), "initialize ASAP Peer application side");
         // required permissions
+        this.requiredPermissions = ASAPAndroid.requiredPermissions;
+        /*
         this.requiredPermissions = new ArrayList<>();
         this.requiredPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         this.requiredPermissions.add(Manifest.permission.ACCESS_WIFI_STATE);
@@ -229,6 +233,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         this.requiredPermissions.add(Manifest.permission.BLUETOOTH_ADMIN);
         this.requiredPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         this.requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+         */
 
         // check for write permissions
         Log.d(this.getLogStart(), "ask for required permissions");
@@ -611,6 +616,11 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         this.getASAPPeerApplicationSide().removeASAPMessageReceivedListener(format, listener);
     }
 
+    @Override
+    public int getNumberListener() {
+        return this.getASAPPeerApplicationSide().getNumberListener();
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                         other listeners beside chunk received                             //
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -747,5 +757,19 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
     private String getLogStart() {
         return Util.getLogStart(this);
+    }
+
+    @Override
+    public void addASAPChannelContentChangedListener(CharSequence charSequence,
+                     ASAPChannelContentChangedListener listener) {
+        this.getASAPPeerApplicationSide().
+                addASAPChannelContentChangedListener(charSequence, listener);
+    }
+
+    @Override
+    public void removeASAPChannelContentChangedListener(CharSequence charSequence,
+                     ASAPChannelContentChangedListener listener) {
+        this.getASAPPeerApplicationSide().
+                removeASAPChannelContentChangedListener(charSequence, listener);
     }
 }

@@ -6,11 +6,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import net.sharksystem.SharkPeerHubSupport;
-import net.sharksystem.SharkPeerHubSupportImpl;
+import net.sharksystem.SharkPeerBasic;
+import net.sharksystem.SharkPeerBasicImpl;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPActivity;
-import net.sharksystem.hub.peerside.TCPHubConnectorDescription;
+import net.sharksystem.hub.peerside.TCPHubConnectorDescriptionImpl;
 
 import java.io.IOException;
 
@@ -27,12 +27,14 @@ public class ASAPExampleHubManagementActivity extends ASAPActivity {
 
         EditText portET = findViewById(R.id.port);
         String portString = portET.getText().toString();
+        boolean multiChannel = true; // TODO need toggle in GUI
 
         int port = Integer.parseInt(portString);
 
-        SharkPeerHubSupport sharkPeerSettings = new SharkPeerHubSupportImpl(this.getASAPPeer());
+        SharkPeerBasic sharkPeerBasic = new SharkPeerBasicImpl(this.getASAPPeer());
         try {
-            sharkPeerSettings.addHubDescription(new TCPHubConnectorDescription(hostName, port));
+            sharkPeerBasic.addHubDescription(
+                    new TCPHubConnectorDescriptionImpl(hostName, port, multiChannel));
         } catch (IOException e) {
             String s = "cannot create hub description: " + hostName + ":" + port;
             Log.w(this.getLogStart(), s);
