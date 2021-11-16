@@ -27,7 +27,8 @@ public class ASAPExampleHubManagementActivity extends ASAPActivity {
 
         EditText portET = findViewById(R.id.port);
         String portString = portET.getText().toString();
-        boolean multiChannel = true; // TODO need toggle in GUI
+        boolean multiChannel = false; // TODO need toggle in GUI
+//        boolean multiChannel = true; // TODO need toggle in GUI
 
         int port = Integer.parseInt(portString);
 

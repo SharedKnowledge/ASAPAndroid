@@ -729,7 +729,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                 this.getASAPPeerApplicationSide().sendASAPMessage(format, uri, message);
             } else { // do no do anything
                 net.sharksystem.utils.Log.writeLog(this,
-                        "not connected - online message gets lost");
+                        "not connected - non-persistent message gets lost");
             }
         } else { // online
             Activity activity = this.getActivity();

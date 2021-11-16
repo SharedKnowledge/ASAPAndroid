@@ -100,7 +100,6 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
 
             default:
                 Log.d(this.getLogStart(), "unknown request / notification number: " + cmd);
-
         }
     }
 
