@@ -6,8 +6,8 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.util.Log;
 
+import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * Discovers nearby services periodically as long as {@link #retries} are
@@ -20,7 +20,7 @@ import java.util.Map;
  * A different amount of retries amy be set using the constructor
  * {@link #SdpWifiDiscoveryThread(WifiP2pManager, WifiP2pManager.Channel, SdpWifiDirectDiscoveryEngine, int)}
  * or {@link #setTries(int)}
- * <p>
+ *
  * As longs as there are retries left discovery will be restarted with
  * a 7 second gap in between, to ensure the discovery of nearby services.
  * <p>
@@ -34,7 +34,7 @@ import java.util.Map;
  * SdpWifiDiscoveryEngine<br>
  * ------------------------------------------------------------<br>
  * Every discovered service will be passed to
- * {@link SdpWifiDirectDiscoveryEngine#onServiceDiscovered(WifiP2pDevice, Map, String)}
+ * {@link SdpWifiDirectDiscoveryEngine#onServiceDiscovered(WifiP2pDevice, Map, String, String)}
  * only there the service records will be evaluated.
  *
  * @author WilliBoelke
@@ -65,6 +65,7 @@ class SdpWifiDiscoveryThread extends Thread
 
     private Thread thread;
 
+    private final HashMap<String, Map<String, String>> tmpRecordCache = new HashMap<>();
     //
     //  ---------- constructor and initialisation ----------
     //
@@ -73,11 +74,11 @@ class SdpWifiDiscoveryThread extends Thread
      * Constructor
      *
      * @param manager
-     *         The WifiP2P manager
+     * The WifiP2P manager
      * @param channel
-     *         The Channel
+     *  The Channel
      * @param engine
-     *         The WifiDirectDiscoveryEngine to callback
+     * The WifiDirectDiscoveryEngine to callback
      */
     public SdpWifiDiscoveryThread(WifiP2pManager manager, WifiP2pManager.Channel channel, SdpWifiDirectDiscoveryEngine engine)
     {
@@ -91,13 +92,13 @@ class SdpWifiDiscoveryThread extends Thread
      * Constructor
      *
      * @param manager
-     *         The WifiP2P manager
+     * The WifiP2P manager
      * @param channel
-     *         The Channel
+     *  The Channel
      * @param engine
-     *         The WifiDirectDiscoveryEngine to callback
+     * The WifiDirectDiscoveryEngine to callback
      * @param retries
-     *         number of retries
+     * number of retries
      */
     public SdpWifiDiscoveryThread(WifiP2pManager manager, WifiP2pManager.Channel channel, SdpWifiDirectDiscoveryEngine engine, int retries)
     {
@@ -161,14 +162,32 @@ class SdpWifiDiscoveryThread extends Thread
      * Setting up the callbacks which wil be called when
      * a service was discovered, proving the TXT records and other
      * service information.
-     * <p>
+     *
      * This only needs to be set up once, at the Thread start.
      * It shouldn't called while lopping (re-starting service discovery).
+     *
      */
     private void setupDiscoveryCallbacks()
     {
-
+        tmpRecordCache.clear();
         Log.d(TAG, "setupDiscoveryCallbacks: setting up callbacks");
+
+        //----------------------------------
+        // NOTE : Well its a little bit weird i think
+        // that the TXT record and the DnsService response
+        // come in separate callbacks.
+        // It seems so that the always come in teh same order
+        // To i can match both using the device address.
+        // https://developer.android.com/training/connect-devices-wirelessly/nsd-wifi-direct
+        // does it similar, though in their example
+        // there just is one single service.
+        // I am sure there is some reason for it.. which i
+        // cant quite understand. I think both should come in teh same callback
+        // because i am sure google could make a more reliable matching between the two
+        // then i can do here.
+        //
+        // Lets test it out
+        //----------------------------------
 
         //--- TXT Record listener ---//
 
@@ -176,19 +195,16 @@ class SdpWifiDiscoveryThread extends Thread
         {
             Log.d(TAG, "run: found service record: on  " + device + " record: " + txtRecord);
 
-            engine.onServiceDiscovered(device, txtRecord, fullDomain);
+            tmpRecordCache.put(device.deviceAddress, txtRecord);
         };
 
         //--- Service response listener - gives additional service info ---//
 
-        WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) ->
+        WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, device) ->
         {
-            //----------------------------------
-            // NOTE : Right now i don't see any
-            // use in the information give here,
-            // but i am sure it can be useful at some point.
-            // (That's why its there)
-            //----------------------------------
+            Map<String, String> record = tmpRecordCache.get(device.deviceAddress);
+            engine.onServiceDiscovered(device, record, registrationType, instanceName);
+
         };
 
         //--- setting the listeners ---//
@@ -248,7 +264,6 @@ class SdpWifiDiscoveryThread extends Thread
                     }
                 });
             }
-
             @Override
             public void onFailure(int code)
             {
@@ -262,8 +277,7 @@ class SdpWifiDiscoveryThread extends Thread
     //  ---------- others ----------
     //
 
-    protected void cancel()
-    {
+    protected void cancel(){
         Log.d(TAG, "cancel: canceling service discovery");
         this.thread.interrupt();
         this.isDiscovering = false;
@@ -278,19 +292,17 @@ class SdpWifiDiscoveryThread extends Thread
             @Override
             public void onFailure(int reason)
             {
-                SdpWifiDirectDiscoveryEngine.logReason(TAG, "DiscoveryThread: cancel: could not clear service requests ", reason);
+                SdpWifiDirectDiscoveryEngine.logReason(TAG,"DiscoveryThread: cancel: could not clear service requests ", reason);
             }
         });
         Log.d(TAG, "cancel: canceled service discovery");
     }
 
-    protected boolean isDiscovering()
-    {
+    protected boolean isDiscovering(){
         return this.isDiscovering;
     }
 
-    private void onServiceDiscoveryFailure()
-    {
+    private void onServiceDiscoveryFailure(){
         //----------------------------------
         // NOTE : There doesn't seem to be
         // much i can do here, wifi could be restarted
@@ -305,10 +317,9 @@ class SdpWifiDiscoveryThread extends Thread
      * as many times as specified trough the tries
      *
      * @param tries
-     *         the number of tries
+     * the number of tries
      */
-    protected void setTries(int tries)
-    {
+    protected void setTries(int tries){
         this.retries = tries;
     }
 }

@@ -17,7 +17,7 @@ import java.util.UUID;
  * ------------------------------------------------------------<br>
  * A service can be described through a number of attributes.
  * Attributes are in a key-value format.
- * <p>
+ *
  * A simplified and shorter version to distinct service from
  * each other is through the USe of unique IDs in the for of
  * UUIDs.
@@ -56,6 +56,8 @@ public class ServiceDescription
      */
     private final Map<String, String> attributes;
 
+    private final String serviceName;
+
     /**
      * A custom uuid, which - when set- will be used
      * instead of a generated one
@@ -69,13 +71,13 @@ public class ServiceDescription
 
     /**
      * Public constructor
-     *
      * @param serviceRecord
-     *         The service record, this needs to contain at least one
-     *         key - value
+     * The service record, this needs to contain at least one
+     * key - value
      */
-    public ServiceDescription(Map<String, String> serviceRecord)
+    public  ServiceDescription (String serviceName, Map<String, String> serviceRecord)
     {
+        this.serviceName = serviceName;
         this.attributes = serviceRecord;
     }
 
@@ -92,10 +94,9 @@ public class ServiceDescription
      * while Bluetooth will exchange the UUID itself.
      *
      * @param uuid
-     *         A custom UUId overriding the one generated from the Service records
+     * A custom UUId overriding the one generated from the Service records
      */
-    public void overrideUuidForBluetooth(UUID uuid)
-    {
+    public void overrideUuidForBluetooth(UUID uuid){
         // Todo maybe a more elegant solution can be found,
         // it should be worth it to make wifi direct exchanging the UUID
         // when a custom UUID has been set, the custom UUID though should stay, so Bluetooth service
@@ -109,16 +110,15 @@ public class ServiceDescription
      * or a UUID generated from the services attributes.
      *
      * @return the services UUID
-     *
      * @throws NullPointerException
-     *         IF the attributes and the custom UUID are null
+     * IF the attributes and the custom UUID are null
      */
     public UUID getServiceUuid()
     {
-        if (this.serviceUuid == null)
+        if(this.serviceUuid == null)
         {
             //--- generating UUID from attributes ---//
-            this.serviceUuid = getUuidForServiceRecord(this.attributes);
+            this.serviceUuid = getUuidForService(this.serviceName, this.attributes);
         }
 
         return this.serviceUuid;
@@ -128,7 +128,8 @@ public class ServiceDescription
      * Returns the Service records ad a Map object.
      * The map containing all key value pairs set through
      *
-     * @return The service records Map
+     * @return
+     * The service records Map
      */
     public Map<String, String> getServiceRecord()
     {
@@ -139,21 +140,20 @@ public class ServiceDescription
      * Generates a deterministic UUID from a Map (service records)
      *
      * @param serviceRecord
-     *         A Map containing key value pairs, describing a service
-     *
-     * @return A UUID generated from the map entries
-     *
+     * A Map containing key value pairs, describing a service
+     * @return
+     * A UUID generated from the map entries
      * @throws NullPointerException
-     *         If the given Map was empty
+     * If the given Map was empty
      */
-    public static UUID getUuidForServiceRecord(Map<String, String> serviceRecord) throws NullPointerException
+    public static UUID getUuidForService(String serviceName, Map<String, String> serviceRecord) throws NullPointerException
     {
-        if (serviceRecord.size() == 0)
-        {
+        if(serviceRecord.size() == 0){
             throw new NullPointerException("There are no service attributes specified");
         }
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : serviceRecord.entrySet())
+        sb.append(serviceName);
+        for (Map.Entry<String, String> entry: serviceRecord.entrySet())
         {
             sb.append(entry.getKey());
             sb.append(entry.getValue());
@@ -181,11 +181,10 @@ public class ServiceDescription
      * <a href="https://issuetracker.google.com/issues/37075233">...</a>
      * The code used here to reverse the UUID is stolen from the issues comments and can be found here
      * <a href="https://gist.github.com/masterjefferson/10922165432ec016a823e46c6eb382e6">...</a>
-     *
-     * @return the bytewise revered uuid
+     * @return
+     * the bytewise revered uuid
      */
-    public UUID getBytewiseReverseUuid()
-    {
+    public UUID getBytewiseReverseUuid(){
         ByteBuffer byteBuffer = ByteBuffer.allocate(16);
         byteBuffer
                 .putLong(this.serviceUuid.getLeastSignificantBits())
@@ -213,19 +212,24 @@ public class ServiceDescription
     @Override
     public int hashCode()
     {
-        return Objects.hash(this.getServiceUuid());
+        return Objects.hash(this.getServiceUuid() );
     }
 
     @NonNull
     @Override
-    public String toString()
-    {
+    public String toString(){
         StringBuilder sd = new StringBuilder();
-        sd.append("Service: { ");
+        sd.append("Service: { " );
         sd.append("\nUuid = ");
         sd.append(this.getServiceUuid());
         sd.append(",");
-        sd.append("\n Attributes =  " + this.attributes.toString());
+        sd.append("\n Attributes =  ");
+        sd.append(this.attributes.toString());
         return sd.toString();
+    }
+
+    public String getServiceName()
+    {
+        return this.serviceName;
     }
 }

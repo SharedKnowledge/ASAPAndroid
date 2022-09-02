@@ -650,7 +650,7 @@ public class SdpBluetoothDiscoveryEngine
         for (Parcelable pUuid : uuidExtra)
         {
             UUID uuid = ((ParcelUuid) pUuid).getUuid();
-            ServiceDescription description = new ServiceDescription(new HashMap<>()); // empty description
+            ServiceDescription description = new ServiceDescription("", new HashMap<>()); // empty description
             description.overrideUuidForBluetooth(uuid);
 
             // overriding with registered service description

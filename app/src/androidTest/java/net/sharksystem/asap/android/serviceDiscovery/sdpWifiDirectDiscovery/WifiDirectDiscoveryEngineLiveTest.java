@@ -136,9 +136,9 @@ public class WifiDirectDiscoveryEngineLiveTest
         serviceAttributesOne.put("service-name", "Test Service One");
         serviceAttributesOne.put("service-info", "This is a test service description");
         serviceAttributesTwo.put("service-name", "Counting Service Two");
-        serviceAttributesTwo.put("service-info", "This service counts upwards an sends a message containing this number to all clients");
-        descriptionForServiceOne = new ServiceDescription(serviceAttributesOne);
-        descriptionForServiceTwo = new ServiceDescription(serviceAttributesTwo);
+        serviceAttributesTwo.put("service-info", "This is another test service description");
+        descriptionForServiceOne = new ServiceDescription("test service one", serviceAttributesOne);
+        descriptionForServiceTwo = new ServiceDescription("test service two", serviceAttributesTwo);
         printDeviceInfo(InstrumentationRegistry.getInstrumentation().getTargetContext());
         SdpWifiDirectDiscoveryEngine.getInstance();
         SdpWifiDirectDiscoveryEngine.getInstance().start(InstrumentationRegistry.getInstrumentation().getTargetContext());
@@ -333,6 +333,8 @@ public class WifiDirectDiscoveryEngineLiveTest
     }
 
 
+
+
     @Test
     public void itShouldNotifyAboutAllServices() throws InterruptedException
     {
@@ -372,7 +374,7 @@ public class WifiDirectDiscoveryEngineLiveTest
         SdpWifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
         {
             Log.e(TAG, "itShouldFindTwoNearbyServiceOnTwoDevices_discover: --- " + host.deviceAddress);
-            if ((description.equals(descriptionForServiceOne) || description.equals(descriptionForServiceTwo)) &&
+            if ( (description.equals(descriptionForServiceOne) || description.equals(descriptionForServiceTwo)) &&
                     (host.deviceAddress.equals(MAC_C_WIFI) || host.deviceAddress.equals(MAC_B_WIFI)))
             {
                 foundServiceDescriptions.add(description);
@@ -393,4 +395,5 @@ public class WifiDirectDiscoveryEngineLiveTest
         assertTrue(foundServiceDescriptions.contains(descriptionForServiceOne));
         assertTrue(foundServiceDescriptions.contains(descriptionForServiceTwo));
     }
+
 }

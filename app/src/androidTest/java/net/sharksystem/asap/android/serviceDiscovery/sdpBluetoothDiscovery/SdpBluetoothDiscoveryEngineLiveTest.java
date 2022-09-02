@@ -128,9 +128,9 @@ public class SdpBluetoothDiscoveryEngineLiveTest
         serviceAttributesOne.put("service-name", "Test Service One");
         serviceAttributesOne.put("service-info", "This is a test service description");
         serviceAttributesTwo.put("service-name", "Counting Service Two");
-        serviceAttributesTwo.put("service-info", "This service counts upwards an sends a message containing this number to all clients");
-        descriptionForServiceOne = new ServiceDescription(serviceAttributesOne);
-        descriptionForServiceTwo = new ServiceDescription(serviceAttributesTwo);
+        serviceAttributesTwo.put("service-info", "This is another test service description");
+        descriptionForServiceOne = new ServiceDescription("test service one", serviceAttributesOne);
+        descriptionForServiceTwo = new ServiceDescription("test service two", serviceAttributesTwo);
         SdpBluetoothDiscoveryEngine.getInstance().start(InstrumentationRegistry.getInstrumentation().getTargetContext());
         adapter = BluetoothAdapter.getDefaultAdapter();
     }
@@ -559,7 +559,6 @@ public class SdpBluetoothDiscoveryEngineLiveTest
                 Log.e(TAG, "device not specified " + getCurrentDeviceName());
         }
     }
-
 
     private void itShouldNotifiedAboutMatchingServicesAlreadyDiscovered_serviceAdvertisement() throws InterruptedException
     {

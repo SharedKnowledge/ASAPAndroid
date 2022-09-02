@@ -12,7 +12,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 
-
 //
 //------------ get mocks -------------
 //
@@ -21,13 +20,13 @@ var testUUIDOne: UUID = UUID.fromString("12345fff-f49a-11ec-b939-0242ac120002")
 var testUUIDTwo: UUID = UUID.fromString("22345fff-f49a-11ec-b939-0242ac120002")
 var testUUIDThree: UUID = UUID.fromString("32345fff-f49a-11ec-b939-0242ac120002")
 
-lateinit var testDescriptionOne: ServiceDescription
-lateinit var testDescriptionTwo: ServiceDescription
-lateinit var testDescriptionThree: ServiceDescription
-lateinit var testDescriptionFour: ServiceDescription
-lateinit var testDescriptionFive: ServiceDescription
+lateinit var testDescriptionOne : ServiceDescription
+lateinit var testDescriptionTwo : ServiceDescription
+lateinit var testDescriptionThree : ServiceDescription
+lateinit var testDescriptionFour : ServiceDescription
+lateinit var testDescriptionFive : ServiceDescription
 
-fun initTestMocks() {
+fun initTestMocks(){
     val serviceAttributesOne = HashMap<String, String>()
     val serviceAttributesTwo = HashMap<String, String>()
     val serviceAttributesTree = HashMap<String, String>()
@@ -39,26 +38,11 @@ fun initTestMocks() {
     serviceAttributesFour["service-name"] = "Test Service Four"
     serviceAttributesFive["service-name"] = "Test Service Five"
 
-    testDescriptionOne =
-        ServiceDescription(
-            serviceAttributesOne
-        )
-    testDescriptionTwo =
-        ServiceDescription(
-            serviceAttributesTwo
-        )
-    testDescriptionThree =
-        ServiceDescription(
-            serviceAttributesTree
-        )
-    testDescriptionFour =
-        ServiceDescription(
-            serviceAttributesFour
-        )
-    testDescriptionFive =
-        ServiceDescription(
-            serviceAttributesFive
-        )
+    testDescriptionOne = ServiceDescription  ("test service one",serviceAttributesOne)
+    testDescriptionTwo = ServiceDescription  ("test service two",serviceAttributesTwo)
+    testDescriptionThree = ServiceDescription("test service three",serviceAttributesTree)
+    testDescriptionFour = ServiceDescription ("test service four",serviceAttributesFour)
+    testDescriptionFive = ServiceDescription ("test service five",serviceAttributesFive)
 
     testDescriptionOne.overrideUuidForBluetooth(testUUIDOne)
     testDescriptionTwo.overrideUuidForBluetooth(testUUIDTwo)
@@ -68,9 +52,9 @@ fun initTestMocks() {
 fun getTestDeviceOne(): BluetoothDevice {
     val deviceOne = mockk<BluetoothDevice>()
     every { deviceOne.fetchUuidsWithSdp() } returns true
-    every { deviceOne.name } returns "testDeviceOneName"
-    every { deviceOne.address } returns "testDeviceOneAddress"
-    every { deviceOne.uuids } returns arrayOf(
+    every { deviceOne.name } returns  "testDeviceOneName"
+    every { deviceOne.address } returns  "testDeviceOneAddress"
+    every { deviceOne.uuids } returns  arrayOf(
         ParcelUuid(testUUIDTwo),
         ParcelUuid(testUUIDThree)
     )
@@ -81,9 +65,9 @@ fun getTestDeviceOne(): BluetoothDevice {
 fun getTestDeviceTwo(): BluetoothDevice {
     val deviceTwo = mockk<BluetoothDevice>()
     every { deviceTwo.fetchUuidsWithSdp() } returns true
-    every { deviceTwo.name } returns "testDeviceTwoName"
-    every { deviceTwo.address } returns "testDeviceTwoAddress"
-    every { deviceTwo.uuids } returns arrayOf(
+    every { deviceTwo.name } returns  "testDeviceTwoName"
+    every { deviceTwo.address } returns  "testDeviceTwoAddress"
+    every { deviceTwo.uuids } returns  arrayOf(
         ParcelUuid(testDescriptionFour.serviceUuid),
         ParcelUuid(testDescriptionFive.serviceUuid)
     )
@@ -109,12 +93,13 @@ fun getSocketToTestDevice(device: BluetoothDevice): BluetoothSocket {
     val inputStream = mockk<InputStream>(relaxed = true)
     justRun { outputStream.close() }
     justRun { inputStream.close() }
-    every { mockedSocket.inputStream } returns inputStream
-    every { mockedSocket.outputStream } returns outputStream
-    every { mockedSocket.remoteDevice } returns device
-    justRun { mockedSocket.close() }
+    every {mockedSocket.inputStream} returns  inputStream
+    every {mockedSocket.outputStream} returns  outputStream
+    every {mockedSocket.remoteDevice} returns  device
+    justRun {mockedSocket.close()}
     return mockedSocket
 }
+
 
 
 //
@@ -144,7 +129,7 @@ fun getSocketToTestDevice(device: BluetoothDevice): BluetoothSocket {
  * {@link https://stackoverflow.com/questions/48158909/java-android-kotlin-reflection-on--field-and-call--methods-on-it}
  */
 inline fun <reified T> T.callPrivateFunc(name: String, vararg args: Any?): Any? {
-    val classArray: Array<Class<*>> = args.map { it!!::class.java }.toTypedArray()
+    val classArray: Array<Class<*>> = args.map { it!!::class.java}.toTypedArray()
     return T::class.java.getDeclaredMethod(name, *classArray)
         .apply { isAccessible = true }
         .invoke(this, *args)
@@ -156,12 +141,7 @@ inline fun <reified T> T.callPrivateFunc(name: String, vararg args: Any?): Any? 
  * It only calls "onUuidsFetched" but allows parameters to be null
  */
 inline fun <reified T> T.callOnUuidsFetchedWithNullParam(vararg args: Any?): Any? {
-    return T::class.java.getDeclaredMethod(
-        "onUuidsFetched",
-        BluetoothDevice::class.java,
-        Array<Parcelable>::class.java
-    )
+    return T::class.java.getDeclaredMethod("onUuidsFetched", BluetoothDevice::class.java, Array<Parcelable>::class.java)
         .apply { isAccessible = true }
         .invoke(this, *args)
 }
-

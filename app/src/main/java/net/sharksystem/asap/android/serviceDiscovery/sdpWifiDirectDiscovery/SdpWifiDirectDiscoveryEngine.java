@@ -21,6 +21,7 @@ import net.sharksystem.asap.android.serviceDiscovery.serviceDescription.ServiceD
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -91,6 +92,8 @@ public class SdpWifiDirectDiscoveryEngine
      * Classname for logging
      */
     private final String TAG = this.getClass().getSimpleName();
+
+    private final String SERVICE_TYPE = "_presence._tcp";
 
     /**
      * Wifi direct channel
@@ -402,7 +405,7 @@ public class SdpWifiDirectDiscoveryEngine
             return;
         }
         Log.d(TAG, "startSdpService: starting service : " + description);
-        WifiP2pServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance(description.getServiceUuid().toString(), "_presence._tcp", description.getServiceRecord());
+        WifiP2pServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance(description.getServiceName(), SERVICE_TYPE , description.getServiceRecord());
         manager.addLocalService(channel, serviceInfo, new WifiP2pManager.ActionListener()
         {
             @Override
@@ -568,24 +571,28 @@ public class SdpWifiDirectDiscoveryEngine
      *         The device which hosts the service
      * @param serviceRecord
      *         The services TXT Records
-     * @param fullDomain
-     *         The services domain
+     * @param registrationType
+     *         The service type
      */
-    protected void onServiceDiscovered(WifiP2pDevice device, Map<String, String> serviceRecord, String fullDomain)
+    protected void onServiceDiscovered(WifiP2pDevice device, Map<String, String> serviceRecord, String registrationType, String instanceName)
     {
-        Log.d(TAG, "onServiceDiscovered: discovered a new Service on " + device);
-        ServiceDescription description = new ServiceDescription(serviceRecord);
+        Log.d(TAG, "onServiceDiscovered: ----discovered a new Service on " + device + "----");
+        if(!registrationType.equals(SERVICE_TYPE+".local.")){
+            Log.e(TAG, "onServiceDiscovered: not a " + SERVICE_TYPE + " service - stop");
+            return;
+        }
+        ServiceDescription description = new ServiceDescription(instanceName, serviceRecord);
         //--- updating discovered services list ---//
 
         boolean newService = false;
 
-        if (this.discoveredServices.containsKey(description)
+        if(this.discoveredServices.containsKey(description)
                 && this.discoveredServices.get(description).contains(device))
         {
             //--- service already cached ---//
             Log.d(TAG, "onServiceDiscovered: already knew the service");
         }
-        else if (!this.discoveredServices.containsKey(description))
+        else if(! this.discoveredServices.containsKey(description))
         {
             //--- service and device new ---//
             Log.d(TAG, "onServiceDiscovered: discovered new service");
@@ -598,17 +605,17 @@ public class SdpWifiDirectDiscoveryEngine
         {
             //--- device new ---//
             Log.d(TAG, "onServiceDiscovered: knew the service, but this is a new host");
-            discoveredServices.get(description).add(device);
+            Objects.requireNonNull(discoveredServices.get(description)).add(device);
             newService = true;
         }
-        if (newService)
+        if(newService)
         {
             onNewServiceDiscovered(device, description);
         }
     }
 
     /**
-     * Called by {@link #onServiceDiscovered(WifiP2pDevice, Map, String)}
+     * Called by {@link #onServiceDiscovered(WifiP2pDevice, Map, String, String)}
      * When the service was not already in {@link #discoveredServices}
      *
      * @param device
