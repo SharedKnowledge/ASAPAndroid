@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpBluetoothDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.bluetoothServiceDiscovery;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -12,7 +12,7 @@ import android.util.Log;
 /**
  * While a bluetooth device discovery is running, this
  * broadcast receiver will notify the SdpBluetooth engine 
- * about discovered devices using {@link SdpBluetoothDiscoveryEngine#onDeviceDiscovered(BluetoothDevice)}
+ * about discovered devices using {@link BluetoothDiscoveryEngine#onDeviceDiscovered(BluetoothDevice)}
  *
  * @author WilliBoelke
  */
@@ -30,7 +30,7 @@ class DeviceFoundReceiver extends BroadcastReceiver
     /**
      * SdpBluetooth engine to notify
      */
-    private final SdpBluetoothDiscoveryEngine discoveryEngine;
+    private final BluetoothDiscoveryEngine discoveryEngine;
 
 
     //
@@ -42,7 +42,7 @@ class DeviceFoundReceiver extends BroadcastReceiver
      * @param discoveryEngine
      * The discovery engine to be notified about discovered devices
      */
-    public DeviceFoundReceiver(SdpBluetoothDiscoveryEngine discoveryEngine){
+    public DeviceFoundReceiver(BluetoothDiscoveryEngine discoveryEngine){
         Log.d(TAG, "DeviceFoundReceiver: initialised receiver");
         this.discoveryEngine = discoveryEngine;
     }

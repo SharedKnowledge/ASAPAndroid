@@ -7,7 +7,7 @@ import android.os.Parcelable
 import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
-import net.sharksystem.asap.android.serviceDiscovery.serviceDescription.ServiceDescription
+import net.sharksystem.asap.android.serviceDiscovery.ServiceDescription
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
@@ -38,11 +38,31 @@ fun initTestMocks(){
     serviceAttributesFour["service-name"] = "Test Service Four"
     serviceAttributesFive["service-name"] = "Test Service Five"
 
-    testDescriptionOne = ServiceDescription  ("test service one",serviceAttributesOne)
-    testDescriptionTwo = ServiceDescription  ("test service two",serviceAttributesTwo)
-    testDescriptionThree = ServiceDescription("test service three",serviceAttributesTree)
-    testDescriptionFour = ServiceDescription ("test service four",serviceAttributesFour)
-    testDescriptionFive = ServiceDescription ("test service five",serviceAttributesFive)
+    testDescriptionOne =
+        ServiceDescription(
+            "test service one",
+            serviceAttributesOne
+        )
+    testDescriptionTwo =
+        ServiceDescription(
+            "test service two",
+            serviceAttributesTwo
+        )
+    testDescriptionThree =
+        ServiceDescription(
+            "test service three",
+            serviceAttributesTree
+        )
+    testDescriptionFour =
+        ServiceDescription(
+            "test service four",
+            serviceAttributesFour
+        )
+    testDescriptionFive =
+        ServiceDescription(
+            "test service five",
+            serviceAttributesFive
+        )
 
     testDescriptionOne.overrideUuidForBluetooth(testUUIDOne)
     testDescriptionTwo.overrideUuidForBluetooth(testUUIDTwo)

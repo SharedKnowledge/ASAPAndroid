@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.serviceDescription;
+package net.sharksystem.asap.android.serviceDiscovery;
 
 import androidx.annotation.NonNull;
 

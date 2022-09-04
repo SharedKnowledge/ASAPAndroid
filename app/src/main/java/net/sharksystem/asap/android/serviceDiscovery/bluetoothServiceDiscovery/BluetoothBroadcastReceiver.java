@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpBluetoothDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.bluetoothServiceDiscovery;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,7 +14,7 @@ import android.util.Log;
  * bluetooth api.
  *
  * The only broadcasts used here is the {@link BluetoothAdapter#ACTION_DISCOVERY_FINISHED}
- * which will cause {@link SdpBluetoothDiscoveryEngine#onDeviceDiscoveryFinished()}
+ * which will cause {@link BluetoothDiscoveryEngine#onDeviceDiscoveryFinished()}
  * to be called, this will start the UUID fetching process.
  *
  * -------
@@ -39,7 +39,7 @@ class BluetoothBroadcastReceiver extends BroadcastReceiver
     /*
     * Reference to the engine
     */
-    private final SdpBluetoothDiscoveryEngine discoveryEngine;
+    private final BluetoothDiscoveryEngine discoveryEngine;
 
 
     //
@@ -52,7 +52,7 @@ class BluetoothBroadcastReceiver extends BroadcastReceiver
      * SdpBluetoothDiscoveryEngine, to be notified
      * when certain intents are received.
      */
-    public BluetoothBroadcastReceiver(SdpBluetoothDiscoveryEngine engine){
+    public BluetoothBroadcastReceiver(BluetoothDiscoveryEngine engine){
             this.discoveryEngine = engine;
     }
     

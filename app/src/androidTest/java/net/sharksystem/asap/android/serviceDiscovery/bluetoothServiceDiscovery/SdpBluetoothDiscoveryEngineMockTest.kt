@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpBluetoothDiscovery
+package net.sharksystem.asap.android.serviceDiscovery.bluetoothServiceDiscovery
 
 import android.Manifest
 import android.arch.core.executor.testing.CountingTaskExecutorRule
@@ -11,7 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import junit.framework.TestCase.assertTrue
-import net.sharksystem.asap.android.serviceDiscovery.serviceDescription.ServiceDescription
+import net.sharksystem.asap.android.serviceDiscovery.ServiceDescription
 import net.sharksystem.asap.android.serviceDiscovery.testUtils.*
 import org.junit.After
 import org.junit.Before
@@ -111,20 +111,20 @@ class SdpBluetoothDiscoveryEngineMockTest {
         every { mockedBtAdapter.startDiscovery() } returns true
 
         //Run
-        SdpBluetoothDiscoveryEngine.getInstance().start(mockedContext, mockedBtAdapter)
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().start(mockedContext, mockedBtAdapter)
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
         initTestMocks()
     }
 
     @After
     fun teardown() {
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("teardownEngine")
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("teardownEngine")
     }
 
     @Test
     fun itShouldInitialize() {
         //Check
-        assertTrue(SdpBluetoothDiscoveryEngine.getInstance() != null)
+        assertTrue(BluetoothDiscoveryEngine.getInstance() != null)
     }
 
 
@@ -136,7 +136,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
     fun itNotifiesAboutEveryDiscoveredPeer() {
 
         val foundDevices: ArrayList<BluetoothDevice> = ArrayList()
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener( object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener( object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(host: BluetoothDevice?, description: ServiceDescription?) {
                 // not under test
@@ -148,13 +148,13 @@ class SdpBluetoothDiscoveryEngineMockTest {
             }
         })
 
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
         Thread.sleep(500)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", getTestDeviceOne())
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", getTestDeviceOne())
         Thread.sleep(200)
         assertTrue(foundDevices.size == 1)
         Thread.sleep(200)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", getTestDeviceTwo())
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", getTestDeviceTwo())
         Thread.sleep(200)
         assertTrue(foundDevices.size == 2)
     }
@@ -167,7 +167,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
     fun itFetchesUuidsOfAllDiscoveredDevicesAfterDeviceDiscoveryFinished() {
         val testDeviceOne = getTestDeviceOne()
         val testDeviceTwo = getTestDeviceTwo()
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener( object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener( object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(host: BluetoothDevice?, description: ServiceDescription?) {
                 // not under test
@@ -178,16 +178,16 @@ class SdpBluetoothDiscoveryEngineMockTest {
             }
 
         })
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
         verify(exactly = 0) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 0) {testDeviceTwo.fetchUuidsWithSdp()}
         verify(exactly = 0) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 0) {testDeviceTwo.fetchUuidsWithSdp()}
 
         // discovery finished:
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
         verify(exactly = 1) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 1) {testDeviceTwo.fetchUuidsWithSdp()}
     }
@@ -198,7 +198,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
         val testDeviceOne = getTestDeviceOne()
         val testDeviceTwo = getTestDeviceTwo()
 
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener( object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener( object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(host: BluetoothDevice?, description: ServiceDescription?) {
                 // not under test
@@ -210,19 +210,19 @@ class SdpBluetoothDiscoveryEngineMockTest {
 
         })
 
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
         verify(exactly = 0) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 0) {testDeviceTwo.fetchUuidsWithSdp()}
         verify(exactly = 0) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 0) {testDeviceTwo.fetchUuidsWithSdp()}
         // discovery finished:
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
         verify(exactly = 1) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 1) {testDeviceTwo.fetchUuidsWithSdp()}
 
-        SdpBluetoothDiscoveryEngine.getInstance().refreshNearbyServices()
+        BluetoothDiscoveryEngine.getInstance().refreshNearbyServices()
         verify(exactly = 2) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 2) {testDeviceTwo.fetchUuidsWithSdp()}
     }
@@ -234,7 +234,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
         val testDeviceTwo = getTestDeviceTwo()
         val foundDevices: ArrayList<BluetoothDevice> = ArrayList()
         val foundServices: ArrayList<ServiceDescription> = ArrayList()
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(
                 host: BluetoothDevice,
@@ -252,27 +252,27 @@ class SdpBluetoothDiscoveryEngineMockTest {
 
         // testDescription one has the testUuidTwo
         // which is part of testDeviceOne
-        SdpBluetoothDiscoveryEngine.getInstance().startSdpDiscoveryForService(testDescriptionTwo)
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
+        BluetoothDiscoveryEngine.getInstance().startDiscoveryForService(testDescriptionTwo)
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
 
         assertTrue(foundDevices.isEmpty())
         assertTrue(foundServices.isEmpty())
         // discovery finished:
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
 
         verify(exactly = 1) { testDeviceOne.fetchUuidsWithSdp() }
         verify(exactly = 1) { testDeviceTwo.fetchUuidsWithSdp() }
 
         // finds the service
-        SdpBluetoothDiscoveryEngine.getInstance()
+        BluetoothDiscoveryEngine.getInstance()
             .callPrivateFunc("onUuidsFetched", testDeviceOne, getTestUuidArrayOne())
         assertTrue(foundDevices[0] == testDeviceOne)
         assertTrue(foundServices[0] == testDescriptionTwo)
 
         // finds services it does not look for
-        SdpBluetoothDiscoveryEngine.getInstance()
+        BluetoothDiscoveryEngine.getInstance()
             .callPrivateFunc("onUuidsFetched", testDeviceTwo, getTestUuidArrayTwo())
         assertTrue(foundDevices.size == 1)
         assertTrue(foundServices.size == 1)
@@ -289,7 +289,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
 
         val foundDevices: ArrayList<BluetoothDevice> = ArrayList()
         val foundServices: ArrayList<ServiceDescription> = ArrayList()
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(
                 host: BluetoothDevice,
@@ -304,22 +304,22 @@ class SdpBluetoothDiscoveryEngineMockTest {
             }
 
         })
-        SdpBluetoothDiscoveryEngine.getInstance().startSdpDiscoveryForService(testDescriptionFive)
-        SdpBluetoothDiscoveryEngine.getInstance().startSdpDiscoveryForService(testDescriptionTwo)
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().startDiscoveryForService(testDescriptionFive)
+        BluetoothDiscoveryEngine.getInstance().startDiscoveryForService(testDescriptionTwo)
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
 
         // discovered device
         val testDeviceOne = getTestDeviceOne()
         val testDeviceTwo = getTestDeviceTwo()
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
 
         verify(exactly = 1) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 1) {testDeviceTwo.fetchUuidsWithSdp()}
 
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceTwo, getTestUuidArrayTwo())
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceOne, getTestUuidArrayOne())
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceTwo, getTestUuidArrayTwo())
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceOne, getTestUuidArrayOne())
 
         assertTrue(foundDevices.size == 2)
         assertTrue(foundDevices.contains(testDeviceOne) && foundDevices.contains(testDeviceTwo))
@@ -331,7 +331,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
     @Test
     fun itShouldPauseTheDiscoveryWhenRefreshingServices(){
         // discovered device
-        SdpBluetoothDiscoveryEngine.getInstance().refreshNearbyServices()
+        BluetoothDiscoveryEngine.getInstance().refreshNearbyServices()
         verify(exactly = 1) { mockedBtAdapter.cancelDiscovery() }
     }
 
@@ -341,7 +341,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
 
         val foundDevices: ArrayList<BluetoothDevice> = ArrayList()
         val foundServices: ArrayList<ServiceDescription> = ArrayList()
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(
                 host: BluetoothDevice,
@@ -356,24 +356,24 @@ class SdpBluetoothDiscoveryEngineMockTest {
             }
 
         })
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
 
         // discovered device
         val testDeviceOne = getTestDeviceOne()
         val testDeviceTwo = getTestDeviceTwo()
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceTwo)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
 
         verify(exactly = 1) {testDeviceOne.fetchUuidsWithSdp()}
         verify(exactly = 1) {testDeviceTwo.fetchUuidsWithSdp()}
 
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceTwo, getTestUuidArrayTwo())
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceOne, getTestUuidArrayOne())
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceTwo, getTestUuidArrayTwo())
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onUuidsFetched", testDeviceOne, getTestUuidArrayOne())
 
         // looking for the services at a later point
-        SdpBluetoothDiscoveryEngine.getInstance().startSdpDiscoveryForService(testDescriptionFive)
-        SdpBluetoothDiscoveryEngine.getInstance().startSdpDiscoveryForService(testDescriptionTwo)
+        BluetoothDiscoveryEngine.getInstance().startDiscoveryForService(testDescriptionFive)
+        BluetoothDiscoveryEngine.getInstance().startDiscoveryForService(testDescriptionTwo)
 
         assertTrue(foundDevices.size == 2)
         assertTrue(foundDevices.contains(testDeviceOne) && foundDevices.contains(testDeviceTwo))
@@ -400,7 +400,7 @@ class SdpBluetoothDiscoveryEngineMockTest {
         //Start client looking for uuid four, which is part of test array two
         val foundDevices: ArrayList<BluetoothDevice> = ArrayList()
         val foundServices: ArrayList<ServiceDescription> = ArrayList()
-        SdpBluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
+        BluetoothDiscoveryEngine.getInstance().registerDiscoverListener(object :
             BluetoothServiceDiscoveryListener {
             override fun onServiceDiscovered(
                 host: BluetoothDevice,
@@ -416,14 +416,14 @@ class SdpBluetoothDiscoveryEngineMockTest {
 
         })
 
-        SdpBluetoothDiscoveryEngine.getInstance().startSdpDiscoveryForService(testDescriptionTwo)
-        SdpBluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
-        SdpBluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
+        BluetoothDiscoveryEngine.getInstance().startDiscoveryForService(testDescriptionTwo)
+        BluetoothDiscoveryEngine.getInstance().startDeviceDiscovery()
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscovered", testDeviceOne)
+        BluetoothDiscoveryEngine.getInstance().callPrivateFunc("onDeviceDiscoveryFinished")
         verify(exactly = 1) {testDeviceOne.fetchUuidsWithSdp()}
 
         // fetches null array uuids
-        SdpBluetoothDiscoveryEngine.getInstance().callOnUuidsFetchedWithNullParam(testDeviceOne, null)
+        BluetoothDiscoveryEngine.getInstance().callOnUuidsFetchedWithNullParam(testDeviceOne, null)
         // nothing should happen , and no NullPointerException
         assertTrue(foundDevices.size == 0)
         assertTrue(foundServices.size == 0)

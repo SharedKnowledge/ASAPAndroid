@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpWifiDirectDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.wifiDirectServiceDiscovery;
 
 import static net.sharksystem.asap.android.serviceDiscovery.testUtils.DeviceRoleManager.DEVICE_A;
 import static net.sharksystem.asap.android.serviceDiscovery.testUtils.DeviceRoleManager.DEVICE_B;
@@ -20,7 +20,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.GrantPermissionRule;
 
-import net.sharksystem.asap.android.serviceDiscovery.serviceDescription.ServiceDescription;
+import net.sharksystem.asap.android.serviceDiscovery.bluetoothServiceDiscovery.BluetoothDiscoveryEngine;
+import net.sharksystem.asap.android.serviceDiscovery.ServiceDescription;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +38,7 @@ import java.util.HashMap;
 
 /**
  * The tests aim to test
- * {@link net.sharksystem.asap.android.serviceDiscovery.sdpBluetoothDiscovery.SdpBluetoothDiscoveryEngine}
+ * {@link BluetoothDiscoveryEngine}
  * on actual hardware.
  * <p>---------------------------------------------<p>
  * This is more experimental, and i aim to improve on
@@ -140,14 +141,14 @@ public class WifiDirectDiscoveryEngineLiveTest
         descriptionForServiceOne = new ServiceDescription("test service one", serviceAttributesOne);
         descriptionForServiceTwo = new ServiceDescription("test service two", serviceAttributesTwo);
         printDeviceInfo(InstrumentationRegistry.getInstrumentation().getTargetContext());
-        SdpWifiDirectDiscoveryEngine.getInstance();
-        SdpWifiDirectDiscoveryEngine.getInstance().start(InstrumentationRegistry.getInstrumentation().getTargetContext());
+        WifiDirectDiscoveryEngine.getInstance();
+        WifiDirectDiscoveryEngine.getInstance().start(InstrumentationRegistry.getInstrumentation().getTargetContext());
     }
 
     @After
     public void teardown() throws NullPointerException
     {
-        SdpWifiDirectDiscoveryEngine.getInstance().teardownEngine();
+        WifiDirectDiscoveryEngine.getInstance().teardownEngine();
     }
 
 
@@ -174,8 +175,8 @@ public class WifiDirectDiscoveryEngineLiveTest
 
     public void itShouldFindOneNearbyService_advertise() throws InterruptedException
     {
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
         synchronized (this)
         {
             this.wait(15000); // wait for test to finish
@@ -186,9 +187,9 @@ public class WifiDirectDiscoveryEngineLiveTest
     {
 
         final ServiceDescription[] foundServiceDescription = new ServiceDescription[1];
-        SdpWifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) -> foundServiceDescription[0] = description);
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpDiscoveryForService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) -> foundServiceDescription[0] = description);
+        WifiDirectDiscoveryEngine.getInstance().startDiscoveryForService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
 
         synchronized (this)
         {
@@ -227,9 +228,9 @@ public class WifiDirectDiscoveryEngineLiveTest
 
     public void itShouldFindTwoNearbyService_advertise() throws InterruptedException
     {
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceTwo);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceTwo);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
         synchronized (this)
         {
             this.wait(18000); // wait for test to finish
@@ -244,7 +245,7 @@ public class WifiDirectDiscoveryEngineLiveTest
         }
 
         ArrayList<ServiceDescription> foundServiceDescriptions = new ArrayList<>();
-        SdpWifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
+        WifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
         {
             Log.e(TAG, "Discovered service");
             if ((description.equals(descriptionForServiceOne) || description.equals(descriptionForServiceTwo))
@@ -253,9 +254,9 @@ public class WifiDirectDiscoveryEngineLiveTest
                 foundServiceDescriptions.add(description);
             }
         });
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpDiscoveryForService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpDiscoveryForService(descriptionForServiceTwo);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().startDiscoveryForService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startDiscoveryForService(descriptionForServiceTwo);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
 
         synchronized (this)
         {
@@ -292,8 +293,8 @@ public class WifiDirectDiscoveryEngineLiveTest
 
     public void iitShouldFindTwoNearbyServiceOnTwoDevices_advertise() throws InterruptedException
     {
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
         synchronized (this)
         {
             this.wait(18000);
@@ -308,7 +309,7 @@ public class WifiDirectDiscoveryEngineLiveTest
         }
         ArrayList<ServiceDescription> foundServiceDescriptions = new ArrayList<>();
         ArrayList<WifiP2pDevice> foundHosts = new ArrayList<>();
-        SdpWifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
+        WifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
         {
             Log.e(TAG, "itShouldFindTwoNearbyServiceOnTwoDevices_discover: --- " + host.deviceAddress);
             if (description.equals(descriptionForServiceOne) &&
@@ -319,8 +320,8 @@ public class WifiDirectDiscoveryEngineLiveTest
             }
         });
 
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpDiscoveryForService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().startDiscoveryForService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
 
         synchronized (this)
         {
@@ -354,9 +355,9 @@ public class WifiDirectDiscoveryEngineLiveTest
 
     public void itShouldNotifyAboutAllServices_advertise() throws InterruptedException
     {
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
-        SdpWifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceTwo);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceOne);
+        WifiDirectDiscoveryEngine.getInstance().startSdpService(descriptionForServiceTwo);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
         synchronized (this)
         {
             this.wait(18000);
@@ -371,7 +372,7 @@ public class WifiDirectDiscoveryEngineLiveTest
         }
         ArrayList<ServiceDescription> foundServiceDescriptions = new ArrayList<>();
         ArrayList<WifiP2pDevice> foundHosts = new ArrayList<>();
-        SdpWifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
+        WifiDirectDiscoveryEngine.getInstance().registerDiscoverListener((host, description) ->
         {
             Log.e(TAG, "itShouldFindTwoNearbyServiceOnTwoDevices_discover: --- " + host.deviceAddress);
             if ( (description.equals(descriptionForServiceOne) || description.equals(descriptionForServiceTwo)) &&
@@ -382,8 +383,8 @@ public class WifiDirectDiscoveryEngineLiveTest
             }
         });
 
-        SdpWifiDirectDiscoveryEngine.getInstance().notifyAboutEveryService(true);
-        SdpWifiDirectDiscoveryEngine.getInstance().startDiscovery();
+        WifiDirectDiscoveryEngine.getInstance().notifyAboutEveryService(true);
+        WifiDirectDiscoveryEngine.getInstance().startDiscovery();
 
         synchronized (this)
         {

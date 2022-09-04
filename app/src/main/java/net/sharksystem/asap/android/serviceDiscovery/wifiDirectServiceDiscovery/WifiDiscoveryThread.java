@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpWifiDirectDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.wifiDirectServiceDiscovery;
 
 import android.annotation.SuppressLint;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -18,7 +18,7 @@ import java.util.Map;
  * Retries are per default set to two, which increases the chance
  * of discovering a service (as my finding are).
  * A different amount of retries amy be set using the constructor
- * {@link #SdpWifiDiscoveryThread(WifiP2pManager, WifiP2pManager.Channel, SdpWifiDirectDiscoveryEngine, int)}
+ * {@link #WifiDiscoveryThread(WifiP2pManager, WifiP2pManager.Channel, WifiDirectDiscoveryEngine, int)}
  * or {@link #setTries(int)}
  *
  * As longs as there are retries left discovery will be restarted with
@@ -34,13 +34,13 @@ import java.util.Map;
  * SdpWifiDiscoveryEngine<br>
  * ------------------------------------------------------------<br>
  * Every discovered service will be passed to
- * {@link SdpWifiDirectDiscoveryEngine#onServiceDiscovered(WifiP2pDevice, Map, String, String)}
+ * {@link WifiDirectDiscoveryEngine#onServiceDiscovered(WifiP2pDevice, Map, String, String)}
  * only there the service records will be evaluated.
  *
  * @author WilliBoelke
  */
 @SuppressLint("MissingPermission")
-class SdpWifiDiscoveryThread extends Thread
+class WifiDiscoveryThread extends Thread
 {
     /**
      * Classname for logging
@@ -55,7 +55,7 @@ class SdpWifiDiscoveryThread extends Thread
 
     private int runningTries = 0;
 
-    private final SdpWifiDirectDiscoveryEngine engine;
+    private final WifiDirectDiscoveryEngine engine;
 
     private boolean isDiscovering;
 
@@ -80,7 +80,7 @@ class SdpWifiDiscoveryThread extends Thread
      * @param engine
      * The WifiDirectDiscoveryEngine to callback
      */
-    public SdpWifiDiscoveryThread(WifiP2pManager manager, WifiP2pManager.Channel channel, SdpWifiDirectDiscoveryEngine engine)
+    public WifiDiscoveryThread(WifiP2pManager manager, WifiP2pManager.Channel channel, WifiDirectDiscoveryEngine engine)
     {
         this.manager = manager;
         this.channel = channel;
@@ -100,7 +100,7 @@ class SdpWifiDiscoveryThread extends Thread
      * @param retries
      * number of retries
      */
-    public SdpWifiDiscoveryThread(WifiP2pManager manager, WifiP2pManager.Channel channel, SdpWifiDirectDiscoveryEngine engine, int retries)
+    public WifiDiscoveryThread(WifiP2pManager manager, WifiP2pManager.Channel channel, WifiDirectDiscoveryEngine engine, int retries)
     {
         this.manager = manager;
         this.channel = channel;
@@ -214,11 +214,9 @@ class SdpWifiDiscoveryThread extends Thread
 
     private void startDiscovery()
     {
-
         Log.d(TAG, "startDiscovery: started discovery");
 
         //--- clearing already running service requests ---//
-
         manager.clearServiceRequests(channel, new WifiP2pManager.ActionListener()
         {
             @Override
@@ -273,6 +271,7 @@ class SdpWifiDiscoveryThread extends Thread
         });
     }
 
+
     //
     //  ---------- others ----------
     //
@@ -292,7 +291,7 @@ class SdpWifiDiscoveryThread extends Thread
             @Override
             public void onFailure(int reason)
             {
-                SdpWifiDirectDiscoveryEngine.logReason(TAG,"DiscoveryThread: cancel: could not clear service requests ", reason);
+                WifiDirectDiscoveryEngine.logReason(TAG,"DiscoveryThread: cancel: could not clear service requests ", reason);
             }
         });
         Log.d(TAG, "cancel: canceled service discovery");

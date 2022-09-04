@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpBluetoothDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.bluetoothServiceDiscovery;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,7 +10,8 @@ import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.util.Log;
 
-import net.sharksystem.asap.android.serviceDiscovery.serviceDescription.ServiceDescription;
+import net.sharksystem.asap.android.serviceDiscovery.DiscoveryEngine;
+import net.sharksystem.asap.android.serviceDiscovery.ServiceDescription;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import java.util.UUID;
  * <p>
  * Discover Services<br>
  * ------------------------------------------------------------<br>
- * Services can be discovered using {@link #startSdpDiscoveryForService(ServiceDescription)}
+ * Services can be discovered using {@link #startDiscoveryForService(ServiceDescription)}
  * For a service to be found it is mandatory to run a device discovery using 
  * {@link #startDeviceDiscovery()}.
  * <p>
@@ -39,7 +40,7 @@ import java.util.UUID;
  * <p>
  * The device discovery can be started before or after a service discovery was started.
  * as long as a service discovery runs and was not ended via
- * {@link #stopSdpDiscoveryForService(ServiceDescription)}} services will be discovered
+ * {@link #stopDiscoveryForService(ServiceDescription)}} services will be discovered
  * on all subsequently and previously discovered devices.
  * <p>
  * Note<br>
@@ -101,7 +102,7 @@ import java.util.UUID;
  *
  * @author WilliBoelke
  */
-public class SdpBluetoothDiscoveryEngine
+public class BluetoothDiscoveryEngine extends DiscoveryEngine
 {
     //
     //  ---------- static members ----------
@@ -109,7 +110,7 @@ public class SdpBluetoothDiscoveryEngine
     /**
      * Instance of the class following the singleton pattern
      */
-    private static SdpBluetoothDiscoveryEngine instance;
+    private static BluetoothDiscoveryEngine instance;
 
     //
     //  ----------  instance variables  ----------
@@ -137,12 +138,6 @@ public class SdpBluetoothDiscoveryEngine
      * and removed on ACTION_ACL_DISCONNECTED.
      */
     private final ArrayList<BluetoothDevice> discoveredDevices =  new ArrayList<>();
-
-    /**
-     * Stores UUIDs of services which should be discovered
-     * (and connected to)
-     */
-    private ArrayList<ServiceDescription> servicesToLookFor =  new ArrayList<>();
 
     /**
      * BroadcastReceiver listening at discovered devices intent
@@ -183,10 +178,10 @@ public class SdpBluetoothDiscoveryEngine
      *
      * // Todo find a better solution
      *
-     * @see SdpBluetoothDiscoveryEngine#shouldCheckLittleEndianUuids(boolean)
+     * @see BluetoothDiscoveryEngine#shouldCheckLittleEndianUuids(boolean)
      * @see ServiceDescription#getBytewiseReverseUuid()
-     * @see SdpBluetoothDiscoveryEngine#notifyListenersIfServiceIsAvailable(BluetoothDevice, Parcelable[]) 
-     * @see SdpBluetoothDiscoveryEngine#notifyListenersAboutServices(BluetoothDevice, Parcelable[])
+     * @see BluetoothDiscoveryEngine#notifyListenersIfServiceIsAvailable(BluetoothDevice, Parcelable[])
+     * @see BluetoothDiscoveryEngine#notifyListenersAboutServices(BluetoothDevice, Parcelable[])
      */
     private boolean checkLittleEndianUuids = true;
 
@@ -200,7 +195,6 @@ public class SdpBluetoothDiscoveryEngine
 
     private boolean notifyAboutAllServices = false;
 
-    private boolean engineRunning;
 
 
     //
@@ -213,11 +207,11 @@ public class SdpBluetoothDiscoveryEngine
      * @return
      * The singleton instance of the discovery engine
      */
-    public static SdpBluetoothDiscoveryEngine getInstance()
+    public static BluetoothDiscoveryEngine getInstance()
     {
         if (instance == null)
         {
-            instance = new SdpBluetoothDiscoveryEngine();
+            instance = new BluetoothDiscoveryEngine();
         }
         return instance;
     }
@@ -226,7 +220,7 @@ public class SdpBluetoothDiscoveryEngine
     /**
      * Private constructor initializing the singleton {@link #instance}
      */
-    private SdpBluetoothDiscoveryEngine()
+    private BluetoothDiscoveryEngine()
     {
         this.foundDeviceReceiver = new DeviceFoundReceiver(this);
         this.fetchedUuidReceiver = new UUIDFetchedReceiver(this);
@@ -288,7 +282,6 @@ public class SdpBluetoothDiscoveryEngine
     //
     //  ----------  shutdown and teardown ----------
     //
-
 
     /**
      * Stops the service discovery
@@ -370,7 +363,7 @@ public class SdpBluetoothDiscoveryEngine
     /**
      * Starts discovering other devices
      * NOTE : devices not services, use
-     * {@link #startSdpDiscoveryForService(ServiceDescription)}
+     * {@link #startDiscoveryForService(ServiceDescription)}
      * to start a service discovery.
      *
      * A device discovery has to run before services will be discovered.
@@ -428,30 +421,23 @@ public class SdpBluetoothDiscoveryEngine
      * Devices tha will be discovered from now on (given that the bluetooth discovery is enabled)
      * <p>
      * The service discovery will run till
-     * {@link SdpBluetoothDiscoveryEngine#stopSdpDiscoveryForService(ServiceDescription)
+     * {@link BluetoothDiscoveryEngine#stopDiscoveryForService(ServiceDescription)
      * with the same UUID is called,  no matter hwo many devies will be disovered ill then.
      * (Or to make i short, this wont stop afer the first connecion was made)
      *
      * @param serviceUUID
      *         The UUID of the service to connect o
      */
-    public void startSdpDiscoveryForService(ServiceDescription description)
+    @Override
+    public void startDiscoveryForService(ServiceDescription description)
     {
-        if(engineIsNotRunning()){
-            Log.e(TAG, "startSDPDiscoveryForService: engine is not running - wont start");
-        }
-        Log.d(TAG, "Starting service discovery");
-        // Are we already looking for he service?
-        if (this.isServiceAlreadyInDiscovery(description))
-        {
-            Log.d(TAG, "startSDPDiscoveryForServiceWithUUID: Service discovery already running ");
-            return;
-        }
+        super.startDiscoveryForService(description);
+    }
 
-        // Trying to find service on devices hat where discovered earlier in the engine run
+    @Override
+    protected void onNewServiceToDiscover(ServiceDescription description)
+    {
         this.tryToFindAlreadyDiscoveredServices(description);
-        // Adding the service to  be found in the future
-        this.servicesToLookFor.add(description);
     }
 
     /**
@@ -468,31 +454,18 @@ public class SdpBluetoothDiscoveryEngine
      * @param description
      *  The service description
      */
-    public void stopSdpDiscoveryForService(ServiceDescription description)
+    @Override
+    public void stopDiscoveryForService(ServiceDescription description)
     {
-        if(engineIsNotRunning()){
-            Log.e(TAG, "stopSDPDiscoveryForService: engine is not running - wont start");
-        }
-        Log.d(TAG, "End service discovery for service with UUID " + description.toString());
-        // removing from list of services
-        this.servicesToLookFor.remove(description);
+        super.stopDiscoveryForService(description);
+    }
 
-        // removing the client from the list
+    @Override
+    protected void onServiceRemoveFromDiscovery(ServiceDescription description)
+    {
         this.cancelDiscoveryIfNothingToLookFor();
     }
 
-    /**
-     * Checks if the service description is already in {@link #servicesToLookFor} list
-     *
-     * @param description
-     *         Description of the service to look for
-     *
-     * @return false if the service is not in the list, else returns true
-     */
-    private boolean isServiceAlreadyInDiscovery(ServiceDescription description)
-    {
-        return servicesToLookFor.contains(description);
-    }
 
     /**
      * Checks if {@link #servicesToLookFor} is empty
@@ -757,32 +730,12 @@ public class SdpBluetoothDiscoveryEngine
      *
      * @param all
      * boolean - true to notify about all services, false to just notify about the ones
-     * given through {@link #startSdpDiscoveryForService(ServiceDescription)}
+     * given through {@link #startDiscoveryForService(ServiceDescription)}
      */
     public void notifyAboutAllServices(boolean all){
         Log.d(TAG, "notifyAboutAllServices: notifying about all service = " + all);
         this.notifyAboutAllServices = all;
     }
 
-
-    /**
-     * Returns true if the engine was started successfully
-     * using {@link #start(Context)},
-     * This needs a working BluetoothAdapter to be available on the device
-     *
-     * @return
-     * running state of the engine
-     */
-    public boolean isRunning(){
-        return this.engineRunning;
-    }
-
-    /**
-     * @return
-     * Returns true if the engine is not running
-     */
-    private boolean engineIsNotRunning(){
-        return !this.engineRunning;
-    }
 }
 

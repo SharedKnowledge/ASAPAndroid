@@ -4,6 +4,8 @@ package net.sharksystem.asap.android.serviceDiscovery.serviceDescription;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
+import net.sharksystem.asap.android.serviceDiscovery.ServiceDescription;
+
 import org.junit.Test;
 
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpWifiDirectDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.wifiDirectServiceDiscovery;
 
 import static android.net.wifi.p2p.WifiP2pManager.BUSY;
 import static android.net.wifi.p2p.WifiP2pManager.ERROR;
@@ -16,7 +16,8 @@ import android.util.Log;
 
 import androidx.annotation.RequiresPermission;
 
-import net.sharksystem.asap.android.serviceDiscovery.serviceDescription.ServiceDescription;
+import net.sharksystem.asap.android.serviceDiscovery.DiscoveryEngine;
+import net.sharksystem.asap.android.serviceDiscovery.ServiceDescription;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,11 +33,11 @@ import java.util.Objects;
  * ------------------------------------------------------------<br>
  * To Search for a specific Service a {@link ServiceDescription}
  * can be registered through
- * {@link #startSdpDiscoveryForService(ServiceDescription)}.
+ * {@link #startDiscoveryForService(ServiceDescription)}.
  * Several serves can be searched simultaneously by calling there methods with different
- * ServiceDescription`s. {@link #startSdpDiscoveryForService(ServiceDescription)}
+ * ServiceDescription`s. {@link #startDiscoveryForService(ServiceDescription)}
  * wont return any services immediately.
- * To stop the search for a service call {@link #stopSdpDiscovery(ServiceDescription)}
+ * To stop the search for a service call {@link #stopDiscoveryForService(ServiceDescription)}
  * <p>
  * Service advertisement<br>
  * ------------------------------------------------------------<br>
@@ -72,7 +73,7 @@ import java.util.Objects;
  * To stop the engine call {@link #stop()}
  */
 @SuppressLint("MissingPermission")
-public class SdpWifiDirectDiscoveryEngine
+public class WifiDirectDiscoveryEngine extends DiscoveryEngine
 {
 
     //
@@ -82,7 +83,7 @@ public class SdpWifiDirectDiscoveryEngine
     /**
      * The singleton instance
      */
-    private static SdpWifiDirectDiscoveryEngine instance;
+    private static WifiDirectDiscoveryEngine instance;
 
     //
     //  ----------  instance members ----------
@@ -120,13 +121,7 @@ public class SdpWifiDirectDiscoveryEngine
     /**
      * Reverence to the currently running discovery thread
      */
-    private SdpWifiDiscoveryThread discoveryThread;
-
-    /**
-     * The UUID of the service to discover
-     * this will be set in {@link #startSdpDiscoveryForService(ServiceDescription)}
-     */
-    private final ArrayList<ServiceDescription> servicesToLookFor = new ArrayList<>();
+    private WifiDiscoveryThread discoveryThread;
 
     /**
      * Keeps all started services (WifiP2pServiceInfo)
@@ -155,13 +150,6 @@ public class SdpWifiDirectDiscoveryEngine
      */
     private boolean shouldNotifyAboutAll;
 
-    /**
-     * Determines if the engine was or not
-     *
-     * @see #start(WifiP2pManager, WifiP2pManager.Channel)
-     * @see #stop()
-     */
-    private boolean engineRunning = false;
     //
     //  ----------  constructor and initialization ----------
     //
@@ -171,11 +159,11 @@ public class SdpWifiDirectDiscoveryEngine
      *
      * @return instance
      */
-    public static SdpWifiDirectDiscoveryEngine getInstance()
+    public static WifiDirectDiscoveryEngine getInstance()
     {
         if (instance == null)
         {
-            instance = new SdpWifiDirectDiscoveryEngine();
+            instance = new WifiDirectDiscoveryEngine();
         }
         return instance;
     }
@@ -183,7 +171,7 @@ public class SdpWifiDirectDiscoveryEngine
     /**
      * Private singleton constructor
      */
-    private SdpWifiDirectDiscoveryEngine()
+    private WifiDirectDiscoveryEngine()
     {
         // empty private constructor
     }
@@ -268,7 +256,7 @@ public class SdpWifiDirectDiscoveryEngine
     /**
      * This starts the discovery process, which will discover all nearby services
      * this is just the discovery process, to get notified about a service
-     * it needs to be specified in {@link #startSdpDiscoveryForService(ServiceDescription)}
+     * it needs to be specified in {@link #startDiscoveryForService(ServiceDescription)}
      */
     public void startDiscovery()
     {
@@ -280,7 +268,7 @@ public class SdpWifiDirectDiscoveryEngine
         Log.d(TAG, "startDiscovery: staring discovery");
         this.discoveredServices = new HashMap<>();
         this.stopDiscovery();
-        this.discoveryThread = new SdpWifiDiscoveryThread(manager, channel, this);
+        this.discoveryThread = new WifiDiscoveryThread(manager, channel, this);
         discoveryThread.start();
     }
 
@@ -314,35 +302,35 @@ public class SdpWifiDirectDiscoveryEngine
      * @param description
      *         The Service description
      */
-    public void startSdpDiscoveryForService(ServiceDescription description)
+    @Override
+    public void startDiscoveryForService(ServiceDescription description)
     {
-        if (engineIsNotRunning())
-        {
-            Log.e(TAG, "startSdpDiscoveryForService: engine not running - wont start discovery");
-            return;
-        }
-        Log.d(TAG, "startSDPDiscoveryForService Starting service discovery for " + description);
-        // Are we already looking for he service?
-        this.servicesToLookFor.add(description);
+        super.startDiscoveryForService(description);
+    }
+
+    @Override
+    protected void onNewServiceToDiscover(ServiceDescription description)
+    {
+       // checkIfServiceAlreadyHasBeenDiscovered(description);
     }
 
     /**
      * This stops the discovery for the service given previously
-     * trough calling {@link #startSdpDiscoveryForService(ServiceDescription)} (UUID, SdpWifiPeer)}.
+     * trough calling {@link #startDiscoveryForService(ServiceDescription)} (UUID, SdpWifiPeer)}.
      * <p>
      * This however does not end any existing connections and does not cancel the overall service discovery
      * refer to {@link #stopDiscovery()}
      */
-    public void stopSdpDiscovery(ServiceDescription description)
+    @Override
+    public void stopDiscoveryForService(ServiceDescription description)
     {
-        if (engineIsNotRunning())
-        {
-            Log.e(TAG, "stopSDPDiscovery: engine not running - wont stop discovery");
-            return;
-        }
-        Log.d(TAG, "stopSDPDiscovery End service discovery for service with " + description);
-        this.servicesToLookFor.remove(description);
-        this.stopDiscovery();
+        super.stopDiscoveryForService(description);
+    }
+
+    @Override
+    protected void onServiceRemoveFromDiscovery(ServiceDescription description)
+    {
+        // nothing to do here s
     }
 
     /**
@@ -499,7 +487,7 @@ public class SdpWifiDirectDiscoveryEngine
      * @param listener
      *         implementation of then listener interface
      *
-     * @see #unregisterDiscoveryListener(WifiServiceDiscoveryListener) ()
+     * @see #unregisterDiscoveryListener(WifiServiceDiscoveryListener)
      */
     public void registerDiscoverListener(WifiServiceDiscoveryListener listener)
     {
@@ -560,8 +548,8 @@ public class SdpWifiDirectDiscoveryEngine
     //
 
     /**
-     * Called by the {@link SdpWifiDiscoveryThread}
-     * Since the {@link SdpWifiDiscoveryThread} may discover services 2 or more times
+     * Called by the {@link WifiDiscoveryThread}
+     * Since the {@link WifiDiscoveryThread} may discover services 2 or more times
      * this method checks the incoming services through a cache kept in {@link #discoveredServices}
      * which will be kept until a new discovery is started.
      * If the Pair {service, device} is not yet cached
@@ -646,31 +634,13 @@ public class SdpWifiDirectDiscoveryEngine
     /**
      * Setting this to true will notify ALL registered listener
      * about every discovered service.
-     * Even though the service was not registered through {@link #startSdpDiscoveryForService}.
+     * Even though the service was not registered through {@link #startDiscoveryForService}.
      * This can be deactivate again at any time by calling this method again with false
      */
     public void notifyAboutEveryService(boolean shouldNotifyAboutAll)
     {
         this.shouldNotifyAboutAll = shouldNotifyAboutAll;
     }
-
-    /**
-     * Returns true if the engine was started successfully
-     * using {@link #start(Context)},
-     * This needs a working BluetoothAdapter to be available on the device
-     *
-     * @return running state of the engine
-     */
-    public boolean isRunning()
-    {
-        return this.engineRunning;
-    }
-
-    private boolean engineIsNotRunning()
-    {
-        return !this.engineRunning;
-    }
-
 
     protected static void logReason(String tag, String msg, int arg0)
     {

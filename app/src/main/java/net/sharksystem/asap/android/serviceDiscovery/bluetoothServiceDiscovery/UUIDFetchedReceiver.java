@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.serviceDiscovery.sdpBluetoothDiscovery;
+package net.sharksystem.asap.android.serviceDiscovery.bluetoothServiceDiscovery;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -10,7 +10,7 @@ import android.util.Log;
 
 /**
  * Listens on {@link BluetoothDevice#ACTION_UUID}, notifies the
- * engine by calling {@link SdpBluetoothDiscoveryEngine#onUuidsFetched(BluetoothDevice, Parcelable[])}
+ * engine by calling {@link BluetoothDiscoveryEngine#onUuidsFetched(BluetoothDevice, Parcelable[])}
  * when UUIDs where fetched.
  */
 class UUIDFetchedReceiver extends BroadcastReceiver
@@ -28,7 +28,7 @@ class UUIDFetchedReceiver extends BroadcastReceiver
     /**
      * The SdpBluetoothDiscoveryEngine to be notified
      */
-    private final SdpBluetoothDiscoveryEngine discoveryEngine;
+    private final BluetoothDiscoveryEngine discoveryEngine;
 
 
     //
@@ -40,7 +40,7 @@ class UUIDFetchedReceiver extends BroadcastReceiver
      * @param discoveryEngine
      * The SdpBluetoothDiscoveryEngine to be notified
      */
-    public UUIDFetchedReceiver(SdpBluetoothDiscoveryEngine discoveryEngine)
+    public UUIDFetchedReceiver(BluetoothDiscoveryEngine discoveryEngine)
     {
         this.discoveryEngine = discoveryEngine;
     }
