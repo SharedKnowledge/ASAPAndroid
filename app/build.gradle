@@ -2,16 +2,17 @@
 https://developer.android.com/studio/projects/android-library
  */
 
-// choose one line either for an app or a lib
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
-//apply plugin: 'com.android.library'
+// choose one line either for an app or a lib
+//apply plugin: 'com.android.application'
+//apply plugin: 'kotlin-android'
+apply plugin: 'com.android.library'
+
 android {
     compileSdkVersion 31
     defaultConfig {
         // we produce a library by commenting out that line:
-        applicationId "net.sharksystem.asap.example"
+        //applicationId "net.sharksystem.asap.example"
         minSdkVersion 23
         targetSdkVersion 31
         versionCode 1
