@@ -15,8 +15,8 @@ import net.sharksystem.asap.android.service.MacLayerEngine;
 import net.sharksystem.asap.android.service.ASAPService;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
-import net.sharksystem.streams.StreamPair;
-import net.sharksystem.streams.StreamPairImpl;
+import net.sharksystem.utils.streams.StreamPair;
+import net.sharksystem.utils.streams.StreamPairImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;

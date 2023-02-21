@@ -5,7 +5,7 @@ import android.os.Message;
 import android.util.Log;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.utils.Helper;
+import net.sharksystem.utils.SerializationHelper;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -150,7 +150,7 @@ public class ASAPServiceMessage {
         }
         if(this.recipients != null && this.readableName.length() > 0) {
             bundle.putString(ASAPServiceMethods.RECIPIENTS_TAG,
-                    Helper.collection2String(this.recipients)); setAnything = true;
+                    SerializationHelper.collection2String(this.recipients)); setAnything = true;
         }
         if(this.readableName != null && this.readableName.length() > 0) {
             bundle.putString(ASAPServiceMethods.READABLE_NAME_TAG, this.readableName);
@@ -308,7 +308,7 @@ public class ASAPServiceMessage {
     private void parseRecipients(Bundle msgData, boolean mandatory) throws ASAPException {
         String recipientsString = msgData.getString(ASAPServiceMethods.RECIPIENTS_TAG);
         if(recipientsString != null && recipientsString.length() > 0) {
-            this.recipients = Helper.string2CharSequenceSet(recipientsString);
+            this.recipients = SerializationHelper.string2CharSequenceSet(recipientsString);
         } else {
             if(mandatory) {
                 throw new ASAPException("recipients list must not be null/empty");

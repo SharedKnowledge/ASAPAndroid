@@ -1,14 +1,11 @@
 package net.sharksystem.asap.android.service;
 
-import android.Manifest;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.os.Messenger;
-import androidx.core.content.ContextCompat;
 import android.util.Log;
 
 import net.sharksystem.SharkPeerBasic;
@@ -18,6 +15,7 @@ import net.sharksystem.asap.ASAPEncounterManagerImpl;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPHop;
+import net.sharksystem.asap.ASAPMessages;
 import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.ASAPPeerService;
@@ -28,13 +26,11 @@ import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.lora.LoRaEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
-import net.sharksystem.asap.engine.ASAPChunkReceivedListener;
-import net.sharksystem.asap.utils.Helper;
+import net.sharksystem.asap.engine.ASAPChunkAssimilatedListener;
 import net.sharksystem.hub.peerside.ASAPHubManager;
 import net.sharksystem.hub.peerside.ASAPHubManagerImpl;
-import net.sharksystem.hub.peerside.HubConnector;
 import net.sharksystem.hub.peerside.HubConnectorDescription;
-import net.sharksystem.hub.peerside.HubConnectorFactory;
+import net.sharksystem.utils.SerializationHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +46,7 @@ import java.util.Set;
  */
 
 public class ASAPService extends Service
-        implements ASAPChunkReceivedListener, ASAPEnvironmentChangesListener {
+        implements ASAPChunkAssimilatedListener, ASAPEnvironmentChangesListener {
 
     /** time in minutes until a new connection attempt is made to an already paired device is made*/
     public static final int WAIT_MINUTES_UNTIL_TRY_RECONNECT = 1; // debugging: TODO
@@ -490,7 +486,7 @@ public class ASAPService extends Service
     private List<ASAPChunkReceivedBroadcastIntent> chunkReceivedBroadcasts = new ArrayList<>();
 
     @Override
-    public void chunkReceived(String format, String senderE2E, String uri, int era, // E2E part
+    public void chunkStored(String format, String senderE2E, String uri, int era, // E2E part
                               List<ASAPHop> asapHops) {
 
         Log.d(this.getLogStart(), "was notified by asap engine that chunk received - broadcast. Uri: "
@@ -514,6 +510,15 @@ public class ASAPService extends Service
             this.chunkReceivedBroadcasts.add(intent);
         }
     }
+
+
+    @Override
+    public void transientMessagesReceived(ASAPMessages asapMessages, ASAPHop asapHop) throws IOException {
+        // TODO urgent
+        Log.e(this.getLogStart(), "transientMessagesReceived not yet implemented");
+
+    }
+
 
     public void resumeBroadcasts() {
         Log.d(this.getLogStart(), "resumeBroadcasts");
@@ -543,7 +548,7 @@ public class ASAPService extends Service
         Log.d(this.getLogStart(), "onlinePeersChanged");
 
         // broadcast
-        String serializedOnlinePeers = Helper.collection2String(onlinePeers);
+        String serializedOnlinePeers = SerializationHelper.collection2String(onlinePeers);
         Log.d(this.getLogStart(), "online peers serialized: " + serializedOnlinePeers);
 
         ASAPServiceRequestNotifyIntent intent =

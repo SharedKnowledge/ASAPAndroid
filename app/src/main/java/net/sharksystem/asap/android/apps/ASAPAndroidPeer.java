@@ -25,8 +25,8 @@ import net.sharksystem.asap.android.ASAPAndroid;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
-import net.sharksystem.asap.utils.Helper;
 import net.sharksystem.asap.utils.PeerIDHelper;
+import net.sharksystem.utils.SerializationHelper;
 import net.sharksystem.utils.Utils;
 
 import java.io.IOException;
@@ -96,7 +96,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
-        String supportFormatsString = Helper.collection2String(supportedFormats);
+        String supportFormatsString = SerializationHelper.collection2String(supportedFormats);
         net.sharksystem.utils.Log.writeLog(ASAPAndroidPeer.class,
                 "write memento: " + supportFormatsString + " | " + asapOwner
                         + " | " + rootFolder);
@@ -125,7 +125,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
         try {
             new ASAPAndroidPeer(
                     // supported formats
-                    Helper.string2CharSequenceSet(
+                    SerializationHelper.string2CharSequenceSet(
                             sharedPref.getString(ASAPAndroidPeer.SUPPORTED_FORMATS, "")),
                     // owner
                     sharedPref.getString(ASAPAndroidPeer.OWNER, ASAPPeer.UNKNOWN_USER.toString()),
@@ -588,7 +588,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
                        EncounterConnectionType connectionType) throws IOException;
              */
             // delegate to local peer proxy
-            this.getASAPPeerApplicationSide().chunkReceived(
+            this.getASAPPeerApplicationSide().chunkStored(
                     asapReceivedIntent.getFormat().toString(),
                     asapReceivedIntent.getSenderE2E().toString(),
                     asapReceivedIntent.getUri().toString(),
@@ -750,7 +750,7 @@ public class ASAPAndroidPeer extends BroadcastReceiver implements ASAPPeer {
     }
 
     @Override
-    public void sendOnlineASAPMessage(CharSequence format, CharSequence uri, byte[] message)
+    public void sendTransientASAPMessage(CharSequence format, CharSequence uri, byte[] message)
             throws ASAPException {
         this.sendASAPMessage(format, uri, message, false);
     }

@@ -8,22 +8,20 @@ apply plugin: 'kotlin-android'
 
 //apply plugin: 'com.android.library'
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     defaultConfig {
         // we produce a library by commenting out that line:
         applicationId "net.sharksystem.asap.example"
         minSdkVersion 23
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        consumerProguardFiles "consumer-rules.pro"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            consumerProguardFiles "consumer-rules.pro"
         }
     }
 }

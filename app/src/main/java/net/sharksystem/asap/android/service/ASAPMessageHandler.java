@@ -139,7 +139,7 @@ class ASAPMessageHandler extends Handler {
             );
             Log.d(this.getLogStart(), "sent message (and stored for re-delivery)");
         } else {
-            asapPeer.sendOnlineASAPMessage(
+            asapPeer.sendTransientASAPMessage(
                     asapMessage.getFormat(),
                     asapMessage.getURI(),
                     asapMessage.getASAPMessage());

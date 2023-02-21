@@ -14,6 +14,7 @@ import net.sharksystem.asap.android.R;
 // TODO do not work with internal classes in any example!!
 import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.asap.engine.ASAPEngineFS;
+import net.sharksystem.utils.fs.FSUtils;
 
 import java.io.IOException;
 import java.util.Set;
@@ -179,7 +180,7 @@ public class ASAPExampleActivity extends ASAPActivity {
                 getApplicationRootFolder(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME);
         Log.d(this.getLogStart(), "going to clean folder:  " + absoluteFolderName);
 
-        ASAPEngineFS.removeFolder(absoluteFolderName);
+        FSUtils.removeFolder(absoluteFolderName);
 
         Log.d(this.getLogStart(), "create asap storage with:  "
                 + this.getASAPAndroidPeer().getOwnerID()
