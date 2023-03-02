@@ -13,6 +13,7 @@ import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.R;
 // TODO do not work with internal classes in any example!!
 import net.sharksystem.asap.android.apps.ASAPActivity;
+import net.sharksystem.asap.android.hub_e2e.ASAPHubE2EActivity;
 import net.sharksystem.asap.engine.ASAPEngineFS;
 import net.sharksystem.utils.fs.FSUtils;
 
@@ -33,6 +34,7 @@ public class ASAPExampleActivity extends ASAPActivity {
         View stopBTButton = findViewById(R.id.stopBT);
         View startLoRaButton = findViewById(R.id.startLoRa);
         View stopLoRaButton = findViewById(R.id.stopLoRa);
+        View startASAPHubPerformanceTests = findViewById(R.id.onASAPHubPerformanceTestButton);
 
         if(view == startWifiButton) {
             Log.d(this.getLogStart(), "start wifi button pressed - send message");
@@ -73,6 +75,9 @@ public class ASAPExampleActivity extends ASAPActivity {
         else if(view == stopLoRaButton) {
             Log.d(this.getLogStart(), "stop LoRa button pressed - send message");
             super.stopLoRa();
+        }else if(view == startASAPHubPerformanceTests) {
+            Log.d(this.getLogStart(), "start ASAPHub Performance Tests button pressed");
+            this.startActivity(new Intent(this, ASAPHubE2EActivity.class));
         }
     }
 

@@ -92,9 +92,16 @@
         android:text="go2 asap messaging"
         android:layout_gravity="left|top" />
 
+    <Button
+        android:id="@+id/onASAPHubPerformanceTestButton"
+        android:onClick="onClick"
+        android:text="ASAPHub Performance Test"
+        android:layout_gravity="left|top" />
+
     <TextView
         android:id="@+id/onlinePeersList"
-        android:text="Online Peers List - not yet set"/>
+        android:text="Online Peers List - not yet set"
+        android:layout_gravity="left|bottom" />
         <!--
         android:layout_width="103dp"
         android:layout_height="48dp"
