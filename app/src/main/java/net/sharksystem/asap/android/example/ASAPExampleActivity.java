@@ -8,12 +8,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import net.sharksystem.asap.ASAPException;
-import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.ASAPStorage;
 import net.sharksystem.asap.android.R;
 // TODO do not work with internal classes in any example!!
 import net.sharksystem.asap.android.apps.ASAPActivity;
-import net.sharksystem.asap.android.hub_e2e.ASAPHubE2EActivity;
 import net.sharksystem.asap.engine.ASAPEngineFS;
 import net.sharksystem.utils.fs.FSUtils;
 
@@ -34,21 +32,19 @@ public class ASAPExampleActivity extends ASAPActivity {
         View stopBTButton = findViewById(R.id.stopBT);
         View startLoRaButton = findViewById(R.id.startLoRa);
         View stopLoRaButton = findViewById(R.id.stopLoRa);
-        View startASAPHubPerformanceTests = findViewById(R.id.onASAPHubPerformanceTestButton);
+        View startHubTester = findViewById(R.id.onASAPHubTesterButton);
 
-        if(view == startWifiButton) {
+
+        if (view == startWifiButton) {
             Log.d(this.getLogStart(), "start wifi button pressed - send message");
             super.startWifiP2P();
-        }
-        else if(view == stopWifiButton) {
+        } else if (view == stopWifiButton) {
             Log.d(this.getLogStart(), "stop wifi button pressed - send message");
             super.stopWifiP2P();
-        }
-        else if(view == startBTButton) {
+        } else if (view == startBTButton) {
             Log.d(this.getLogStart(), "start bt button pressed - ask service to start bt");
             super.startBluetooth();
-        }
-        else if(view == stopBTButton) {
+        } else if (view == stopBTButton) {
             Log.d(this.getLogStart(), "stop bt button pressed - send message");
             super.stopBluetooth();
         }
@@ -62,22 +58,20 @@ public class ASAPExampleActivity extends ASAPActivity {
             this.startBluetoothDiscovery();
         }
         */
-        else if(view == findViewById(R.id.startDiscoverableAndDiscovery)) {
+        else if (view == findViewById(R.id.startDiscoverableAndDiscovery)) {
             Log.d(this.getLogStart(),
                     "start disoverable and discover button pressed - send messages");
             super.startBluetoothDiscovery();
             super.startBluetoothDiscoverable();
-        }
-        else if(view == startLoRaButton) {
+        } else if (view == startLoRaButton) {
             Log.d(this.getLogStart(), "start LoRa button pressed - send message");
             super.startLoRa();
-        }
-        else if(view == stopLoRaButton) {
+        } else if (view == stopLoRaButton) {
             Log.d(this.getLogStart(), "stop LoRa button pressed - send message");
             super.stopLoRa();
-        }else if(view == startASAPHubPerformanceTests) {
-            Log.d(this.getLogStart(), "start ASAPHub Performance Tests button pressed");
-            this.startActivity(new Intent(this, ASAPHubE2EActivity.class));
+        } else if (view == startHubTester) {
+            Log.d(this.getLogStart(), "start Hub Tester button pressed");
+            this.startActivity(new Intent(this, ASAPExampleHubTesterActivity.class));
         }
     }
 
@@ -90,13 +84,13 @@ public class ASAPExampleActivity extends ASAPActivity {
 
         TextView peerListTextView = this.findViewById(R.id.onlinePeersList);
 
-        if(onlinePeerList == null || onlinePeerList.size() < 1) {
+        if (onlinePeerList == null || onlinePeerList.size() < 1) {
             peerListTextView.setText("no peers online");
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append("peers online:");
             sb.append("\n");
-            for(CharSequence peerID : onlinePeerList) {
+            for (CharSequence peerID : onlinePeerList) {
                 sb.append("id: ");
                 sb.append(peerID);
                 sb.append("\n");
@@ -167,11 +161,9 @@ public class ASAPExampleActivity extends ASAPActivity {
     public void onSetupCleanASAPStorageClick(View view) {
         try {
             this.setupCleanASAPStorage();
-        }
-        catch (IOException | ASAPException e) {
+        } catch (IOException | ASAPException e) {
             Log.d(this.getLogStart(), "exception: " + e.getLocalizedMessage());
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             Log.d(this.getLogStart(), "runtime exception: " + e.getLocalizedMessage());
         }
     }
@@ -196,8 +188,8 @@ public class ASAPExampleActivity extends ASAPActivity {
         );
 
         this.asapStorage = ASAPEngineFS.getASAPStorage(
-                        this.getASAPAndroidPeer().getOwnerID().toString(),
-                        this.getASAPAndroidPeer().getApplicationRootFolder(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME),
+                this.getASAPAndroidPeer().getOwnerID().toString(),
+                this.getASAPAndroidPeer().getApplicationRootFolder(ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME),
                 ExampleAppDefinitions.ASAP_EXAMPLE_APPNAME);
     }
 
@@ -241,7 +233,7 @@ public class ASAPExampleActivity extends ASAPActivity {
     }
 
     private void checkStorage() throws IOException, ASAPException {
-        if(this.asapStorage == null) {
+        if (this.asapStorage == null) {
             Log.d(this.getLogStart(), "storage not yet initialized - clean and setup:  " + MESSAGE);
             this.setupCleanASAPStorage();
         }
