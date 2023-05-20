@@ -8,8 +8,8 @@ import android.os.IBinder;
 import android.os.Messenger;
 import android.util.Log;
 
-import net.sharksystem.SharkPeerBasic;
-import net.sharksystem.SharkPeerBasicImpl;
+import net.sharksystem.SharkException;
+import net.sharksystem.asap.ASAPConnectionHandler;
 import net.sharksystem.asap.ASAPEncounterManager;
 import net.sharksystem.asap.ASAPEncounterManagerImpl;
 import net.sharksystem.asap.ASAPEnvironmentChangesListener;
@@ -27,18 +27,16 @@ import net.sharksystem.asap.android.lora.LoRaEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 import net.sharksystem.asap.engine.ASAPChunkAssimilatedListener;
+import net.sharksystem.hub.HubConnectionManager;
+import net.sharksystem.hub.HubConnectionManagerMessageHandler;
 import net.sharksystem.hub.peerside.ASAPHubManager;
 import net.sharksystem.hub.peerside.ASAPHubManagerImpl;
-import net.sharksystem.hub.peerside.HubConnectorDescription;
 import net.sharksystem.utils.SerializationHelper;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -62,6 +60,7 @@ public class ASAPService extends Service
     private long maxExecutionTime;
     private ArrayList<CharSequence> supportedFormats;
     private ASAPHubManager asapASAPHubManager;
+    private HubConnectionManagerMessageHandler hubConnectionManager;
 
     String getASAPRootFolderName() {
         return this.asapEngineRootFolderName;
@@ -138,6 +137,17 @@ public class ASAPService extends Service
         return this.asapEncounterManager;
     }
 
+    public synchronized HubConnectionManagerMessageHandler getHubConnectionManager()  {
+        if(this.hubConnectionManager == null) {
+            this.hubConnectionManager =
+                    new HubConnectionManagerServiceSide(
+                            this.getASAPEncounterManager(),
+                            this.getASAPPeer());
+        }
+
+        return this.hubConnectionManager;
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////
     //                                 live cycle methods                               //
     //////////////////////////////////////////////////////////////////////////////////////
@@ -203,7 +213,7 @@ public class ASAPService extends Service
         this.asapEngineRootFolderName = asapRoot.getAbsolutePath();
         Log.d(this.getLogStart(),"work with folder: " + this.asapEngineRootFolderName);
 
-        this.startReconnectPairedDevices();
+        //this.startReconnectPairedDevices(); // TODO good idea - crashes emulators
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -371,6 +381,15 @@ public class ASAPService extends Service
         }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////
+    //                                   hub management                                 //
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    public void refreshHubConnectionList(boolean defaultMultichannel) {
+        // TODO
+    }
+
+    /*
     void connectASAPHubs(boolean multichannel) {
         Log.d(this.getLogStart(), "connect hubs called");
         // create a wrapper around our ASAPPeer
@@ -396,6 +415,7 @@ public class ASAPService extends Service
 
         this.sendBroadcast(intent);
     }
+     */
 
     void disconnectASAPHubs() {
         this.getASAPHubManager().disconnectASAPHubs();
@@ -451,7 +471,7 @@ public class ASAPService extends Service
 
     private class ReconnectTrigger extends Thread {
         private boolean terminated = false;
-        public static final int MAX_FAILATTEMPTS = 3;
+        public static final int MAX_FAILED_ATTEMPTS = 3;
 
         void terminate() { this.terminated = true; }
 
@@ -462,7 +482,7 @@ public class ASAPService extends Service
             while (!this.terminated) {
                 if(!ASAPService.this.tryReconnect()) {
                     failedAttemptsCounter++;
-                    if(failedAttemptsCounter == MAX_FAILATTEMPTS) {
+                    if(failedAttemptsCounter == MAX_FAILED_ATTEMPTS) {
                         this.terminate();
                         break;
                     }

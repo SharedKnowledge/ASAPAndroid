@@ -11,6 +11,8 @@ import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.android.ASAPServiceMessage;
 import net.sharksystem.asap.android.ASAPServiceMethods;
+import net.sharksystem.hub.peerside.AbstractHubConnectorDescription;
+import net.sharksystem.hub.peerside.HubConnectorDescription;
 
 import java.io.IOException;
 
@@ -93,13 +95,29 @@ class ASAPMessageHandler extends Handler {
                     this.asapService.stopLoRa();
                     break;
 
-                case ASAPServiceMethods.CONNECT_ASAP_HUBS:
-                    this.asapService.connectASAPHubs(DEFAULT_MULTICHANNEL);
+                // // HUB_CONNECTION_CHANGED
+                // (byte[] serializedHubConnectorDescription, boolean connect/disconnect);
+                case ASAPServiceMethods.HUB_CONNECTION_CHANGED:
+                    Log.d(this.getLogStart(), "handleMessage HUB_CONNECTION_CHANGED called");
+                    byte[] serializedHcd =
+                        msg.getData().getByteArray(ASAPServiceMessage.HUB_CONNECTOR_DESCRIPTION_TAG);
+
+                    HubConnectorDescription hcd = null;
+                    if(serializedHcd != null) {
+                        // deserialize hub connector description
+                        hcd = AbstractHubConnectorDescription.
+                            createHubConnectorDescription(serializedHcd);
+                    }
+                    // connect or disconnect
+                    boolean connect = msg.getData().getBoolean(ASAPServiceMethods.BOOLEAN_PARAMETER);
+
+                    // call hub manager to handle request
+                    this.asapService.getHubConnectionManager().connectionChanged(hcd, connect);
                     break;
 
-                case ASAPServiceMethods.DISCONNECT_ASAP_HUBS:
-                    this.asapService.disconnectASAPHubs();
-                    break;
+                // ASK_HUB_CONNECTIONS; no parameters.
+                case ASAPServiceMethods.ASK_HUB_CONNECTIONS:
+                    this.asapService.getHubConnectionManager().refreshHubList();
 
                 default:
                     super.handleMessage(msg);

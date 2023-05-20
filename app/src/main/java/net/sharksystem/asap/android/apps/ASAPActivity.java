@@ -28,9 +28,8 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotification
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
-import net.sharksystem.hub.peerside.HubConnectorFactory;
+import net.sharksystem.hub.HubConnectionManager;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +45,7 @@ public class ASAPActivity extends AppCompatActivity implements
     private boolean mBound;
 
     private ASAPAndroidPeer asapAndroidPeer;
+    private HubConnectionManagerApplicationSide hubConnectionManager;
 
     protected ASAPAndroidPeer getASAPAndroidPeer() {
         if(!ASAPAndroidPeer.peerInitialized()) {
@@ -61,6 +61,14 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     protected ASAPPeer getASAPPeer() { return this.getASAPAndroidPeer(); }
+
+    protected HubConnectionManager getHubConnectionManager() {
+        if(this.hubConnectionManager == null) {
+            Log.d(this.getLogStart(), "setup connection manager");
+            this.hubConnectionManager = new HubConnectionManagerApplicationSide(this);
+        }
+        return this.hubConnectionManager;
+    }
 
     /**
      * Create a closed asap channel. Ensure to call this method before ever sending a message into
@@ -311,7 +319,8 @@ public class ASAPActivity extends AppCompatActivity implements
      */
     public void connectASAPHubs() {
         Log.d(this.getLogStart(), "send message to service: start ASAP hubs");
-        this.sendMessage2Service(ASAPServiceMethods.CONNECT_ASAP_HUBS);
+        this.sendMessage2Service(MessageFactory.
+                createHubConnectionChangedMessage(null, true));
     }
 
     /**
@@ -320,7 +329,8 @@ public class ASAPActivity extends AppCompatActivity implements
      */
     public void disconnectASAPHubs() {
         Log.d(this.getLogStart(), "send message to service: stop ASAP hubs");
-        this.sendMessage2Service(ASAPServiceMethods.DISCONNECT_ASAP_HUBS);
+        this.sendMessage2Service(MessageFactory.
+                createHubConnectionChangedMessage(null, false));
     }
 
     /////////////////////////////////////////////////////////////////////////////////////

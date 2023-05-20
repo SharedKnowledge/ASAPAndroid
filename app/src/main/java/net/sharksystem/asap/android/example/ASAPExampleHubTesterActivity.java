@@ -1,18 +1,14 @@
 package net.sharksystem.asap.android.example;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 
-import net.sharksystem.SharkPeerBasic;
-import net.sharksystem.SharkPeerBasicImpl;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPHop;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
@@ -61,6 +57,8 @@ public class ASAPExampleHubTesterActivity extends ASAPActivity {
 
         int port = Integer.parseInt(portString);
 
+        /*
+
         SharkPeerBasic sharkPeerBasic = new SharkPeerBasicImpl(this.getASAPPeer());
 //        this.getASAPAndroidPeer().sendASAPMessage("app/x-asapHubtest", "asap://app",
 //                String.format("hello from android peer %s", this.getASAPPeer().getPeerID()).getBytes());
@@ -73,6 +71,7 @@ public class ASAPExampleHubTesterActivity extends ASAPActivity {
             Log.w(this.getLogStart(), s);
             Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
         }
+         */
 
         if(on) {
             this.connectASAPHubs();

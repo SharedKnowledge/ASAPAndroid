@@ -6,8 +6,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+/*
 import net.sharksystem.SharkPeerBasic;
 import net.sharksystem.SharkPeerBasicImpl;
+ */
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPActivity;
 import net.sharksystem.hub.peerside.TCPHubConnectorDescriptionImpl;
@@ -22,6 +24,7 @@ public class ASAPExampleHubManagementActivity extends ASAPActivity {
     }
 
     private void hubAction(boolean on) {
+        /*
         EditText hostnameET = findViewById(R.id.hostname);
         String hostName = hostnameET.getText().toString();
 
@@ -47,6 +50,7 @@ public class ASAPExampleHubManagementActivity extends ASAPActivity {
         } else {
             this.disconnectASAPHubs();
         }
+         */
     }
 
     public void onConnectHubButtonClick(View view) {
