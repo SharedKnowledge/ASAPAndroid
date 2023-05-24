@@ -1,37 +1,52 @@
 package net.sharksystem.asap.android.example;
 
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 
+import net.sharksystem.SharkException;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPHop;
 import net.sharksystem.asap.ASAPMessageReceivedListener;
 import net.sharksystem.asap.ASAPMessages;
 import net.sharksystem.asap.android.R;
 import net.sharksystem.asap.android.apps.ASAPActivity;
+import net.sharksystem.asap.android.apps.HubConnectionManagerApplicationSide;
+import net.sharksystem.asap.android.apps.HubManagerStatusChangedListener;
+import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.hub.ASAPHubException;
+import net.sharksystem.hub.HubConnectionManager;
+import net.sharksystem.hub.peerside.HubConnectorDescription;
 import net.sharksystem.hub.peerside.TCPHubConnectorDescriptionImpl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class ASAPExampleHubTesterActivity extends ASAPActivity {
-    // TODO use this Activity as blueprint to refactor the ASAPExampleHubManagementActivity class
+public class ASAPExampleHubTesterActivity extends ASAPActivity implements HubManagerStatusChangedListener {
     private TextView messageTextView;
     private ASAPMessageReceivedListener receivedListener;
-
+    private HubConnectionManagerApplicationSide hubConnectionManager;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.example_hub_tester_layout);
-        messageTextView = findViewById(R.id.textViewReceivedASAPMessages);
 
+        listView = findViewById(R.id.listViewAvailableHubs);
+        messageTextView = findViewById(R.id.textViewReceivedASAPMessages);
+        hubConnectionManager = (HubConnectionManagerApplicationSide) this.getHubConnectionManager();
+        hubConnectionManager.addListener(this);
         this.receivedListener = new ASAPMessageReceivedListener() {
             @Override
             public void asapMessagesReceived(ASAPMessages asapMessages,
@@ -40,13 +55,9 @@ public class ASAPExampleHubTesterActivity extends ASAPActivity {
                 ASAPExampleHubTesterActivity.this.doHandleReceivedMessages(asapMessages);
             }
         };
-
-        this.getASAPAndroidPeer().addASAPMessageReceivedListener(
-                "myformat", // listen to this app
-                this.receivedListener);
     }
 
-    private void hubAction(boolean on) throws ASAPException {
+    private void hubAction(boolean on) {
         EditText hostnameET = findViewById(R.id.hostname);
         String hostName = hostnameET.getText().toString();
 
@@ -56,6 +67,18 @@ public class ASAPExampleHubTesterActivity extends ASAPActivity {
         boolean multiChannel = multiChannelSwitch.isActivated();
 
         int port = Integer.parseInt(portString);
+
+        HubConnectionManagerApplicationSide connectionManager = (HubConnectionManagerApplicationSide) this.getHubConnectionManager();
+//        connectionManager.
+        try {
+            HubConnectorDescription hcd = new TCPHubConnectorDescriptionImpl(hostName, port, multiChannel);
+            connectionManager.connectHub(hcd);
+            Toast.makeText(this, "connected to hub", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (SharkException e) {
+            throw new RuntimeException(e);
+        }
 
         /*
 
@@ -76,7 +99,6 @@ public class ASAPExampleHubTesterActivity extends ASAPActivity {
         if(on) {
             this.connectASAPHubs();
 
-            Toast.makeText(this, "connected to hub", Toast.LENGTH_SHORT).show();
         } else {
             this.disconnectASAPHubs();
         }
@@ -89,9 +111,29 @@ public class ASAPExampleHubTesterActivity extends ASAPActivity {
     public void onDisconnectHubButtonClick(View view) throws ASAPException {
         this.hubAction(false);
     }
+    public void onRefreshButtonClick(View view) throws ASAPException {
+        HubConnectionManagerApplicationSide connectionManager = (HubConnectionManagerApplicationSide) this.getHubConnectionManager();
+        connectionManager.refreshHubList();
+
+    }
 
     private void doHandleReceivedMessages(ASAPMessages asapMessages) {
         Log.d("mytag", "going to handle received messages with uri: "
                 + asapMessages.getURI());
+    }
+
+    @Override
+    public void notifyHubListReceived() {
+        List<String> connectedHubs = new ArrayList<>();
+        for(HubConnectorDescription hcd:hubConnectionManager.getConnectedHubs()){
+            try {
+                connectedHubs.add(hcd.getHostName().toString());
+            } catch (ASAPHubException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        listView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, connectedHubs.toArray(new String[0])));
+
+
     }
 }

@@ -85,8 +85,30 @@
         android:id="@+id/textViewReceivedASAPMessages"
         android:layout_width="248dp"
         android:layout_height="147dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="52dp"
         android:text="TextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listViewAvailableHubs" />
+
+    <Button
+        android:id="@+id/refreshHubListButton"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_marginTop="20dp"
+        android:onClick="onRefreshButtonClick"
+        android:text="refresh"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewReceivedASAPMessages" />
+
+    <ListView
+        android:id="@+id/listViewAvailableHubs"
+        android:layout_width="207dp"
+        android:layout_height="73dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />

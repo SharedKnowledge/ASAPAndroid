@@ -1,5 +1,8 @@
 package net.sharksystem.asap.android.service2AppMessaging;
 
+import net.sharksystem.hub.peerside.HubConnectorDescription;
+
+import java.util.List;
 import java.util.Set;
 
 public interface ASAPServiceNotificationListener {
@@ -20,4 +23,6 @@ public interface ASAPServiceNotificationListener {
     void asapNotifyHubsConnected();
 
     void asapNotifyHubsDisconnected();
+
+    void asapNotifyHubListAvailable(List<HubConnectorDescription> hubConnectorDescriptions);
 }

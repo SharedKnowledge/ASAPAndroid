@@ -29,6 +29,7 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListe
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
 import net.sharksystem.hub.HubConnectionManager;
+import net.sharksystem.hub.peerside.HubConnectorDescription;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -634,6 +635,11 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     public void asapNotifyHubsDisconnected() {
         this.getASAPAndroidPeer().notifyASAPHubsConnected(false);
+    }
+
+    @Override
+    public void asapNotifyHubListAvailable(List<HubConnectorDescription> hubConnectorDescriptions) {
+        this.hubConnectionManager.updateHubList(hubConnectorDescriptions);
     }
 
     /**

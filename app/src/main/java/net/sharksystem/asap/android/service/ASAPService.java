@@ -140,9 +140,8 @@ public class ASAPService extends Service
     public synchronized HubConnectionManagerMessageHandler getHubConnectionManager()  {
         if(this.hubConnectionManager == null) {
             this.hubConnectionManager =
-                    new HubConnectionManagerServiceSide(
-                            this.getASAPEncounterManager(),
-                            this.getASAPPeer());
+                    new HubConnectionManagerServiceSide(this.getASAPEncounterManager(),
+                            this.getASAPPeer(), this);
         }
 
         return this.hubConnectionManager;

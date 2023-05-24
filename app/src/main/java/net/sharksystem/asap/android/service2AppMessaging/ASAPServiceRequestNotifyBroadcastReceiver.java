@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
+import net.sharksystem.hub.peerside.TCPHubConnectorDescriptionImpl;
 import net.sharksystem.utils.SerializationHelper;
 
+import java.io.IOException;
 import java.util.Set;
 
 public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver {
@@ -96,6 +99,18 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_HUBS_DISCONNECTED:
                 Log.d(this.getLogStart(), "notified hubs disconnected");
                 this.notificationListener.asapNotifyHubsDisconnected();
+                break;
+            case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_HUB_LIST_AVAILABLE:
+                Log.d(this.getLogStart(), "notified received current hub list");
+                byte[] serializedHubDescriptions = intent.getByteArrayExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1);
+                try {
+                    this.notificationListener.asapNotifyHubListAvailable(TCPHubConnectorDescriptionImpl.
+                            deserializeHubConnectorDescriptionList(serializedHubDescriptions));
+                } catch (IOException |ASAPException e) {
+                    Log.e(this.getLogStart(),
+                            String.format("error while deserialization of HubDescriptorList: %s",
+                                    e.getLocalizedMessage()));
+                }
                 break;
 
             default:
