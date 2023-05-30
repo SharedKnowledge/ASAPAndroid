@@ -55,8 +55,7 @@
 
             android:layout_alignParentBottom="true"
             android:inputType="text"
-            android:text="46.38.241.150" />
-
+            android:hint="host" />
         <Space
             android:layout_width="20dp"
             android:layout_height="wrap_content" />
@@ -81,39 +80,51 @@
             android:text="multichannel" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/textViewReceivedASAPMessages"
-        android:layout_width="248dp"
-        android:layout_height="147dp"
-        android:layout_marginTop="52dp"
-        android:text="TextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listViewAvailableHubs" />
-
     <Button
         android:id="@+id/refreshHubListButton"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="24dp"
         android:onClick="onRefreshButtonClick"
-        android:text="refresh"
+        android:text="refresh lists"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewReceivedASAPMessages" />
+        app:layout_constraintTop_toBottomOf="@+id/listViewFailedAttempts" />
 
     <ListView
         android:id="@+id/listViewAvailableHubs"
-        android:layout_width="207dp"
-        android:layout_height="73dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="250dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
-</androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!--        android:text="asaphub.f4.htw-berlin.de" -->
+    <ListView
+        android:id="@+id/listViewFailedAttempts"
+        android:layout_width="250dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listViewAvailableHubs" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="connected hubs:"
+        app:layout_constraintBottom_toTopOf="@+id/listViewAvailableHubs"
+        app:layout_constraintStart_toStartOf="@+id/listViewAvailableHubs" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="failed attempts:"
+        app:layout_constraintBottom_toTopOf="@+id/listViewFailedAttempts"
+        app:layout_constraintStart_toStartOf="@+id/listViewFailedAttempts" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
 
 

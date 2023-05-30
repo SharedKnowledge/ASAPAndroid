@@ -17,18 +17,29 @@ public class HubConnectionManagerApplicationSide
         implements HubConnectionManager {
 
     private final ASAPActivity asapActivity;
-    private HubManagerStatusChangedListener hubManagerStatusChangedListener;
-    private List<HubManagerStatusChangedListener> listener = new ArrayList<>();
+    private final List<HubManagerStatusChangedListener> listener = new ArrayList<>();
 
 
     public HubConnectionManagerApplicationSide(ASAPActivity asapActivity) {
         this.asapActivity = asapActivity;
     }
 
+    /**
+     *  Establishes a connection an ASAPHub
+     * @param hcd HubConnectorDescription containing the connection information
+     * @throws SharkException
+     * @throws IOException
+     */
     public void connectHub(HubConnectorDescription hcd) throws SharkException, IOException {
         this.syncLists();
         super.connectHub(hcd);
         this.connectionChanged(hcd, true);
+    }
+
+    public void disconnectHub(HubConnectorDescription hcd) throws SharkException, IOException {
+        this.syncLists();
+        super.disconnectHub(hcd);
+        this.connectionChanged(hcd, false);
     }
 
     public void connectionChanged(
@@ -52,6 +63,11 @@ public class HubConnectionManagerApplicationSide
         this.asapActivity.sendMessage2Service(MessageFactory.createAskForActiveHubConnections());
     }
 
+    /**
+     * Is called by the ASAPActivity after receiving a broadcast message as response to the
+     * request sent in refreshHubList()
+     * @param hubConnectorDescriptions
+     */
     public void updateHubList(List<HubConnectorDescription> hubConnectorDescriptions){
         this.hcdListHub = hubConnectorDescriptions;
         for(HubManagerStatusChangedListener l : listener) {

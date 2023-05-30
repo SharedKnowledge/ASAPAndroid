@@ -39,8 +39,13 @@ public class HubConnectionManagerServiceSide
             // TODO
             return;
         }
-        if(connect) super.connectHub(hcd);
-        this.hubManager.connectASAPHubs(this.hcdList, this.asapPeer, true);
+        if(connect){
+            super.connectHub(hcd);
+            this.hubManager.connectASAPHubs(this.hcdList, this.asapPeer, true);
+        }else {
+            // TODO implement
+            // TODO extend ASAPHubManager to be able to disconnect from certain hub
+        }
     }
 
     @Override

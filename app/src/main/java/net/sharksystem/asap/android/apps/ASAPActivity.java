@@ -11,12 +11,14 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+
 import androidx.annotation.CallSuper;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.util.Log;
 import android.widget.Toast;
 
+import net.sharksystem.SharkException;
 import net.sharksystem.asap.ASAPException;
 import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.android.ASAPAndroid;
@@ -31,6 +33,7 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotif
 import net.sharksystem.hub.HubConnectionManager;
 import net.sharksystem.hub.peerside.HubConnectorDescription;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,7 +52,7 @@ public class ASAPActivity extends AppCompatActivity implements
     private HubConnectionManagerApplicationSide hubConnectionManager;
 
     protected ASAPAndroidPeer getASAPAndroidPeer() {
-        if(!ASAPAndroidPeer.peerInitialized()) {
+        if (!ASAPAndroidPeer.peerInitialized()) {
             Log.d(this.getLogStart(), "application side peer not yet initialized - try to restore from memory");
             Log.d(this.getLogStart(), "this == " + this);
             ASAPAndroidPeer.restoreFromMemento(this); // can throw exception
@@ -61,10 +64,12 @@ public class ASAPActivity extends AppCompatActivity implements
         return this.asapAndroidPeer;
     }
 
-    protected ASAPPeer getASAPPeer() { return this.getASAPAndroidPeer(); }
+    protected ASAPPeer getASAPPeer() {
+        return this.getASAPAndroidPeer();
+    }
 
     protected HubConnectionManager getHubConnectionManager() {
-        if(this.hubConnectionManager == null) {
+        if (this.hubConnectionManager == null) {
             Log.d(this.getLogStart(), "setup connection manager");
             this.hubConnectionManager = new HubConnectionManagerApplicationSide(this);
         }
@@ -75,8 +80,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Create a closed asap channel. Ensure to call this method before ever sending a message into
      * that channel. Any prior message would create an open channel with unrestricted recipient list.
      * (It sound worse than it is, though. Have a look at the concept description of ASAP.)
-     * @param appName format / appName of your application and its ASAPEngine
-     * @param uri describes content within your application
+     *
+     * @param appName    format / appName of your application and its ASAPEngine
+     * @param uri        describes content within your application
      * @param recipients list of recipients. Only peers on that list will even get this message.
      *                   This is more than setting access rights. It like a registered letter.
      *                   Peers which are not on the list will not even be aware of the existence
@@ -84,7 +90,7 @@ public class ASAPActivity extends AppCompatActivity implements
      * @throws ASAPException
      */
     public final void createClosedASAPChannel(CharSequence appName, CharSequence uri,
-                    Collection<CharSequence> recipients) throws ASAPException {
+                                              Collection<CharSequence> recipients) throws ASAPException {
 
         ASAPServiceMessage createClosedChannelMessage =
                 ASAPServiceMessage.createCreateClosedChannelMessage(appName, uri, recipients);
@@ -95,14 +101,15 @@ public class ASAPActivity extends AppCompatActivity implements
     /**
      * Send asap message. If that channel does not exist: it will be created as open channel
      * (unrestricted recipient list). Closed channels must be created before
-     * @param appName format / appName of your application and its ASAPEngine
-     * @param uri describes content within your application
-     * @param message application specific message as bytes.
+     *
+     * @param appName    format / appName of your application and its ASAPEngine
+     * @param uri        describes content within your application
+     * @param message    application specific message as bytes.
      * @param persistent keep in an asap store and resent in following asap sessions
      * @throws ASAPException
      */
     public final void sendASAPMessage(CharSequence appName, CharSequence uri,
-                    byte[] message, boolean persistent) throws ASAPException {
+                                      byte[] message, boolean persistent) throws ASAPException {
         Log.d(this.getLogStart(), "ask service to send: "
                 + "format: " + appName
                 + "| uri: " + uri
@@ -202,14 +209,15 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     private List<Message> messageStorage = null;
+
     protected void sendMessage2Service(int messageNumber) {
         ASAPServiceMessage asapServiceMessage = ASAPServiceMessage.createMessage(messageNumber);
         Message msg = asapServiceMessage.getMessage();
 
-        if(this.mService == null) {
+        if (this.mService == null) {
             Log.d(this.getLogStart(), "service not yet available - cannot send but store message");
-            if(this.messageStorage == null) {
-                this.messageStorage  = new ArrayList<Message>();
+            if (this.messageStorage == null) {
+                this.messageStorage = new ArrayList<Message>();
             }
             this.messageStorage.add(msg);
         } else {
@@ -291,7 +299,6 @@ public class ASAPActivity extends AppCompatActivity implements
      * asapNotifyBTDiscoverableStarted() is called later.
      * There is not matching stop method. Bluetooth discoverability is stopped after some time
      * from Android. asapNotifyBTDiscoverableStopped() is called in this case.
-     *
      */
     public void startBluetoothDiscoverable() {
         Log.d(this.getLogStart(), "send message to service: start BT Discoverable");
@@ -304,7 +311,6 @@ public class ASAPActivity extends AppCompatActivity implements
      * asapNotifyBTDiscoveryStarted() is called later.
      * There is not matching stop method. Bluetooth discovery is stopped after some time
      * from Android. asapNotifyBTDiscoveryStopped() is called in this case.
-     *
      */
     public void startBluetoothDiscovery() {
         Log.d(this.getLogStart(), "send message to service: start BT Discovery");
@@ -318,20 +324,32 @@ public class ASAPActivity extends AppCompatActivity implements
     /**
      * Call this message to connect all known hubs and run encounter attempts in regular intervals.
      */
-    public void connectASAPHubs() {
+    public void connectASAPHubs(HubConnectorDescription hcd) {
+        // TODO discuss whether it should be possible to connect multiple hubs at once calling
+        // this method
         Log.d(this.getLogStart(), "send message to service: start ASAP hubs");
-        this.sendMessage2Service(MessageFactory.
-                createHubConnectionChangedMessage(null, true));
+        try {
+            this.hubConnectionManager.connectHub(hcd);
+        } catch (SharkException | IOException e) {
+            Log.e(this.getLogStart(), String.format("Failed to connect to hub '%s': %s",
+                    hcd.toString(), e.getLocalizedMessage()));
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * Call this message to connect cancel all hub connections. Your app will be back in
      * Ad-hoc communication only mode.
      */
-    public void disconnectASAPHubs() {
+    public void disconnectASAPHubs(HubConnectorDescription hcd) {
         Log.d(this.getLogStart(), "send message to service: stop ASAP hubs");
-        this.sendMessage2Service(MessageFactory.
-                createHubConnectionChangedMessage(null, false));
+        try {
+            this.hubConnectionManager.disconnectHub(hcd);
+        } catch (SharkException | IOException e) {
+            Log.e(this.getLogStart(), String.format("Failed to disconnect from hub '%s': %s",
+                    hcd.toString(), e.getLocalizedMessage()));
+            throw new RuntimeException(e);
+        }
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -354,7 +372,7 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     private void stopASAPEngineBroadcasts() {
-        if(this.getASAPAndroidPeer().getNumberASAPActivities() == 1) {
+        if (this.getASAPAndroidPeer().getNumberASAPActivities() == 1) {
             Log.d(this.getLogStart(), "send message to service: stop ASAP Engine Broadcasts");
             this.sendMessage2Service(ASAPServiceMethods.STOP_BROADCASTS);
         } else {
@@ -388,15 +406,14 @@ public class ASAPActivity extends AppCompatActivity implements
 
     private void shutdownASAPServiceNotificationBroadcastReceiver() {
         Log.d(this.getLogStart(), "shutdown asap service rq / notification bc receiver");
-        if(this.srbc == null) {
+        if (this.srbc == null) {
             Log.e(this.getLogStart(), "bc receiver is null");
             return;
         }
 
         try {
             this.unregisterReceiver(this.srbc);
-        }
-        catch(RuntimeException re) {
+        } catch (RuntimeException re) {
             Log.d(this.getLogStart(), "problems when unregister asap br rc - ignore"
                     + re.getLocalizedMessage());
         }
@@ -420,8 +437,7 @@ public class ASAPActivity extends AppCompatActivity implements
         Log.d(this.getLogStart(), "shutdown asap received bc receiver");
         try {
             this.unregisterReceiver(this.getASAPAndroidPeer());
-        }
-        catch(RuntimeException re) {
+        } catch (RuntimeException re) {
             Log.d(this.getLogStart(), "problems when unregister asap received bcr - ignore"
                     + re.getLocalizedMessage());
         }
@@ -440,7 +456,9 @@ public class ASAPActivity extends AppCompatActivity implements
     Both must be stopped whenever an activity gets inactive and re-launched
      */
 
-    /** currently, we have only two stats: on and off */
+    /**
+     * currently, we have only two stats: on and off
+     */
     @CallSuper
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -515,8 +533,7 @@ public class ASAPActivity extends AppCompatActivity implements
         if (mBound) {
             try {
                 this.unbindService(mConnection);
-            }
-            catch(RuntimeException re) {
+            } catch (RuntimeException re) {
                 Log.d(this.getLogStart(), "exception when trying to unbind: "
                         + re.getLocalizedMessage());
             }
@@ -537,9 +554,9 @@ public class ASAPActivity extends AppCompatActivity implements
             mBound = true;
 
             Log.d(getLogStart(), "asap activity got connected to asap service");
-            if(messageStorage != null && messageStorage.size() > 0) {
+            if (messageStorage != null && messageStorage.size() > 0) {
                 Log.d(getLogStart(), "send stored service messages | #msg = " + messageStorage.size());
-                for(Message msg : messageStorage) {
+                for (Message msg : messageStorage) {
                     sendMessage2Service(msg);
                 }
 
@@ -559,9 +576,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
-     *
-     *  <br/><br/>
-     *  This method informs that this device is now a discoverable Bluetooth device
+     * <p>
+     * <br/><br/>
+     * This method informs that this device is now a discoverable Bluetooth device
      */
     @Override
     @CallSuper
@@ -573,9 +590,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
-     *
-     *  <br/><br/>
-     *  This method informs that this device is no longer a discoverable Bluetooth device
+     * <p>
+     * <br/><br/>
+     * This method informs that this device is no longer a discoverable Bluetooth device
      */
     @Override
     @CallSuper
@@ -587,9 +604,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
-     *
-     *  <br/><br/>
-     *  This method informs that bluetooth is enabled now.
+     * <p>
+     * <br/><br/>
+     * This method informs that bluetooth is enabled now.
      */
     @Override
     @CallSuper
@@ -601,9 +618,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
-     *
-     *  <br/><br/>
-     *  This method informs that bluetooth is disabled now.
+     * <p>
+     * <br/><br/>
+     * This method informs that bluetooth is disabled now.
      */
     @Override
     @CallSuper
@@ -615,10 +632,11 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
+     * <p>
+     * <br/><br/>
+     * This method called whenever list of connected peers changed. This happens when
+     * a connection is created or broken. The current list of peers comes as parameter.
      *
-     *  <br/><br/>
-     *  This method called whenever list of connected peers changed. This happens when
-     *  a connection is created or broken. The current list of peers comes as parameter.
      * @param peerList
      */
     @Override
@@ -646,9 +664,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
-     *
-     *  <br/><br/>
-     *  This method informs that bluetooth discovery started.
+     * <p>
+     * <br/><br/>
+     * This method informs that bluetooth discovery started.
      */
     @Override
     @CallSuper
@@ -660,9 +678,9 @@ public class ASAPActivity extends AppCompatActivity implements
      * Application developers can use this method like life-cycle methods in Android
      * (onStart() etc.). Overwrite this method to get informed about changes in environment.
      * Do not call this method yourself. Do not forget to call the super method if you overwrite.
-     *
-     *  <br/><br/>
-     *  This method informs that bluetooth discovery stopped.
+     * <p>
+     * <br/><br/>
+     * This method informs that bluetooth discovery stopped.
      */
     @Override
     @CallSuper
@@ -695,5 +713,7 @@ public class ASAPActivity extends AppCompatActivity implements
         return this.getASAPAndroidPeer().getBTDiscovery();
     }
 
-    public boolean isASAPHubsConnected() { return this.getASAPAndroidPeer().getASAPHubsConnected(); }
+    public boolean isASAPHubsConnected() {
+        return this.getASAPAndroidPeer().getASAPHubsConnected();
+    }
 }
