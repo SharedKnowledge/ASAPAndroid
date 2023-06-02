@@ -45,6 +45,10 @@ public class HubConnectionManagerServiceSide
         }else {
             // TODO implement
             // TODO extend ASAPHubManager to be able to disconnect from certain hub
+            /* comment: no need for an extension:
+            Hub manager is meant to disconnect all hubs which are connected
+            but no longer in that transmitted list
+             */
         }
     }
 
