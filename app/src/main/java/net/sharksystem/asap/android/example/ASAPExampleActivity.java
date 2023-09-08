@@ -33,6 +33,8 @@ public class ASAPExampleActivity extends ASAPActivity {
         View startLoRaButton = findViewById(R.id.startLoRa);
         View stopLoRaButton = findViewById(R.id.stopLoRa);
         View startHubTester = findViewById(R.id.onASAPHubTesterButton);
+        View startHubPerformanceTest = findViewById(R.id.onASAPHubPerformanceTestButton);
+
 
 
         if (view == startWifiButton) {
@@ -72,6 +74,9 @@ public class ASAPExampleActivity extends ASAPActivity {
         } else if (view == startHubTester) {
             Log.d(this.getLogStart(), "start Hub Tester button pressed");
             this.startActivity(new Intent(this, ASAPExampleHubTesterActivity.class));
+        } else if (view == startHubPerformanceTest) {
+            Log.d(this.getLogStart(), "start Hub Performance Test button pressed");
+            this.startActivity(new Intent(this, ASAPExamplePerformanceTestActivity.class));
         }
     }
 

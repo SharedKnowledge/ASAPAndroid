@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutTop"
+        tools:layout_editor_absoluteX="0dp">
+
+        <Space
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/performanceTestMessageSize"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:hint="number of bytes"
+            android:inputType="numberDecimal" />
+
+        <Space
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/sendTestMessageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="send" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="0dp">
+
+        <Space
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="your uri:"/>
+
+        <Space
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/currentUriTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listViewReceivedMessages"
+        android:layout_width="300dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="52dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="connected hubs:"
+        app:layout_constraintBottom_toTopOf="@+id/listViewAvailableHubs"
+        app:layout_constraintStart_toStartOf="@+id/listViewAvailableHubs" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+

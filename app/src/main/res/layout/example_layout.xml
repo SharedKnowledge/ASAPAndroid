@@ -96,6 +96,11 @@
         android:layout_gravity="left|top"
         android:onClick="onClick"
         android:text="Hub Tester" />
+    <Button
+        android:id="@+id/onASAPHubPerformanceTestButton"
+        android:layout_gravity="left|top"
+        android:onClick="onClick"
+        android:text="Hub Performance" />
 
     <TextView
         android:id="@+id/onlinePeersList"

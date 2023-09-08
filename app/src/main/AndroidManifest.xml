@@ -43,6 +43,7 @@
         <activity android:name="net.sharksystem.asap.android.example.ASAPExampleMessagingActivity"/>
         <activity android:name="net.sharksystem.asap.android.example.ASAPExampleHubManagementActivity"/>
         <activity android:name="net.sharksystem.asap.android.example.ASAPExampleHubTesterActivity"/>
+        <activity android:name="net.sharksystem.asap.android.example.ASAPExamplePerformanceTestActivity"/>
         <service
             android:name="net.sharksystem.asap.android.service.ASAPService"
             android:enabled="true"
