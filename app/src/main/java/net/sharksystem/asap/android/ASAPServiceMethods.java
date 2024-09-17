@@ -36,6 +36,10 @@ public class ASAPServiceMethods {
     public static final int HUB_CONNECTION_CHANGED = 300;
     public static final int ASK_HUB_CONNECTIONS = 301;
 
+    ///////////// asap tcp encounter
+    public static final int START_TCP_ENCOUNTER = 400;
+    public static final int STOP_TCP_ENCOUNTER = 401;
+
     // tags for putting extra data to messages or broadcasts
     public static final String URI_TAG = "ASAP_MESSAGE_URI";
     public static final String ASAP_MESSAGE_TAG = "ASAP_MESSAGE";
@@ -46,5 +50,7 @@ public class ASAPServiceMethods {
     public static final String READABLE_NAME_TAG = "ASAP_READABLE_NAME";
     public static final String PERSISTENT = "ASAP_PERSISTENT";
     public static final String BOOLEAN_PARAMETER = "ASAP_BOOLEAN_VALUE";
+    public static final String STRING_PARAMETER = "ASAP_STRING_VALUE";
+    public static final String INT_PARAMETER = "ASAP_INT_VALUE";
 
 }

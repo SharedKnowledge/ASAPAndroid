@@ -318,6 +318,21 @@ public class ASAPActivity extends AppCompatActivity implements
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
+    //                                 ASAP TCP Encounter                              //
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Starts a TCP encounter to a server socket on the given host and port.
+     * @param host the host/ ip address to connect to
+     * @param port the port to connect to
+     */
+    public void startTCPEncounter(String host, int port) {
+        Log.d(this.getLogStart(), "send message to service: start TCP Encounter");
+        this.sendMessage2Service(MessageFactory.createConnectToServerSocketMessage(host, port));
+
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
     //                                 ASAP hub management                             //
     /////////////////////////////////////////////////////////////////////////////////////
 

@@ -34,7 +34,7 @@ public class ASAPExampleActivity extends ASAPActivity {
         View stopLoRaButton = findViewById(R.id.stopLoRa);
         View startHubTester = findViewById(R.id.onASAPHubTesterButton);
         View startHubPerformanceTest = findViewById(R.id.onASAPHubPerformanceTestButton);
-
+        View startTCPEncounterButton = findViewById(R.id.onASAPTCPEncounterButton);
 
 
         if (view == startWifiButton) {
@@ -62,7 +62,7 @@ public class ASAPExampleActivity extends ASAPActivity {
         */
         else if (view == findViewById(R.id.startDiscoverableAndDiscovery)) {
             Log.d(this.getLogStart(),
-                    "start disoverable and discover button pressed - send messages");
+                    "start discoverable and discover button pressed - send messages");
             super.startBluetoothDiscovery();
             super.startBluetoothDiscoverable();
         } else if (view == startLoRaButton) {
@@ -77,6 +77,9 @@ public class ASAPExampleActivity extends ASAPActivity {
         } else if (view == startHubPerformanceTest) {
             Log.d(this.getLogStart(), "start Hub Performance Test button pressed");
             this.startActivity(new Intent(this, ASAPExamplePerformanceTestActivity.class));
+        }else if (view == startTCPEncounterButton) {
+            Log.d(this.getLogStart(), "start TCP Encounter button pressed");
+            this.startActivity(new Intent(this, ASAPExampleTCPEncounterActivity.class));
         }
     }
 

@@ -29,4 +29,14 @@ public class MessageFactory {
     public static Message createAskForActiveHubConnections() {
         return Message.obtain(null, ASAPServiceMethods.ASK_HUB_CONNECTIONS, 0, 0);
     }
+
+    // Connect to server socket of target ASAPPeer
+    public static Message createConnectToServerSocketMessage(String host, int port) {
+        Message msg = Message.obtain(null, ASAPServiceMethods.START_TCP_ENCOUNTER, 0, 0);
+        Bundle bundle = new Bundle();
+        bundle.putString(ASAPServiceMethods.STRING_PARAMETER, host);
+        bundle.putInt(ASAPServiceMethods.INT_PARAMETER, port);
+        msg.setData(bundle);
+        return msg;
+    }
 }

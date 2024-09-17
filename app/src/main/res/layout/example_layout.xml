@@ -102,6 +102,11 @@
         android:onClick="onClick"
         android:text="Hub Performance" />
 
+    <Button
+        android:id="@+id/onASAPTCPEncounterButton"
+        android:layout_gravity="left|top"
+        android:onClick="onClick"
+        android:text="TCP Encounter" />
     <TextView
         android:id="@+id/onlinePeersList"
         android:layout_gravity="left|bottom"

@@ -15,6 +15,7 @@ import net.sharksystem.hub.peerside.AbstractHubConnectorDescription;
 import net.sharksystem.hub.peerside.HubConnectorDescription;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Class handles messages on service side.
@@ -118,14 +119,19 @@ class ASAPMessageHandler extends Handler {
                 // ASK_HUB_CONNECTIONS; no parameters.
                 case ASAPServiceMethods.ASK_HUB_CONNECTIONS:
                     this.asapService.getHubConnectionManager().refreshHubList();
-
+                case ASAPServiceMethods.START_TCP_ENCOUNTER:
+                    String host = msg.getData().getString(ASAPServiceMethods.STRING_PARAMETER);
+                    int port = msg.getData().getInt(ASAPServiceMethods.INT_PARAMETER);
+                    this.asapService.connectToServerSocket(host, port);
+                    break;
                 default:
                     super.handleMessage(msg);
             }
         }
 //        catch(ASAPException e) {
         catch (Throwable e) {
-            Log.d(this.getLogStart(), e.getLocalizedMessage());
+//            Log.d(this.getLogStart(), e.getMessage());
+            e.printStackTrace();
         }
     }
 

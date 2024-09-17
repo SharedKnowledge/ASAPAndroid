@@ -19,12 +19,14 @@ import net.sharksystem.asap.ASAPMessages;
 import net.sharksystem.asap.ASAPPeer;
 import net.sharksystem.asap.ASAPPeerFS;
 import net.sharksystem.asap.ASAPPeerService;
+import net.sharksystem.asap.EncounterConnectionType;
 import net.sharksystem.asap.android.ASAPChunkReceivedBroadcastIntent;
 import net.sharksystem.asap.android.ASAPServiceCreationIntent;
 import net.sharksystem.asap.android.Util;
 import net.sharksystem.asap.android.bluetooth.BluetoothEngine;
 import net.sharksystem.asap.android.lora.LoRaEngine;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.android.tcp_encounter.TCPClientSocketThread;
 import net.sharksystem.asap.android.wifidirect.WifiP2PEngine;
 import net.sharksystem.asap.engine.ASAPChunkAssimilatedListener;
 import net.sharksystem.hub.HubConnectionManager;
@@ -32,9 +34,12 @@ import net.sharksystem.hub.HubConnectionManagerMessageHandler;
 import net.sharksystem.hub.peerside.ASAPHubManager;
 import net.sharksystem.hub.peerside.ASAPHubManagerImpl;
 import net.sharksystem.utils.SerializationHelper;
+import net.sharksystem.utils.streams.StreamPair;
+import net.sharksystem.utils.streams.StreamPairImpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -345,6 +350,12 @@ public class ASAPService extends Service
         if(ASAPLoRaEngine != null) {
             ASAPLoRaEngine.stop();
         }
+    }
+
+    public void connectToServerSocket(String host, int port) {
+        TCPClientSocketThread tcpClientSocketThread =
+                new TCPClientSocketThread(this.getASAPEncounterManager(), host, port);
+        tcpClientSocketThread.start();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
