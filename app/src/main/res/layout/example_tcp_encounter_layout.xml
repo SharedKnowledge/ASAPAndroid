@@ -6,37 +6,6 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-        tools:layout_editor_absoluteX="0dp">
-
-        <Button
-            android:id="@+id/connectButtonTCPEncounter"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:text="connect"
-            tools:layout_editor_absoluteX="41dp"
-            tools:layout_editor_absoluteY="81dp" />
-
-        <Space
-            android:layout_width="20dp"
-            android:layout_height="wrap_content" />
-
-        <Button
-            android:id="@+id/disconnectButtonTCPEncounter"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:text="disconnect"
-            tools:layout_editor_absoluteX="112dp"
-            tools:layout_editor_absoluteY="16dp" />
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -70,9 +39,56 @@
         <Space
             android:layout_width="20dp"
             android:layout_height="wrap_content" />
-
-
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        tools:layout_editor_absoluteX="0dp">
+
+        <Button
+            android:id="@+id/connectButtonTCPEncounter"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="connect"
+            tools:layout_editor_absoluteX="41dp"
+            tools:layout_editor_absoluteY="81dp" />
+
+        <Space
+            android:layout_width="20dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/disconnectButtonTCPEncounter"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="disconnect"
+            tools:layout_editor_absoluteX="112dp"
+            tools:layout_editor_absoluteY="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        tools:layout_editor_absoluteX="0dp">
+
+        <TextView
+            android:id="@+id/textViewTCPEncounterStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

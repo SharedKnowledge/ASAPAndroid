@@ -100,6 +100,10 @@ public class ASAPServiceRequestNotifyBroadcastReceiver extends BroadcastReceiver
                 Log.d(this.getLogStart(), "notified hubs disconnected");
                 this.notificationListener.asapNotifyHubsDisconnected();
                 break;
+            case ASAPServiceRequestNotifyIntent.ASAP_TCP_ENCOUNTER_SUCCESS:
+                Log.d(this.getLogStart(), "notified TCP encounter success");
+                this.notificationListener.asapNotifyTCPEncounterSuccess();
+                break;
             case ASAPServiceRequestNotifyIntent.ASAP_NOTIFY_HUB_LIST_AVAILABLE:
                 Log.d(this.getLogStart(), "notified received current hub list");
                 byte[] serializedHubDescriptions = intent.getByteArrayExtra(ASAPServiceRequestNotifyIntent.ASAP_PARAMETER_1);

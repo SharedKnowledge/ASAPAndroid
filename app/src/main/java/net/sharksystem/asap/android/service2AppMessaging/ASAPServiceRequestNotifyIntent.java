@@ -19,6 +19,7 @@ public class ASAPServiceRequestNotifyIntent extends Intent {
     public static final int ASAP_NOTIFY_HUBS_CONNECTED = 107;
     public static final int ASAP_NOTIFY_HUBS_DISCONNECTED = 108;
     public static final int ASAP_NOTIFY_HUB_LIST_AVAILABLE = 109;
+    public static final int ASAP_TCP_ENCOUNTER_SUCCESS = 110;
 
     public static final String ASAP_PARAMETER_1 = "ASAP_PARAMETER_1";
 

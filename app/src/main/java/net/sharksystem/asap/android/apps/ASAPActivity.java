@@ -30,6 +30,7 @@ import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceNotification
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestListener;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyBroadcastReceiver;
 import net.sharksystem.asap.android.service2AppMessaging.ASAPServiceRequestNotifyIntent;
+import net.sharksystem.asap.android.tcpEncounter.TCPEncounterManagerApplicationSide;
 import net.sharksystem.hub.HubConnectionManager;
 import net.sharksystem.hub.peerside.HubConnectorDescription;
 
@@ -50,6 +51,7 @@ public class ASAPActivity extends AppCompatActivity implements
 
     private ASAPAndroidPeer asapAndroidPeer;
     private HubConnectionManagerApplicationSide hubConnectionManager;
+    private TCPEncounterManagerApplicationSide tcpEncounterManager;
 
     protected ASAPAndroidPeer getASAPAndroidPeer() {
         if (!ASAPAndroidPeer.peerInitialized()) {
@@ -74,6 +76,19 @@ public class ASAPActivity extends AppCompatActivity implements
             this.hubConnectionManager = new HubConnectionManagerApplicationSide(this);
         }
         return this.hubConnectionManager;
+    }
+
+    /**
+     * Get the TCP encounter manager for this application side.
+     * Is used to start a TCP encounter to a server socket on the given host and port.
+     * @return the TCP encounter manager
+     */
+    protected TCPEncounterManagerApplicationSide getTCPEncounterManager() {
+        if (this.tcpEncounterManager == null) {
+            Log.d(this.getLogStart(), "setup tcp encounter manager");
+            this.tcpEncounterManager = new TCPEncounterManagerApplicationSide(this);
+        }
+        return this.tcpEncounterManager;
     }
 
     /**
@@ -315,21 +330,6 @@ public class ASAPActivity extends AppCompatActivity implements
     public void startBluetoothDiscovery() {
         Log.d(this.getLogStart(), "send message to service: start BT Discovery");
         this.sendMessage2Service(ASAPServiceMethods.START_BLUETOOTH_DISCOVERY);
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////////
-    //                                 ASAP TCP Encounter                              //
-    /////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Starts a TCP encounter to a server socket on the given host and port.
-     * @param host the host/ ip address to connect to
-     * @param port the port to connect to
-     */
-    public void startTCPEncounter(String host, int port) {
-        Log.d(this.getLogStart(), "send message to service: start TCP Encounter");
-        this.sendMessage2Service(MessageFactory.createConnectToServerSocketMessage(host, port));
-
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -673,6 +673,14 @@ public class ASAPActivity extends AppCompatActivity implements
     @Override
     public void asapNotifyHubListAvailable(List<HubConnectorDescription> hubConnectorDescriptions) {
         this.hubConnectionManager.updateHubList(hubConnectorDescriptions);
+    }
+
+    /**
+     * Notifies that the TCP encounter to a target peer was successful.
+     */
+    @Override
+    public void asapNotifyTCPEncounterSuccess() {
+        this.getTCPEncounterManager().notifyTCPEncounterSuccess();
     }
 
     /**

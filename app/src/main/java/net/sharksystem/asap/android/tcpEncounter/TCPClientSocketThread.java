@@ -1,4 +1,4 @@
-package net.sharksystem.asap.android.tcp_encounter;
+package net.sharksystem.asap.android.tcpEncounter;
 
 import android.util.Log;
 
@@ -19,11 +19,22 @@ public class TCPClientSocketThread extends Thread {
     private final ASAPEncounterManager encounterManager;
     private final String host;
     private final int port;
+    private TCPEncounterListener listener;
 
     public TCPClientSocketThread(ASAPEncounterManager encounterManager, String host, int port) {
         this.encounterManager = encounterManager;
         this.host = host;
         this.port = port;
+    }
+
+    public void setListener(TCPEncounterListener listener) {
+        this.listener = listener;
+    }
+
+    private void notifyListener() {
+        if(this.listener != null) {
+            this.listener.onEncounterSuccess();
+        }
     }
 
     public void run() {
@@ -33,6 +44,7 @@ public class TCPClientSocketThread extends Thread {
             StreamPair streamPair = StreamPairImpl.getStreamPair(socket.getInputStream(), socket.getOutputStream());
             Log.d(this.getLogStart(), "connected - going to call handleEncounter");
             encounterManager.handleEncounter(streamPair, EncounterConnectionType.AD_HOC_LAYER_2_NETWORK);
+            notifyListener();
         } catch (IOException e) {
             Log.e(this.getLogStart(), "could not connect: " + e.getLocalizedMessage());
         }

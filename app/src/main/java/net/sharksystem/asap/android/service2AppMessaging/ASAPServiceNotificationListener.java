@@ -25,4 +25,6 @@ public interface ASAPServiceNotificationListener {
     void asapNotifyHubsDisconnected();
 
     void asapNotifyHubListAvailable(List<HubConnectorDescription> hubConnectorDescriptions);
+
+    void asapNotifyTCPEncounterSuccess();
 }
